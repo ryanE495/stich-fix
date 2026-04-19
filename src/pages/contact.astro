@@ -1,0 +1,327 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site, seo } from '../config/site';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ContactPage',
+  mainEntity: {
+    '@type': 'LocalBusiness',
+    '@id': seo.businessId,
+  },
+};
+---
+
+<Layout
+  active="contact"
+  title={`Contact ${site.name} | Text a Photo, Get a Quote`}
+  description="Text a photo of your broken gear, get a repair quote in 24 hours. Free local pickup in Delta, Montrose, Grand Junction, Ridgway, Ouray, and Telluride."
+  canonicalPath="/contact"
+  jsonLd={jsonLd}
+>
+  <!-- HEAD -->
+  <section class="page-head" data-screen-label="01 Contact Head">
+    <div class="wrap">
+      <div class="section-num">§ Get In Touch</div>
+      <h1>Let's get your gear <em>back in the field.</em></h1>
+      <p class="page-sub">Text me a photo of what's broken. I'll tell you what it'll cost and when I can have it back to you. No estimate fees, no runaround.</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <section class="main" data-screen-label="02 Form">
+    <div class="wrap">
+      <div class="main-grid">
+
+        <!-- FORM -->
+        <div class="form">
+          <div class="form-kicker">§ 01 — Intake Form</div>
+          <h2>Send me the <em>details.</em></h2>
+          <p class="form-lead">Fill this out and I'll come back inside 24 hours with a real quote and a turnaround date. Texts get the fastest reply.</p>
+
+          <!--
+            TODO (Claude Code): wire this form to a backend.
+            Options: Netlify Forms (add `netlify` attribute), Formspree, or a custom /api/contact endpoint.
+            File uploads need server-side storage — S3/R2 + a pre-signed URL flow is typical.
+          -->
+          <form id="contact-form" method="POST" action="/api/contact">
+            <div class="field">
+              <label for="f-name"><span>01 · Your Name</span><span class="num">Required</span></label>
+              <input id="f-name" name="name" type="text" placeholder="First and last" required />
+            </div>
+            <div class="field">
+              <label for="f-phone"><span>02 · Phone</span><span class="num">Required</span></label>
+              <input id="f-phone" name="phone" type="tel" placeholder="(970) 555-0000" required />
+            </div>
+            <div class="field">
+              <label for="f-desc"><span>03 · What's broken</span><span class="num">Required</span></label>
+              <textarea id="f-desc" name="description" placeholder={'Short description — e.g. "Hilleberg tipi, 8" tear near door, stove jack intact"'} required></textarea>
+            </div>
+            <div class="field">
+              <label><span>04 · Photos</span><span>Up to 3</span></label>
+              <div class="upload">
+                <label class="upload-slot"><span class="plus">+</span>Photo 01<input type="file" name="photo1" accept="image/*" hidden /></label>
+                <label class="upload-slot"><span class="plus">+</span>Photo 02<input type="file" name="photo2" accept="image/*" hidden /></label>
+                <label class="upload-slot"><span class="plus">+</span>Photo 03<input type="file" name="photo3" accept="image/*" hidden /></label>
+              </div>
+            </div>
+            <div class="field" style="border-bottom:none; padding-bottom:0">
+              <label><span>05 · Urgency</span><span>Pick one</span></label>
+              <div class="urgency">
+                <label class="is-checked">
+                  <input type="radio" name="urgency" value="standard" checked />
+                  Standard
+                  <span class="u-sub">3–7 Days</span>
+                </label>
+                <label>
+                  <input type="radio" name="urgency" value="rush" />
+                  Rush
+                  <span class="u-sub">Ask — extra charge</span>
+                </label>
+                <label>
+                  <input type="radio" name="urgency" value="asking" />
+                  Just Asking
+                  <span class="u-sub">No rush / Estimate only</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="submit-row">
+              <button type="submit" class="btn">Send it over &nbsp;→</button>
+              <span class="submit-note">Free estimate · No obligation</span>
+            </div>
+          </form>
+        </div>
+
+        <!-- DETAILS -->
+        <aside class="details">
+          <div class="detail-block">
+            <h4>Call or Text</h4>
+            <a href={site.phoneHref} class="value">{site.phoneDisplay}</a>
+            <p class="note">Texts answered faster than calls. Photos welcome.</p>
+          </div>
+          <div class="detail-block">
+            <h4>Based In</h4>
+            <span class="value">{site.location}</span>
+          </div>
+          <div class="detail-block">
+            <h4>Hours</h4>
+            <span class="value">{site.hours}</span>
+            <p class="note">Closed Sundays. Texts get answered evenings too.</p>
+          </div>
+
+          <div class="call-panel">
+            <div class="k">Fastest path</div>
+            <h3>Standing next to the broken gear? Just text a photo.</h3>
+            <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
+          </div>
+        </aside>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE AREA -->
+  <section class="area" data-screen-label="03 Area">
+    <div class="wrap">
+      <div class="section-num">§ 02 — Service Area</div>
+      <h2>Colorado's Western Slope. <em>And then some.</em></h2>
+      <div class="area-grid">
+        <div class="area-cell">
+          <div class="k">Local pickup &amp; drop-off</div>
+          <h3>The Slope</h3>
+          <p>{site.serviceArea.join(' · ')}. Free local pickup with enough notice.</p>
+        </div>
+        <div class="area-cell">
+          <div class="k">Regional shipping</div>
+          <h3>CO &amp; UT</h3>
+          <p>Happy to take jobs from anywhere in Colorado or Utah. Standard shipping, fast turnaround.</p>
+        </div>
+        <div class="area-cell">
+          <div class="k">Commercial</div>
+          <h3>Nationally</h3>
+          <p>I'll send a prepaid label for larger commercial accounts anywhere in the US. Net-30 available.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLOSE -->
+  <section class="close" data-screen-label="04 Close">
+    <div class="wrap">
+      <div class="close-inner">
+        <div class="section-num">§ 03 — One Last Thing</div>
+        <h2>{site.name} is a <em>local one-person shop</em> based in Montrose, Colorado.</h2>
+        <p>Every repair comes straight through me — no middleman, no outsourcing. If it's wrong, I fix it. If I can't do it, I'll tell you who can.</p>
+        <div class="close-sig">Ryan</div>
+        <div class="close-sig-line">— Proprietor · {site.name}</div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Urgency radio visual toggle
+  document.querySelectorAll<HTMLLabelElement>('.urgency label').forEach((l) => {
+    l.addEventListener('click', () => {
+      document.querySelectorAll('.urgency label').forEach((x) => x.classList.remove('is-checked'));
+      l.classList.add('is-checked');
+    });
+  });
+</script>
+
+<style>
+  .page-head { padding: 72px 0 72px; background: var(--canvas-light); }
+  .page-head h1 {
+    font-size: clamp(56px, 8.4vw, 128px); line-height: 0.94;
+    letter-spacing: -0.035em; max-width: 14ch; margin-top: 20px;
+  }
+  .page-head h1 em { font-style: italic; font-weight: 400; color: var(--river); }
+  .page-sub { margin-top: 36px; font-size: 20px; line-height: 1.5; max-width: 56ch; color: var(--ink); }
+
+  .main { padding: 0 0 90px; background: var(--canvas-light); }
+  .main-grid {
+    display: grid; grid-template-columns: 1.3fr 1fr; gap: 80px;
+    align-items: start; border-top: 2px solid var(--charcoal); padding-top: 72px;
+  }
+
+  .form-kicker {
+    font-family: var(--f-mono); font-size: 12px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--rust); margin-bottom: 14px;
+  }
+  .form h2 { font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -0.02em; margin-bottom: 12px; }
+  .form h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .form-lead { font-size: 16px; color: var(--ink); max-width: 48ch; margin: 0 0 36px; }
+
+  form { display: grid; gap: 0; }
+  .field { display: block; padding: 20px 0; border-bottom: 1px solid var(--rule-strong); }
+  .field label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--f-mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 10px;
+  }
+  .field label .num { color: var(--rust); }
+  .field input, .field textarea, .field select {
+    width: 100%; border: none; background: transparent;
+    padding: 6px 0; font-family: var(--f-serif);
+    font-size: 22px; font-weight: 500; letter-spacing: -0.01em;
+    color: var(--charcoal); outline: none; resize: none;
+  }
+  .field input::placeholder, .field textarea::placeholder { color: #a59d91; }
+  .field textarea {
+    min-height: 90px; font-size: 19px; font-weight: 400;
+    line-height: 1.5; font-family: var(--f-sans); padding-top: 10px;
+  }
+
+  .upload { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .upload-slot {
+    width: 110px; height: 110px;
+    border: 1.5px dashed var(--rule-strong);
+    display: grid; place-items: center;
+    font-family: var(--f-mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); text-align: center;
+    padding: 12px; cursor: pointer;
+    background: transparent; border-radius: 2px;
+  }
+  .upload-slot:hover { border-color: var(--charcoal); color: var(--charcoal); }
+  .upload-slot .plus {
+    font-family: var(--f-serif); font-size: 32px;
+    color: var(--rust); display: block;
+    margin-bottom: 4px; line-height: 1;
+  }
+
+  .urgency { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .urgency label {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 18px 16px; border: 1.5px solid var(--rule-strong);
+    cursor: pointer; font-family: var(--f-serif);
+    font-size: 18px; font-weight: 500; letter-spacing: -0.01em;
+    color: var(--charcoal); border-radius: 2px;
+    transition: border-color 0.12s, background 0.12s;
+    background: transparent; justify-content: flex-start;
+    text-transform: none; margin: 0;
+  }
+  .urgency label:hover { border-color: var(--charcoal); }
+  .urgency label input { display: none; }
+  .urgency label .u-sub {
+    font-family: var(--f-mono); font-size: 10px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400;
+  }
+  .urgency label.is-checked {
+    background: var(--charcoal); color: var(--canvas); border-color: var(--charcoal);
+  }
+  .urgency label.is-checked .u-sub { color: #d9c9a8; }
+
+  .submit-row { margin-top: 36px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .submit-note { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+
+  .details { position: sticky; top: 100px; }
+  .detail-block { border-top: 1px solid var(--rule-strong); padding: 22px 0; }
+  .detail-block:first-child { border-top: 2px solid var(--charcoal); padding-top: 22px; }
+  .detail-block:last-child { border-bottom: 1px solid var(--rule-strong); }
+  .detail-block h4 {
+    font-family: var(--f-mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 10px; font-weight: 500;
+  }
+  .detail-block .value {
+    font-family: var(--f-serif); font-size: 26px; font-weight: 500;
+    letter-spacing: -0.01em; color: var(--charcoal);
+    text-decoration: none; display: block; line-height: 1.15;
+  }
+  .detail-block a.value:hover { color: var(--rust); }
+  .detail-block .note { font-size: 14px; color: var(--ink); margin-top: 8px; line-height: 1.5; }
+
+  .call-panel { margin-top: 36px; padding: 28px; background: var(--charcoal); color: var(--canvas); border-radius: 2px; }
+  .call-panel .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #d9c9a8; margin-bottom: 10px; }
+  .call-panel h3 { color: var(--canvas); font-size: 26px; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: 18px; }
+  .call-panel :global(.btn) {
+    width: 100%; justify-content: center;
+    background: var(--canvas); color: var(--charcoal);
+    border-color: var(--canvas); margin-bottom: 10px;
+  }
+  .call-panel :global(.btn-secondary) { background: transparent; color: var(--canvas); border-color: var(--canvas); }
+  .call-panel :global(.btn-secondary:hover) { background: var(--canvas); color: var(--charcoal); }
+
+  .area { padding: 90px 0; background: var(--river); color: var(--canvas-light); }
+  .area :global(.section-num) { color: #d9c9a8; }
+  .area h2 {
+    color: var(--canvas-light); font-size: clamp(36px, 4.6vw, 60px);
+    letter-spacing: -0.02em; line-height: 1;
+    margin-top: 18px; margin-bottom: 50px; max-width: 18ch;
+  }
+  .area h2 em { font-style: italic; color: #E8CDA9; font-weight: 400; }
+  .area-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    border-top: 1px solid #ffffff33; border-bottom: 1px solid #ffffff33;
+  }
+  .area-cell { padding: 30px 26px; border-right: 1px solid #ffffff33; }
+  .area-cell:last-child { border-right: none; }
+  .area-cell .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #d9c9a8; margin-bottom: 14px; }
+  .area-cell h3 { color: var(--canvas-light); font-size: 26px; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .area-cell p { font-size: 15px; line-height: 1.5; margin: 0; color: #e8dcc4cc; }
+
+  .close {
+    padding: 100px 0; background: var(--canvas);
+    border-top: 2px solid var(--charcoal); border-bottom: 2px solid var(--charcoal);
+  }
+  .close-inner { max-width: 800px; }
+  .close h2 { font-size: clamp(36px, 4.8vw, 56px); letter-spacing: -0.02em; line-height: 1.04; margin-top: 18px; }
+  .close h2 em { font-style: italic; color: var(--rust); font-weight: 400; }
+  .close p { font-size: 19px; line-height: 1.55; margin-top: 28px; max-width: 58ch; }
+  .close-sig { margin-top: 40px; font-family: var(--f-serif); font-style: italic; font-size: 34px; letter-spacing: -0.02em; }
+  .close-sig-line { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; gap: 48px; }
+    .details { position: static; }
+    .urgency { grid-template-columns: 1fr; }
+    .area-grid { grid-template-columns: 1fr; }
+    .area-cell { border-right: none; border-bottom: 1px solid #ffffff33; }
+    .area-cell:last-child { border-bottom: none; }
+  }
+</style>

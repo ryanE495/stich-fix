@@ -1,0 +1,26 @@
+{
+  "name": "Western Slope Stitchworks",
+  "short_name": "WSS",
+  "description": "Heavy-duty gear, canvas, and upholstery repair on Colorado's Western Slope.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#F4ECD8",
+  "theme_color": "#201E1C",
+  "icons": [
+    {
+      "src": "/favicon-16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

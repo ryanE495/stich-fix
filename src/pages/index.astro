@@ -1,0 +1,565 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site, seo } from '../config/site';
+
+const heroImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/sewing-hero.webp';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': seo.businessId,
+  name: site.name,
+  alternateName: 'WSS',
+  description: "Heavy-duty gear, canvas, and upholstery repair on Colorado's Western Slope. Industrial sewing for outfitters, guides, hunters, rafters, and commercial accounts.",
+  url: `${site.url}/`,
+  telephone: seo.telephoneE164,
+  priceRange: '$$',
+  image: seo.ogImage,
+  logo: seo.logoImage,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Montrose',
+    addressRegion: 'CO',
+    postalCode: seo.postalCode,
+    addressCountry: 'US',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: seo.geo.latitude,
+    longitude: seo.geo.longitude,
+  },
+  areaServed: [
+    { '@type': 'City', name: 'Montrose, CO' },
+    { '@type': 'City', name: 'Delta, CO' },
+    { '@type': 'City', name: 'Grand Junction, CO' },
+    { '@type': 'City', name: 'Ridgway, CO' },
+    { '@type': 'City', name: 'Ouray, CO' },
+    { '@type': 'City', name: 'Telluride, CO' },
+    { '@type': 'AdministrativeArea', name: 'Western Slope, Colorado' },
+  ],
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '08:00',
+      closes: '18:00',
+    },
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Repair Services',
+    itemListElement: [
+      {
+        '@type': 'OfferCatalog',
+        name: 'Outdoor & Expedition Gear',
+        itemListElement: [
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Tipi and wall tent repair' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Backpack repair' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Hipbelt and strap rebuilds' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Drybag repair' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Sleeping bag zipper replacement' } },
+        ],
+      },
+      {
+        '@type': 'OfferCatalog',
+        name: 'Raft, Boat & Powersports',
+        itemListElement: [
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Raft frame bag repair' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'UTV and side-by-side seat re-upholstery' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Snowmobile seat re-cover' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Boat seat and bimini repair' } },
+        ],
+      },
+      {
+        '@type': 'OfferCatalog',
+        name: 'Commercial & Upholstery',
+        itemListElement: [
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Gym equipment re-upholstery' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Restaurant booth and bar stool re-cover' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Commercial awning and canvas repair' } },
+          { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'Firehouse gear repair' } },
+        ],
+      },
+    ],
+  },
+  sameAs: [],
+};
+---
+
+<Layout
+  active="home"
+  title={`${site.name} | Gear, Canvas & Upholstery Repair — Montrose, CO`}
+  description="Heavy-duty gear, canvas, and upholstery repair on Colorado's Western Slope. Tipis, packs, rafts, UTV seats, commercial canvas. Serving Montrose, Grand Junction, Telluride, Ouray. Free photo quotes in 24 hours."
+  canonicalPath="/"
+  preloadImage={heroImage}
+  jsonLd={jsonLd}
+>
+  <!-- HERO -->
+  <section class="hero" data-screen-label="01 Hero">
+    <div class="wrap">
+      <div class="hero-meta" data-hero-in style="--hero-delay: 0.05s">
+        <span>Repair shop №001</span>
+        <span class="dot"></span>
+        <span>{site.location.replace(', CO', ' · Colorado')}</span>
+        <span class="dot"></span>
+        <span>Est. On The Western Slope</span>
+      </div>
+      <h1 data-hero-in style="--hero-delay: 0.18s">Heavy-duty gear &amp; canvas repair <em>on the Western Slope.</em></h1>
+      <div class="hero-lower" data-hero-in style="--hero-delay: 0.34s">
+        <div>
+          <p class="hero-sub">
+            Tipis, packs, rafts, tents, UTV seats, commercial canvas — if it's stitched and you broke it, I can probably fix it. Based in Montrose. Serving Delta, Grand Junction, Ouray, Telluride, and everywhere in between.
+          </p>
+          <div class="hero-ctas">
+            <a href={site.phoneHref} class="btn">Call or Text&nbsp;&nbsp;→&nbsp;{site.phoneDisplay}</a>
+            <a href="/contact" class="btn btn-secondary">Send a photo of the damage →</a>
+          </div>
+        </div>
+        <div>
+          <img
+            class="hero-image"
+            src={heroImage}
+            alt="Industrial sewing machine mid-stitch on heavy canvas in the Western Slope Stitchworks workshop"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+          <div class="hero-image-caption">
+            <span>Plate 01 / Workshop</span>
+            <span>Montrose, CO</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARQUEE -->
+  <div class="marquee">
+    <div class="marquee-track">
+      <div class="marquee-group">
+        <span>Tipi patches</span><span class="sep">✦</span>
+        <span>Wall tents</span><span class="sep">✦</span>
+        <span>Hipbelt rebuilds</span><span class="sep">✦</span>
+        <span>Frame bags</span><span class="sep">✦</span>
+        <span>UTV seats</span><span class="sep">✦</span>
+        <span>Dry bags</span><span class="sep">✦</span>
+        <span>Awnings</span><span class="sep">✦</span>
+        <span>Gym pads</span><span class="sep">✦</span>
+        <span>Bimini tops</span><span class="sep">✦</span>
+        <span>Turnout bags</span><span class="sep">✦</span>
+        <span>Canvas, webbing, heavy vinyl</span><span class="sep">✦</span>
+      </div>
+      <div class="marquee-group" aria-hidden="true">
+        <span>Tipi patches</span><span class="sep">✦</span>
+        <span>Wall tents</span><span class="sep">✦</span>
+        <span>Hipbelt rebuilds</span><span class="sep">✦</span>
+        <span>Frame bags</span><span class="sep">✦</span>
+        <span>UTV seats</span><span class="sep">✦</span>
+        <span>Dry bags</span><span class="sep">✦</span>
+        <span>Awnings</span><span class="sep">✦</span>
+        <span>Gym pads</span><span class="sep">✦</span>
+        <span>Bimini tops</span><span class="sep">✦</span>
+        <span>Turnout bags</span><span class="sep">✦</span>
+        <span>Canvas, webbing, heavy vinyl</span><span class="sep">✦</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONAL -->
+  <section class="personal" data-screen-label="02 Personal">
+    <div class="wrap">
+      <div class="personal-grid" data-reveal>
+        <div>
+          <img
+            class="personal-photo"
+            src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp"
+            alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="personal-photo-tag">Ryan, Proprietor · Plate 02</div>
+        </div>
+        <div class="personal-body">
+          <div class="section-num">§ 02 — The Shop</div>
+          <h2 style="margin-top:16px">I'm Ryan. I run the shop. <em>Every stitch comes through me.</em></h2>
+          <p>I run Western Slope Stitchworks out of Montrose. I've been sewing for years, working on everything from outfitter canvas to hunting packs to shop upholstery.</p>
+          <p>I'm a fisherman, a hunter, and a jiu-jitsu guy, so I know what gear gets beat up and how it needs to come back. Fast turnaround, honest pricing, no upsell.</p>
+          <div class="signature">Ryan</div>
+          <div class="signature-line">— Proprietor · One-person shop</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="services" data-screen-label="03 Services">
+    <div class="wrap">
+      <div class="services-head" data-reveal>
+        <div>
+          <div class="section-num">§ 03 — What I Fix</div>
+          <h2 style="margin-top:16px">Three workbenches. One sewing machine. Everything you've torn up.</h2>
+        </div>
+        <div class="services-head-right">
+          If your gear isn't listed below, ask anyway. I've probably either done it, or I know the guy who can.
+        </div>
+      </div>
+      <div class="service-cards" data-reveal style="--reveal-delay: 140ms">
+        <a class="service-card" href="/services#outdoor">
+          <div class="service-num">01 / Outdoor &amp; Expedition</div>
+          <h3>Outdoor &amp; Expedition Gear</h3>
+          <p>Tipis, wall tents, hot tents, packs, dry bags, tarps, bivys, sleeping bag zippers, pack hipbelts and webbing.</p>
+          <div class="service-tags">
+            <span class="service-tag">Tipis</span>
+            <span class="service-tag">Packs</span>
+            <span class="service-tag">Zippers</span>
+            <span class="service-tag">Hipbelts</span>
+            <span class="service-tag">Tarps</span>
+          </div>
+          <span class="service-link">See pricing →</span>
+        </a>
+        <a class="service-card" href="/services#raft">
+          <div class="service-num">02 / Raft, Boat &amp; Powersports</div>
+          <h3>Raft, Boat &amp; Powersports</h3>
+          <p>Frame bags, straps, raft patches, dry bags, UTV and snowmobile seats, boat covers, bimini tops.</p>
+          <div class="service-tags">
+            <span class="service-tag">Frame bags</span>
+            <span class="service-tag">Straps</span>
+            <span class="service-tag">UTV seats</span>
+            <span class="service-tag">Biminis</span>
+          </div>
+          <span class="service-link">See pricing →</span>
+        </a>
+        <a class="service-card" href="/services#commercial">
+          <div class="service-num">03 / Commercial &amp; Custom</div>
+          <h3>Commercial &amp; Custom Work</h3>
+          <p>Gym equipment re-upholstery, restaurant booths, church kneelers and banners, awnings, firehouse gear, custom stitch jobs.</p>
+          <div class="service-tags">
+            <span class="service-tag">Gym pads</span>
+            <span class="service-tag">Booths</span>
+            <span class="service-tag">Awnings</span>
+            <span class="service-tag">Turnout</span>
+          </div>
+          <span class="service-link">See pricing →</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="trust" data-screen-label="04 Trust">
+    <div class="wrap">
+      <div class="trust-grid" data-reveal>
+        <div>
+          <div class="section-num">§ 04 — How I Work</div>
+          <h2 style="margin-top:16px">No middleman. No outsourcing. <em>Just the work.</em></h2>
+        </div>
+        <ul class="trust-list">
+          <li>
+            <span class="num">01</span>
+            <span class="body"><strong>Industrial machine setup</strong>Handles canvas, webbing, and heavy vinyl — up to about four layers.</span>
+          </li>
+          <li>
+            <span class="num">02</span>
+            <span class="body"><strong>3–7 day turnaround</strong>Most repairs go out the door inside a week. Rush work available — just ask.</span>
+          </li>
+          <li>
+            <span class="num">03</span>
+            <span class="body"><strong>Local pickup &amp; drop-off</strong>Delta, Montrose, Grand Junction, Ridgway, Ouray, Telluride.</span>
+          </li>
+          <li>
+            <span class="num">04</span>
+            <span class="body"><strong>Free estimates</strong>Text a photo. I'll tell you if it's worth repairing and what it'll cost. No charge to ask.</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO -->
+  <section class="who" data-screen-label="05 Who">
+    <div class="wrap">
+      <h2 data-reveal>Outfitters. Guide companies. Hunters. Raft outfits. Fire departments. Gyms. Churches. Ranches. <em>If you use it hard, I can fix it.</em></h2>
+      <div class="who-row" data-reveal style="--reveal-delay: 140ms">
+        <div class="who-cell">Outfitters</div>
+        <div class="who-cell">Guide Cos.</div>
+        <div class="who-cell">Hunters</div>
+        <div class="who-cell">Raft Outfits</div>
+        <div class="who-cell">Fire Depts.</div>
+        <div class="who-cell">Gyms</div>
+        <div class="who-cell">Churches</div>
+        <div class="who-cell">Ranches</div>
+      </div>
+      <span class="who-tag" data-reveal style="--reveal-delay: 260ms">— Referrals &amp; commercial accounts welcome —</span>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final" data-screen-label="06 CTA">
+    <div class="wrap">
+      <div class="final-inner" data-reveal>
+        <div class="section-num">§ 06 — Ask First</div>
+        <h2 style="margin-top:22px">Torn, blown out, or <em>"almost trash"</em>?<br/>Send me a photo.</h2>
+        <p>I'll tell you if it's worth repairing and what it'll cost. No charge to ask, no runaround. Just text me the photos.</p>
+        <div class="final-ctas">
+          <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
+          <a href="/contact" class="btn btn-secondary">Use the contact form →</a>
+        </div>
+        <div class="final-small">{site.hours} · {site.location}</div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ========== HOME — scoped to index ========== */
+  .hero { padding: 64px 0 96px; position: relative; }
+  .hero-meta {
+    display: flex; align-items: center; gap: 18px;
+    font-family: var(--f-mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 44px; flex-wrap: wrap;
+  }
+  .hero-meta .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--rust); }
+  .hero h1 {
+    font-size: clamp(52px, 8.2vw, 124px);
+    letter-spacing: -0.04em; font-weight: 600;
+    line-height: 0.94; max-width: 14ch; text-wrap: balance;
+  }
+  .hero h1 em { font-style: italic; font-weight: 400; color: var(--river); display: block; }
+  .hero-lower {
+    margin-top: 56px; display: grid;
+    grid-template-columns: 1.1fr 1fr; gap: 64px;
+    align-items: start; padding-top: 40px;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .hero-sub { margin: 0; font-size: 19px; line-height: 1.55; max-width: 46ch; color: var(--ink); }
+  .hero-ctas { margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-image {
+    aspect-ratio: 5 / 4;
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    background: var(--canvas-dark);
+  }
+  .hero-image-caption {
+    margin-top: 14px; font-family: var(--f-mono);
+    font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted);
+    display: flex; justify-content: space-between;
+  }
+
+  .marquee {
+    background: var(--charcoal); color: var(--canvas);
+    padding: 20px 0; overflow: hidden;
+    font-family: var(--f-serif); font-style: italic;
+    font-weight: 400; font-size: 28px;
+    letter-spacing: -0.01em; white-space: nowrap;
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee-scroll 40s linear infinite;
+  }
+  .marquee-group {
+    display: inline-flex;
+    gap: 40px;
+    padding-left: 40px;
+    flex-shrink: 0;
+  }
+  .marquee-track span { color: var(--canvas); }
+  .marquee-track .sep { color: var(--rust); font-style: normal; font-family: var(--f-sans); }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track { animation: none; }
+  }
+
+  .personal { padding: 96px 0 60px; }
+  .personal-grid { display: grid; grid-template-columns: 320px 1fr; gap: 72px; align-items: start; }
+  .personal-photo {
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    display: block;
+    object-fit: cover;
+    background: var(--canvas-dark);
+  }
+  .personal-photo-tag {
+    margin-top: 12px; font-family: var(--f-mono);
+    font-size: 11px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .personal-body h2 { font-size: clamp(32px, 4vw, 52px); margin-bottom: 28px; }
+  .personal-body h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .personal-body p { font-size: 19px; line-height: 1.65; max-width: 58ch; margin: 0 0 18px; }
+  .signature {
+    margin-top: 36px; font-family: var(--f-serif);
+    font-style: italic; font-size: 34px;
+    color: var(--charcoal); letter-spacing: -0.02em;
+  }
+  .signature-line {
+    font-family: var(--f-mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); margin-top: 8px;
+  }
+
+  .services { padding: 80px 0 90px; border-top: 2px solid var(--charcoal); background: var(--canvas); }
+  .services-head {
+    display: flex; justify-content: space-between;
+    align-items: flex-end; margin-bottom: 52px;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .services-head h2 { font-size: clamp(36px, 4.6vw, 60px); max-width: 14ch; }
+  .services-head-right { max-width: 38ch; color: var(--ink); font-size: 17px; line-height: 1.55; }
+  .service-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .service-card {
+    padding: 36px 32px 40px;
+    border-right: 1px solid var(--rule-strong);
+    display: flex; flex-direction: column;
+    min-height: 420px; text-decoration: none;
+    color: var(--ink); transition: background 0.18s;
+  }
+  .service-card:last-child { border-right: none; }
+  .service-card:hover { background: var(--canvas-dark); }
+  .service-num {
+    font-family: var(--f-mono); font-size: 12px;
+    letter-spacing: 0.14em; color: var(--rust); margin-bottom: 28px;
+  }
+  .service-card h3 { font-size: 28px; letter-spacing: -0.02em; margin-bottom: 18px; max-width: 12ch; }
+  .service-card p { font-size: 15px; line-height: 1.55; color: var(--ink); margin: 0 0 28px; flex-grow: 1; }
+  .service-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; }
+  .service-tag {
+    font-family: var(--f-mono); font-size: 11px;
+    padding: 4px 10px; border: 1px solid var(--rule-strong);
+    border-radius: 100px; color: var(--ink);
+  }
+  .service-link {
+    font-family: var(--f-mono); font-size: 12px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--charcoal); text-decoration: none;
+    border-bottom: 1px solid var(--charcoal);
+    align-self: flex-start; padding-bottom: 2px;
+  }
+
+  .trust { padding: 90px 0; background: var(--canvas-light); }
+  .trust-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .trust h2 { font-size: clamp(34px, 4.2vw, 54px); max-width: 15ch; }
+  .trust h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .trust-list { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule-strong); }
+  .trust-list li {
+    padding: 22px 0; border-bottom: 1px solid var(--rule-strong);
+    display: grid; grid-template-columns: 40px 1fr; gap: 20px; align-items: baseline;
+  }
+  .trust-list .num { font-family: var(--f-mono); font-size: 13px; color: var(--rust); }
+  .trust-list .body { font-size: 18px; line-height: 1.45; }
+  .trust-list .body strong {
+    font-family: var(--f-serif); font-weight: 600;
+    letter-spacing: -0.01em; font-size: 21px;
+    display: block; margin-bottom: 4px;
+  }
+
+  .who { padding: 90px 0; background: var(--river); color: var(--canvas-light); }
+  .who h2 { color: var(--canvas-light); font-size: clamp(30px, 3.4vw, 44px); margin-bottom: 48px; max-width: 22ch; }
+  .who h2 em { font-style: italic; color: #d9c9a8; font-weight: 400; }
+  .who-row {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    border-top: 1px solid #ffffff22; border-bottom: 1px solid #ffffff22;
+  }
+  .who-cell {
+    padding: 22px 12px; border-right: 1px solid #ffffff22;
+    font-family: var(--f-serif); font-weight: 500;
+    font-size: 18px; letter-spacing: -0.01em; text-align: center;
+  }
+  .who-cell:last-child { border-right: none; }
+  .who-tag {
+    font-family: var(--f-mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: #d9c9a8; margin-top: 38px; text-align: center; display: block;
+  }
+
+  .final { padding: 110px 0; background: var(--canvas); border-top: 2px solid var(--charcoal); }
+  .final-inner { max-width: 840px; }
+  .final h2 { font-size: clamp(40px, 5.4vw, 76px); line-height: 1; letter-spacing: -0.03em; margin-bottom: 28px; }
+  .final h2 em { font-style: italic; color: var(--rust); font-weight: 400; }
+  .final p { font-size: 19px; line-height: 1.55; max-width: 54ch; margin: 0 0 36px; }
+  .final-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .final-small {
+    margin-top: 28px; font-family: var(--f-mono);
+    font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .hero-lower { grid-template-columns: 1fr; gap: 36px; }
+    .hero-image { aspect-ratio: 4/3; max-width: 560px; }
+    .personal-grid { grid-template-columns: 1fr; gap: 32px; }
+    .personal-photo { max-width: 280px; }
+    .service-cards { grid-template-columns: 1fr; }
+    .service-card { border-right: none; border-bottom: 1px solid var(--rule-strong); min-height: auto; }
+    .service-card:last-child { border-bottom: none; }
+    .trust-grid { grid-template-columns: 1fr; gap: 36px; }
+    .who-row { grid-template-columns: repeat(2, 1fr); }
+    .who-cell { border-bottom: 1px solid #ffffff22; }
+  }
+
+  /* ========== ANIMATIONS ========== */
+  [data-hero-in] {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: heroIn 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--hero-delay, 0s);
+  }
+  @keyframes heroIn {
+    to { opacity: 1; transform: none; }
+  }
+
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0s);
+    will-change: opacity, transform;
+  }
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-hero-in],
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      animation: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const reveals = document.querySelectorAll<HTMLElement>('[data-reveal]');
+  if (reveals.length && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' }
+    );
+    reveals.forEach((el) => io.observe(el));
+  } else {
+    reveals.forEach((el) => el.classList.add('is-visible'));
+  }
+</script>

@@ -1,0 +1,592 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site, seo } from '../config/site';
+import { categories, dontDo } from '../config/services';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  serviceType: 'Gear, Canvas, and Upholstery Repair',
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': seo.businessId,
+  },
+  areaServed: {
+    '@type': 'AdministrativeArea',
+    name: 'Western Slope, Colorado',
+  },
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Repair Pricing',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        name: 'Tipi and wall tent patches',
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          minPrice: '60',
+          maxPrice: '150',
+          priceCurrency: 'USD',
+        },
+      },
+      {
+        '@type': 'Offer',
+        name: 'Backpack repair',
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          minPrice: '45',
+          maxPrice: '120',
+          priceCurrency: 'USD',
+        },
+      },
+      {
+        '@type': 'Offer',
+        name: 'UTV and side-by-side seat re-upholstery',
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          price: '150',
+          priceCurrency: 'USD',
+        },
+      },
+      {
+        '@type': 'Offer',
+        name: 'Gym equipment pad re-upholstery',
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          minPrice: '75',
+          maxPrice: '180',
+          priceCurrency: 'USD',
+        },
+      },
+    ],
+  },
+};
+---
+
+<Layout
+  active="services"
+  title={`Gear & Canvas Repair Services + Pricing | ${site.name}`}
+  description="Honest pricing for outdoor gear, raft, UTV, and commercial upholstery repair. Tipi patches from $60, backpack repair from $45, UTV seat re-upholstery $150. Free photo quotes in Montrose, GJ, and the Western Slope."
+  canonicalPath="/services"
+  jsonLd={jsonLd}
+>
+  <!-- PAGE HEAD -->
+  <section class="page-head">
+    <div class="wrap">
+      <div class="page-head-grid">
+        <div class="page-head-text">
+          <div class="section-num" data-hero-in style="--hero-delay: 0.05s">§ The Price List</div>
+          <h1 data-hero-in style="--hero-delay: 0.18s">What I Repair</h1>
+          <p class="page-intro" data-hero-in style="--hero-delay: 0.34s">
+            Below is the short list — but if your gear isn't on it, ask anyway. I've probably either done it or I know the guy who can. All pricing reflects real ranges, not "starting at" traps. Send me a photo, I'll give you a real quote inside 24 hours.
+          </p>
+        </div>
+        <div class="page-head-media" data-hero-in style="--hero-delay: 0.48s">
+          <img
+            class="page-head-image"
+            src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-sewing-hero.webp"
+            alt="Industrial sewing machine stitching heavy canvas in the Western Slope Stitchworks shop"
+            loading="eager"
+            decoding="async"
+          />
+          <div class="page-head-caption">
+            <span>Plate 01 / Workshop</span>
+            <span>Montrose, CO</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE CATEGORIES -->
+  {categories.map((cat) => (
+    <section class="cat" id={cat.id}>
+      <div class="wrap">
+        <div class="cat-head" data-reveal>
+          <span class="cat-num">{cat.num}</span>
+          <h2>{cat.title}</h2>
+        </div>
+        <ul class="price-list" data-reveal style="--reveal-delay: 140ms">
+          {cat.items.map((item) => (
+            <li class="price-item">
+              <span class="pi-name">{item.name}</span>
+              <span class="pi-price">{item.price}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  ))}
+
+  <!-- GOT SOMETHING WEIRD -->
+  <section class="weird">
+    <div class="wrap">
+      <div class="weird-inner" data-reveal>
+        <h3>Got Something Weird?</h3>
+        <p>If it's fabric, canvas, vinyl, or webbing and it's under about 4 layers thick, there's a good chance I can do it. Ask.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT I DON'T DO -->
+  <section class="dont">
+    <div class="wrap">
+      <h3 data-reveal>What I Don't Do (Yet)</h3>
+      <ul class="dont-list" data-reveal style="--reveal-delay: 120ms">
+        {dontDo.map((item) => <li>{item}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <!-- HOW I WORK -->
+  <section class="how">
+    <div class="wrap">
+      <h2 data-reveal>How I Work</h2>
+      <div class="how-grid" data-reveal style="--reveal-delay: 140ms">
+        <div class="how-card">
+          <div class="how-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="16" cy="16" r="11" />
+              <path d="M16 9v7l4.5 3" />
+            </svg>
+          </div>
+          <h4>Turnaround</h4>
+          <p>Most jobs in 3–7 days. Rush work available on request.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 28s9-8 9-15a9 9 0 1 0-18 0c0 7 9 15 9 15z" />
+              <circle cx="16" cy="13" r="3.25" />
+            </svg>
+          </div>
+          <h4>Pickup</h4>
+          <p>Free local pickup in Delta, Montrose, Grand Junction, Ridgway, Ouray &amp; Telluride.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 27V8l10-3 10 3v19" />
+              <path d="M6 27h20" />
+              <path d="M12 13h2M12 17h2M12 21h2M18 13h2M18 17h2M18 21h2" />
+            </svg>
+          </div>
+          <h4>Commercial Accounts</h4>
+          <p>Weekly or biweekly pickup. Monthly repair blocks available — ask for pricing.</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 8h20v14H14l-5 5v-5H6z" />
+              <path d="M12 14h10M12 18h7" />
+            </svg>
+          </div>
+          <h4>Estimates</h4>
+          <p>Text me a photo, get a quote in 24 hours. No fee to ask.</p>
+        </div>
+      </div>
+      <div class="how-note" data-reveal style="--reveal-delay: 280ms">$25 shop minimum per job.</div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final">
+    <div class="wrap">
+      <div class="final-inner" data-reveal>
+        <h2>Ready to Send Something In?</h2>
+        <p>Text me a photo of the damage. I'll tell you what it'll cost and when I can have it back to you.</p>
+        <div class="final-ctas">
+          <a href={site.phoneHref} class="btn">Call or Text</a>
+          <a href="/contact" class="btn btn-secondary">Send a Photo</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- PAGE HEAD ---------- */
+  .page-head {
+    padding: 72px 0 56px;
+    background: var(--canvas-light);
+    border-bottom: 2px solid var(--charcoal);
+  }
+  .page-head-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: end;
+  }
+  .page-head h1 {
+    font-size: clamp(48px, 8vw, 112px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    margin-top: 18px;
+    max-width: 12ch;
+  }
+  .page-intro {
+    margin: 32px 0 0;
+    font-size: 18px;
+    line-height: 1.6;
+    max-width: 58ch;
+    color: var(--ink);
+  }
+  .page-head-image {
+    width: 100%;
+    aspect-ratio: 5 / 4;
+    display: block;
+    object-fit: cover;
+    background: var(--canvas-dark);
+  }
+  .page-head-caption {
+    margin-top: 14px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  @media (min-width: 960px) {
+    .page-head-grid {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 64px;
+    }
+  }
+
+  /* ---------- CATEGORY / PRICE LIST ---------- */
+  .cat {
+    padding: 72px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .cat:first-of-type { padding-top: 80px; }
+
+  .cat-head {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .cat-num {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .cat h2 {
+    font-size: clamp(30px, 4vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+
+  .price-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .price-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--rule-strong);
+    align-items: baseline;
+  }
+  .pi-name {
+    font-family: var(--f-serif);
+    font-size: clamp(18px, 2.2vw, 22px);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: var(--charcoal);
+  }
+  .pi-price {
+    font-family: var(--f-mono);
+    font-size: clamp(14px, 1.6vw, 15px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--charcoal);
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- GOT SOMETHING WEIRD (small callout) ---------- */
+  .weird {
+    padding: 48px 0;
+    background: var(--canvas);
+  }
+  .weird-inner {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 32px;
+    align-items: baseline;
+    padding: 28px 0;
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .weird h3 {
+    font-size: clamp(22px, 2.6vw, 28px);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .weird p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.55;
+    max-width: 58ch;
+    color: var(--ink);
+  }
+
+  /* ---------- WHAT I DON'T DO (footnote-feel) ---------- */
+  .dont {
+    padding: 48px 0 56px;
+    background: var(--canvas-light);
+  }
+  .dont h3 {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .dont-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+  }
+  .dont-list li {
+    font-family: var(--f-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+    position: relative;
+    padding-left: 18px;
+  }
+  .dont-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--muted);
+  }
+
+  /* ---------- HOW I WORK ---------- */
+  .how {
+    padding: 88px 0 100px;
+    background: var(--canvas);
+    border-top: 2px solid var(--charcoal);
+  }
+  .how h2 {
+    font-size: clamp(32px, 4.4vw, 52px);
+    letter-spacing: -0.03em;
+    margin: 0 auto 36px;
+    max-width: 14ch;
+    text-align: center;
+  }
+  .how-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .how-card {
+    padding: 32px 16px;
+    border-bottom: 1px solid var(--rule-strong);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 14px;
+  }
+  .how-card:last-child { border-bottom: none; }
+  .how-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    color: var(--river);
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    background: var(--canvas-light);
+    flex-shrink: 0;
+  }
+  .how-icon svg { width: 22px; height: 22px; }
+  .how-card h4 {
+    font-family: var(--f-serif);
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--charcoal);
+  }
+  .how-card p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    max-width: 42ch;
+  }
+  .how-note {
+    margin-top: 28px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ---------- FINAL CTA ---------- */
+  .final {
+    padding: 110px 0;
+    background: var(--charcoal);
+    color: var(--canvas);
+    text-align: left;
+  }
+  .final-inner { max-width: 780px; }
+  .final h2 {
+    color: var(--canvas);
+    font-size: clamp(40px, 5.6vw, 72px);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    max-width: 16ch;
+  }
+  .final p {
+    font-size: 19px;
+    line-height: 1.55;
+    max-width: 54ch;
+    margin: 0 0 32px;
+    color: #d9c9a8;
+  }
+  .final-ctas {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .final :global(.btn) {
+    background: var(--canvas);
+    color: var(--charcoal);
+    border-color: var(--canvas);
+  }
+  .final :global(.btn:hover) {
+    background: #fff;
+    color: var(--charcoal);
+  }
+  .final :global(.btn-secondary) {
+    background: transparent;
+    color: var(--canvas);
+    border-color: var(--canvas);
+  }
+  .final :global(.btn-secondary:hover) {
+    background: var(--canvas);
+    color: var(--charcoal);
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (min-width: 640px) {
+    .how-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0 32px;
+    }
+    .how-card {
+      padding: 36px 16px;
+    }
+    .how-card:nth-last-child(-n+2) { border-bottom: none; }
+  }
+
+  @media (min-width: 960px) {
+    .how h2 {
+      margin-left: 0;
+      margin-right: 0;
+      text-align: left;
+    }
+    .how-grid {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0;
+    }
+    .how-card {
+      align-items: flex-start;
+      text-align: left;
+      gap: 18px;
+      padding: 36px 24px 36px 0;
+      border-right: 1px solid var(--rule-strong);
+      border-bottom: none;
+    }
+    .how-card:not(:first-child) { padding-left: 24px; }
+    .how-card:last-child { border-right: none; padding-right: 0; }
+    .how-note { text-align: left; }
+  }
+
+  @media (max-width: 639px) {
+    .weird-inner { grid-template-columns: 1fr; gap: 12px; }
+    .pi-name { font-size: 16px; }
+    .pi-price { font-size: 13px; }
+    .price-item { gap: 14px; }
+  }
+
+  /* ========== ANIMATIONS ========== */
+  [data-hero-in] {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: heroIn 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--hero-delay, 0s);
+  }
+  @keyframes heroIn {
+    to { opacity: 1; transform: none; }
+  }
+
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0s);
+    will-change: opacity, transform;
+  }
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-hero-in],
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      animation: none;
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  const reveals = document.querySelectorAll<HTMLElement>('[data-reveal]');
+  if (reveals.length && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            io.unobserve(entry.target);
+          }
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' }
+    );
+    reveals.forEach((el) => io.observe(el));
+  } else {
+    reveals.forEach((el) => el.classList.add('is-visible'));
+  }
+</script>

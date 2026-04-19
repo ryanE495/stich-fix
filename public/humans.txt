@@ -1,0 +1,9 @@
+/* TEAM */
+Owner & Sewer: Ryan
+Location: Montrose, Colorado
+Contact: (970) 275-7962
+
+/* SITE */
+Last update: 2026/04/19
+Built with: Astro
+Standards: HTML5, CSS3

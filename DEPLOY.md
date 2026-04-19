@@ -1,0 +1,54 @@
+# Deploy Checklist — Western Slope Stitchworks
+
+## Before first deploy
+
+Binary assets referenced in `<head>` / webmanifest that need to be generated and dropped into `public/`:
+
+- `public/og-image.jpg` — 1200×630, used by Open Graph / Twitter Card
+- `public/logo.png` — square, used by `LocalBusiness.logo` in JSON-LD
+- `public/favicon.ico` — 32×32
+- `public/favicon-16.png` — 16×16
+- `public/favicon-32.png` — 32×32
+- `public/apple-touch-icon.png` — 180×180
+
+Generator tip: https://realfavicongenerator.net will produce all five favicon sizes + the manifest in one pass from a single source image.
+
+## Build & deploy
+
+```bash
+npm install
+npm run build   # writes to dist/ — outputs sitemap-index.xml + sitemap-0.xml automatically
+```
+
+Drop `dist/` onto any static host (Netlify, Vercel, Cloudflare Pages, S3, GH Pages). The `site` field in `astro.config.mjs` must stay as `https://westernslopestitchworks.com` — the sitemap integration won't emit URLs without it.
+
+`robots.txt` points at `/sitemap-index.xml` (the file `@astrojs/sitemap` actually generates — a plain `/sitemap.xml` is not produced).
+
+## After deploy — Ryan's manual steps
+
+These are the highest-ROI SEO moves for a local service business. Do them in this order:
+
+1. **Google Search Console** — https://search.google.com/search-console
+   - Verify the domain (DNS TXT or HTML file)
+   - Submit `https://westernslopestitchworks.com/sitemap-index.xml`
+
+2. **Bing Webmaster Tools** — https://www.bing.com/webmasters
+   - Verify the domain and submit the same sitemap URL
+   - Bing also powers DuckDuckGo results
+
+3. **Google Business Profile** — https://business.google.com
+   - This is the single highest-impact step for a local service business. It's what makes you show up in the map pack when someone searches "canvas repair Montrose".
+   - Add: name, phone, service area (Delta / Montrose / GJ / Ridgway / Ouray / Telluride), hours, photos of your shop and work, service categories.
+
+4. **Local directory listings** — add the business to:
+   - Yelp
+   - Nextdoor (the Montrose neighborhood in particular)
+   - Facebook Business Page
+
+5. **Reviews** — ask your first 3 paying customers for a Google review. Send them the direct review link from your Business Profile rather than "search for us on Google." Conversion is 3–5× higher.
+
+## Notes on what's in the code vs. the SEO spec
+
+- **Email** is omitted from JSON-LD and `humans.txt` by your earlier instruction — add back into `LocalBusiness` in `src/pages/index.astro` when you have one.
+- **Phone** is set to `+1-970-275-7962` in `src/config/site.ts` (`seo.telephoneE164`).
+- **Logo / OG image** URLs in JSON-LD point at `/logo.png` and `/og-image.jpg` — these 404 until you upload the files (step 1 above).

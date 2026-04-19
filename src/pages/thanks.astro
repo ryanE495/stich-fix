@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site } from '../config/site';
+---
+
+<Layout
+  title={`Thanks — ${site.name}`}
+  description="Thanks for reaching out. Ryan will be in touch within 24 hours with a real quote and a turnaround date."
+  canonicalPath="/thanks"
+>
+  <section class="thanks">
+    <div class="wrap">
+      <div class="thanks-inner">
+        <div class="section-num">§ Got It</div>
+        <h1>Message received. <em>I'll be in touch.</em></h1>
+        <p>
+          Thanks for sending over the details. I'll look at your photos and come back inside 24 hours with a real quote and a turnaround date. If it's urgent, feel free to text me directly — that's always the fastest path.
+        </p>
+        <div class="thanks-ctas">
+          <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
+          <a href="/" class="btn btn-secondary">Back to home →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .thanks {
+    padding: 140px 0 160px;
+    background: var(--canvas-light);
+    border-top: 2px solid var(--charcoal);
+    border-bottom: 2px solid var(--charcoal);
+    min-height: 70vh;
+  }
+  .thanks-inner { max-width: 780px; }
+  .thanks h1 {
+    font-size: clamp(44px, 7vw, 96px);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    margin: 18px 0 28px;
+    max-width: 14ch;
+  }
+  .thanks h1 em { font-style: italic; font-weight: 400; color: var(--river); }
+  .thanks p {
+    font-size: 19px;
+    line-height: 1.55;
+    max-width: 56ch;
+    margin: 0 0 36px;
+    color: var(--ink);
+  }
+  .thanks-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+</style>

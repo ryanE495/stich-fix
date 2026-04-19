@@ -39,12 +39,19 @@ const jsonLd = {
           <h2>Send me the <em>details.</em></h2>
           <p class="form-lead">Fill this out and I'll come back inside 24 hours with a real quote and a turnaround date. Texts get the fastest reply.</p>
 
-          <!--
-            TODO (Claude Code): wire this form to a backend.
-            Options: Netlify Forms (add `netlify` attribute), Formspree, or a custom /api/contact endpoint.
-            File uploads need server-side storage — S3/R2 + a pre-signed URL flow is typical.
-          -->
-          <form id="contact-form" method="POST" action="/api/contact">
+          <form
+            id="contact-form"
+            name="contact"
+            method="POST"
+            action="/thanks"
+            enctype="multipart/form-data"
+            data-netlify="true"
+            data-netlify-honeypot="bot-field"
+          >
+            <input type="hidden" name="form-name" value="contact" />
+            <p class="hp-field" aria-hidden="true">
+              <label>Don't fill this out if you're human: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+            </p>
             <div class="field">
               <label for="f-name"><span>01 · Your Name</span><span class="num">Required</span></label>
               <input id="f-name" name="name" type="text" placeholder="First and last" required />
@@ -60,9 +67,9 @@ const jsonLd = {
             <div class="field">
               <label><span>04 · Photos</span><span>Up to 3</span></label>
               <div class="upload">
-                <label class="upload-slot"><span class="plus">+</span>Photo 01<input type="file" name="photo1" accept="image/*" hidden /></label>
-                <label class="upload-slot"><span class="plus">+</span>Photo 02<input type="file" name="photo2" accept="image/*" hidden /></label>
-                <label class="upload-slot"><span class="plus">+</span>Photo 03<input type="file" name="photo3" accept="image/*" hidden /></label>
+                <label class="upload-slot" data-slot="01"><span class="plus">+</span><span class="slot-label">Photo 01</span><input type="file" name="photo1" accept="image/*" hidden /></label>
+                <label class="upload-slot" data-slot="02"><span class="plus">+</span><span class="slot-label">Photo 02</span><input type="file" name="photo2" accept="image/*" hidden /></label>
+                <label class="upload-slot" data-slot="03"><span class="plus">+</span><span class="slot-label">Photo 03</span><input type="file" name="photo3" accept="image/*" hidden /></label>
               </div>
             </div>
             <div class="field" style="border-bottom:none; padding-bottom:0">
@@ -168,6 +175,24 @@ const jsonLd = {
       l.classList.add('is-checked');
     });
   });
+
+  // Show filename in upload slots
+  document.querySelectorAll<HTMLLabelElement>('.upload-slot').forEach((slot) => {
+    const input = slot.querySelector<HTMLInputElement>('input[type="file"]');
+    const labelEl = slot.querySelector<HTMLElement>('.slot-label');
+    const slotNum = slot.dataset.slot ?? '';
+    if (!input || !labelEl) return;
+    input.addEventListener('change', () => {
+      const file = input.files?.[0];
+      if (file) {
+        labelEl.textContent = file.name.length > 18 ? file.name.slice(0, 16) + '…' : file.name;
+        slot.classList.add('has-file');
+      } else {
+        labelEl.textContent = `Photo ${slotNum}`;
+        slot.classList.remove('has-file');
+      }
+    });
+  });
 </script>
 
 <style>
@@ -213,6 +238,27 @@ const jsonLd = {
   .field textarea {
     min-height: 90px; font-size: 19px; font-weight: 400;
     line-height: 1.5; font-family: var(--f-sans); padding-top: 10px;
+  }
+
+  .hp-field {
+    position: absolute !important;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .upload-slot.has-file {
+    border-style: solid;
+    border-color: var(--river);
+    color: var(--charcoal);
+  }
+  .upload-slot.has-file .plus { display: none; }
+  .upload-slot .slot-label {
+    display: block;
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 
   .upload { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }

@@ -47,6 +47,23 @@ These are the highest-ROI SEO moves for a local service business. Do them in thi
 
 5. **Reviews** — ask your first 3 paying customers for a Google review. Send them the direct review link from your Business Profile rather than "search for us on Google." Conversion is 3–5× higher.
 
+## Contact form — Netlify Forms
+
+The contact form (`src/pages/contact.astro`) is wired to **Netlify Forms**:
+
+- `data-netlify="true"` on the `<form>` tag — Netlify's build plugin scans the static HTML at deploy time and registers the form.
+- `enctype="multipart/form-data"` so the three optional photo uploads ride along.
+- `data-netlify-honeypot="bot-field"` + a visually hidden `bot-field` input = basic spam trap.
+- On success the browser redirects to `/thanks` (`src/pages/thanks.astro`).
+
+**To receive submissions:**
+1. Deploy the site to Netlify (the form only works on Netlify hosting).
+2. In the Netlify dashboard → **Forms**, the `contact` form will appear after the first deploy.
+3. Add a notification: **Forms → contact → Settings & usage → Form notifications → Add notification → Email** (send to Ryan's inbox, or Slack / webhook).
+4. File attachments are stored by Netlify and linked from each submission — paid plans raise the size/volume limits; the free tier is fine for a small local business.
+
+If the site moves off Netlify later, swap the form handler to Formspree, Basin, or a custom `/api/contact` endpoint and remove the `data-netlify-*` attributes.
+
 ## Notes on what's in the code vs. the SEO spec
 
 - **Email** is omitted from JSON-LD and `humans.txt` by your earlier instruction — add back into `LocalBusiness` in `src/pages/index.astro` when you have one.

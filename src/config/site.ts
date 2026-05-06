@@ -31,7 +31,9 @@ export const nav = [
   { href: '/contact', label: 'Contact', key: 'contact' },
 ] as const;
 
-export type NavKey = (typeof nav)[number]['key'];
+// Keys that can appear as `active` on a page — includes the dropdown parent
+// 'service-areas' even though it's not in the flat nav array above.
+export type NavKey = (typeof nav)[number]['key'] | 'service-areas';
 
 /**
  * SEO constants — OG image, logo image, schema @id anchors.

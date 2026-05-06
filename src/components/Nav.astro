@@ -1,5 +1,6 @@
 ---
 import { site, nav, type NavKey } from '../config/site';
+import { serviceAreas } from '../data/service-areas';
 
 interface Props {
   active?: NavKey;
@@ -27,11 +28,37 @@ const { active } = Astro.props;
     </a>
 
     <div class="nav-links">
-      {nav.map((item) => (
-        <a href={item.href} class={active === item.key ? 'active' : ''}>
-          {item.label}
-        </a>
-      ))}
+      <a href="/" class={active === 'home' ? 'active' : ''}>Home</a>
+      <a href="/services" class={active === 'services' ? 'active' : ''}>Services &amp; Pricing</a>
+      <div class={`nav-dropdown ${active === 'service-areas' ? 'active' : ''}`}>
+        <button
+          type="button"
+          class="nav-dropdown-trigger"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="nav-service-areas"
+        >
+          Service Areas
+          <span class="nav-dropdown-caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="nav-service-areas" class="nav-dropdown-panel" role="menu">
+          <div class="nav-dropdown-kicker">Western Slope · 13 communities</div>
+          <ul class="nav-dropdown-grid">
+            {serviceAreas.map((area) => (
+              <li role="none">
+                <a
+                  href={`/service-areas/${area.slug}/`}
+                  role="menuitem"
+                >
+                  {area.cityName}
+                  <span class="nav-dd-region">{area.region}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <a href="/contact" class={active === 'contact' ? 'active' : ''}>Contact</a>
       <a href={site.phoneHref} class="nav-phone">{site.phoneDisplay}</a>
     </div>
 
@@ -64,6 +91,21 @@ const { active } = Astro.props;
           </li>
         ))}
       </ul>
+
+      <div class={`mm-areas ${active === 'service-areas' ? 'is-active' : ''}`}>
+        <div class="mm-areas-head">
+          <span class="mm-kicker">Service Areas</span>
+          <span class="mm-areas-count">{serviceAreas.length} communities</span>
+        </div>
+        <ul class="mm-areas-list">
+          {serviceAreas.map((area) => (
+            <li>
+              <a href={`/service-areas/${area.slug}/`} data-menu-link>{area.cityName}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div class="mobile-menu-foot">
         <span class="mm-kicker">Fastest path</span>
         <a href={site.phoneHref} class="btn mobile-menu-phone" data-menu-link>
@@ -79,6 +121,8 @@ const { active } = Astro.props;
   const nav = document.querySelector<HTMLElement>('.nav');
   const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
   const menu = document.querySelector<HTMLElement>('.mobile-menu');
+  const dropdown = document.querySelector<HTMLElement>('.nav-dropdown');
+  const ddTrigger = document.querySelector<HTMLButtonElement>('.nav-dropdown-trigger');
   const body = document.body;
 
   if (nav && toggle && menu) {
@@ -111,6 +155,28 @@ const { active } = Astro.props;
     const mq = window.matchMedia('(min-width: 721px)');
     mq.addEventListener('change', (e) => {
       if (e.matches && body.classList.contains('menu-open')) close();
+    });
+  }
+
+  // Desktop dropdown — open on hover via CSS, click-to-toggle for keyboard / touch
+  if (dropdown && ddTrigger) {
+    const closeDd = () => {
+      dropdown.classList.remove('is-open');
+      ddTrigger.setAttribute('aria-expanded', 'false');
+    };
+    const openDd = () => {
+      dropdown.classList.add('is-open');
+      ddTrigger.setAttribute('aria-expanded', 'true');
+    };
+    ddTrigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      dropdown.classList.contains('is-open') ? closeDd() : openDd();
+    });
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target as Node)) closeDd();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDd();
     });
   }
 </script>

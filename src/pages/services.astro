@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
+import { serviceAreas } from '../data/service-areas';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -124,6 +125,23 @@ const jsonLd = {
       <div class="weird-inner" data-reveal>
         <h3>Got Something Weird?</h3>
         <p>If it's fabric, canvas, vinyl, or webbing and it's under about 4 layers thick, there's a good chance I can do it. Ask.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE AREA STRIP -->
+  <section class="service-area-strip" aria-label="Service areas">
+    <div class="wrap">
+      <div class="sas-row">
+        <span class="sas-kicker">Now serving the Western Slope</span>
+        <p class="sas-list">
+          {serviceAreas.map((area, i) => (
+            <>
+              <a href={`/service-areas/${area.slug}/`}>{area.cityName}</a>{i < serviceAreas.length - 1 ? ' · ' : ''}
+            </>
+          ))}
+          <span class="sas-suffix"> — and surrounding communities.</span>
+        </p>
       </div>
     </div>
   </section>

@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
+import { serviceAreas } from '../data/service-areas';
 
 const heroImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/sewing-hero.webp';
 
@@ -164,6 +165,23 @@ const jsonLd = {
       </div>
     </div>
   </div>
+
+  <!-- SERVICE AREA STRIP -->
+  <section class="service-area-strip" aria-label="Service areas">
+    <div class="wrap">
+      <div class="sas-row">
+        <span class="sas-kicker">Now serving the Western Slope</span>
+        <p class="sas-list">
+          {serviceAreas.map((area, i) => (
+            <>
+              <a href={`/service-areas/${area.slug}/`}>{area.cityName}</a>{i < serviceAreas.length - 1 ? ' · ' : ''}
+            </>
+          ))}
+          <span class="sas-suffix"> — and surrounding communities.</span>
+        </p>
+      </div>
+    </div>
+  </section>
 
   <!-- PERSONAL -->
   <section class="personal" data-screen-label="02 Personal">

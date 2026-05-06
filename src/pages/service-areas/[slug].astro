@@ -1,0 +1,545 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { site, seo } from '../../config/site';
+import { serviceAreas, universalServices, type ServiceArea } from '../../data/service-areas';
+
+export function getStaticPaths() {
+  return serviceAreas.map((area) => ({
+    params: { slug: area.slug },
+    props: { area },
+  }));
+}
+
+interface Props {
+  area: ServiceArea;
+}
+
+const { area } = Astro.props;
+const canonicalPath = `/service-areas/${area.slug}/`;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': `${site.url}${canonicalPath}#business`,
+  name: site.name,
+  description: `${site.name} provides industrial gear, canvas, and upholstery repair to ${area.cityName}, Colorado and the surrounding ${area.region}.`,
+  url: `${site.url}${canonicalPath}`,
+  telephone: seo.telephoneE164,
+  priceRange: '$$',
+  image: seo.ogImage,
+  logo: seo.logoImage,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Montrose',
+    addressRegion: 'CO',
+    postalCode: seo.postalCode,
+    addressCountry: 'US',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: seo.geo.latitude,
+    longitude: seo.geo.longitude,
+  },
+  areaServed: {
+    '@type': 'City',
+    name: `${area.cityName}, ${area.state}`,
+  },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '08:00',
+      closes: '18:00',
+    },
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: `Repair Services for ${area.cityName}`,
+    itemListElement: universalServices.map((s) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name: s },
+    })),
+  },
+};
+---
+
+<Layout
+  active="service-areas"
+  title={area.metaTitle}
+  description={area.metaDescription}
+  canonicalPath={canonicalPath}
+  preloadImage={area.heroImage}
+  jsonLd={jsonLd}
+>
+  <!-- PAGE HEAD -->
+  <section class="page-head">
+    <div class="wrap">
+      <div class="section-num">§ Service Area · {area.region}</div>
+      <h1>Gear &amp; Canvas Repair in <em>{area.cityName}, Colorado</em></h1>
+      <div class="page-head-grid">
+        <div class="page-head-text">
+          <p class="page-tagline">Industrial sewing and heavy-duty repair, serving {area.cityName} and the {area.region}.</p>
+          <p class="page-context">{area.localContext}</p>
+          <div class="page-ctas">
+            <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
+            <a href="/contact" class="btn btn-secondary">Send a photo →</a>
+          </div>
+        </div>
+        <div class="page-head-media">
+          <img
+            class="page-head-image"
+            src={area.heroImage}
+            alt={area.heroImageAlt}
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+          <div class="page-head-caption">
+            <span>Plate · Workshop</span>
+            <span>Montrose, CO</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT I REPAIR FOR THIS CITY -->
+  <section class="city-services">
+    <div class="wrap">
+      <div class="city-services-head">
+        <div class="section-num">§ The Work</div>
+        <h2>What I repair for <em>{area.cityName}</em> customers</h2>
+      </div>
+      <ul class="city-services-list">
+        {universalServices.map((s, i) => (
+          <li>
+            <span class="cs-num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="cs-name">{s}</span>
+          </li>
+        ))}
+      </ul>
+      <p class="city-services-note">
+        Don't see what you've got listed? <a href="/contact">Ask anyway</a> — if it's stitched, there's a good chance I can fix it.
+      </p>
+    </div>
+  </section>
+
+  <!-- PERSONAL -->
+  <section class="personal">
+    <div class="wrap">
+      <div class="personal-grid">
+        <div>
+          <img
+            class="personal-photo"
+            src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp"
+            alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="personal-photo-tag">Ryan, Proprietor · Plate 02</div>
+        </div>
+        <div class="personal-body">
+          <div class="section-num">§ The Shop</div>
+          <h2>I'm Ryan. I run the shop. <em>Every stitch comes through me.</em></h2>
+          <p>I run Western Slope Stitchworks out of Montrose. I've been sewing for years, working on everything from outfitter canvas to hunting packs to shop upholstery.</p>
+          <p>I'm a fisherman, a hunter, and a jiu-jitsu guy, so I know what gear gets beat up and how it needs to come back. Fast turnaround, honest pricing, no upsell.</p>
+          <div class="signature">Ryan</div>
+          <div class="signature-line">— Proprietor · One-person shop</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCAL FOCUS -->
+  <section class="city-focus">
+    <div class="wrap">
+      <div class="city-focus-head">
+        <div class="section-num">§ Local Focus</div>
+        <h2>Built for the way <em>{area.cityName}</em> uses the outdoors</h2>
+      </div>
+      <p class="city-focus-body">{area.localServiceFocus}</p>
+    </div>
+  </section>
+
+  <!-- LOGISTICS -->
+  <section class="city-logistics">
+    <div class="wrap">
+      <div class="city-logistics-head">
+        <div class="section-num">§ Pickup &amp; Turnaround</div>
+        <h2>Pickup &amp; Turnaround in <em>{area.cityName}</em></h2>
+      </div>
+      <div class="city-logistics-grid">
+        <div class="city-log-card">
+          <div class="k">Drive Time</div>
+          <p>{area.driveTime}.</p>
+        </div>
+        <div class="city-log-card">
+          <div class="k">Pickup</div>
+          <p>{area.pickupNote}.</p>
+        </div>
+        <div class="city-log-card">
+          <div class="k">Turnaround</div>
+          <p>3–7 days on most jobs. Rush available — just ask.</p>
+        </div>
+        <div class="city-log-card">
+          <div class="k">Estimates</div>
+          <p>Text a photo to {site.phoneDisplay}, get a quote in 24 hours. No fee to ask.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="city-cta">
+    <div class="wrap">
+      <div class="city-cta-inner">
+        <div class="section-num">§ Next Step</div>
+        <h2>Text a photo of the damage to <em>{site.phoneDisplay}</em><br />— quote back in 24 hours.</h2>
+        <p>Standing next to a torn wall tent, a blown-out hipbelt, or a UTV seat that won't survive another summer? Send me a picture from {area.cityName} and I'll come back inside 24 hours with a real number and a turnaround date.</p>
+        <div class="city-cta-row">
+          <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
+          <a href="/contact" class="btn btn-secondary">Use the contact form →</a>
+        </div>
+        <div class="city-cta-small">$25 shop minimum · {site.hours} · {site.location}</div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- PAGE HEAD ---------- */
+  .page-head {
+    padding: 72px 0 56px;
+    background: var(--canvas-light);
+    border-bottom: 2px solid var(--charcoal);
+  }
+  .page-head-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    align-items: end;
+  }
+  .page-head h1 {
+    font-size: clamp(44px, 7.6vw, 108px);
+    line-height: 0.96;
+    letter-spacing: -0.04em;
+    margin-top: 20px;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+  .page-head h1 em { font-style: italic; font-weight: 400; color: var(--river); }
+  .page-tagline {
+    margin: 24px 0 18px;
+    font-size: 19px;
+    line-height: 1.45;
+    color: var(--charcoal);
+    max-width: 50ch;
+    font-family: var(--f-serif);
+    font-weight: 500;
+    font-style: italic;
+  }
+  .page-context {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    max-width: 60ch;
+    color: var(--ink);
+  }
+  .page-ctas {
+    margin-top: 32px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .page-head-image {
+    width: 100%;
+    aspect-ratio: 5 / 4;
+    display: block;
+    object-fit: cover;
+    background: var(--canvas-dark);
+  }
+  .page-head-caption {
+    margin-top: 14px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  @media (min-width: 960px) {
+    .page-head-grid {
+      grid-template-columns: 1.2fr 1fr;
+      gap: 64px;
+    }
+  }
+
+  /* ---------- CITY SERVICES ---------- */
+  .city-services {
+    padding: 80px 0;
+    background: var(--canvas);
+  }
+  .city-services-head {
+    margin-bottom: 36px;
+  }
+  .city-services h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    max-width: 26ch;
+    text-wrap: balance;
+  }
+  .city-services h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .city-services-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .city-services-list li {
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    gap: 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--rule-strong);
+    align-items: baseline;
+  }
+  .cs-num {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--rust);
+  }
+  .cs-name {
+    font-family: var(--f-serif);
+    font-weight: 500;
+    font-size: clamp(18px, 2.2vw, 22px);
+    letter-spacing: -0.01em;
+    color: var(--charcoal);
+  }
+  .city-services-note {
+    margin: 26px 0 0;
+    font-size: 15px;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+  .city-services-note a { color: var(--charcoal); border-bottom: 1px solid var(--charcoal); text-decoration: none; }
+  .city-services-note a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+  @media (min-width: 720px) {
+    .city-services-list {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 48px;
+    }
+  }
+
+  /* ---------- PERSONAL ---------- */
+  .personal {
+    padding: 90px 0 70px;
+    background: var(--canvas-light);
+  }
+  .personal-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  .personal-photo {
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    max-width: 280px;
+    display: block;
+    object-fit: cover;
+    background: var(--canvas-dark);
+  }
+  .personal-photo-tag {
+    margin-top: 12px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .personal-body h2 {
+    font-size: clamp(30px, 3.8vw, 48px);
+    letter-spacing: -0.02em;
+    margin: 14px 0 24px;
+  }
+  .personal-body h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .personal-body p {
+    font-size: 18px;
+    line-height: 1.65;
+    max-width: 58ch;
+    margin: 0 0 16px;
+    color: var(--ink);
+  }
+  .signature {
+    margin-top: 32px;
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 32px;
+    color: var(--charcoal);
+    letter-spacing: -0.02em;
+  }
+  .signature-line {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  @media (min-width: 900px) {
+    .personal-grid {
+      grid-template-columns: 320px 1fr;
+      gap: 72px;
+    }
+    .personal-photo { max-width: none; }
+  }
+
+  /* ---------- LOCAL FOCUS ---------- */
+  .city-focus {
+    padding: 90px 0;
+    background: var(--river);
+    color: var(--canvas-light);
+  }
+  .city-focus :global(.section-num) { color: #d9c9a8; }
+  .city-focus-head { margin-bottom: 32px; }
+  .city-focus h2 {
+    color: var(--canvas-light);
+    font-size: clamp(32px, 5vw, 64px);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin-top: 14px;
+    max-width: 24ch;
+    text-wrap: balance;
+  }
+  .city-focus h2 em { font-style: italic; color: #E8CDA9; font-weight: 400; }
+  .city-focus-body {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #f1e5cd;
+    max-width: 62ch;
+  }
+
+  /* ---------- LOGISTICS ---------- */
+  .city-logistics {
+    padding: 90px 0;
+    background: var(--canvas-light);
+  }
+  .city-logistics-head { margin-bottom: 36px; max-width: 760px; }
+  .city-logistics h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    max-width: 26ch;
+    text-wrap: balance;
+  }
+  .city-logistics h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .city-logistics-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 2px solid var(--charcoal);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .city-log-card {
+    padding: 26px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .city-log-card:last-child { border-bottom: none; }
+  .city-log-card .k {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 10px;
+  }
+  .city-log-card p {
+    margin: 0;
+    font-family: var(--f-serif);
+    font-weight: 500;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    color: var(--charcoal);
+    max-width: 38ch;
+  }
+  @media (min-width: 720px) {
+    .city-logistics-grid {
+      grid-template-columns: repeat(2, 1fr);
+      column-gap: 32px;
+    }
+    .city-log-card { padding: 28px 0; }
+    .city-log-card:nth-last-child(-n+2) { border-bottom: none; }
+  }
+  @media (min-width: 1024px) {
+    .city-logistics-grid { grid-template-columns: repeat(4, 1fr); column-gap: 0; }
+    .city-log-card {
+      padding: 32px 24px;
+      border-right: 1px solid var(--rule-strong);
+      border-bottom: none;
+    }
+    .city-log-card:first-child { padding-left: 0; }
+    .city-log-card:last-child { border-right: none; padding-right: 0; }
+  }
+
+  /* ---------- CTA ---------- */
+  .city-cta {
+    padding: 110px 0;
+    background: var(--charcoal);
+    color: var(--canvas);
+  }
+  .city-cta :global(.section-num) { color: #b0a99f; }
+  .city-cta-inner { max-width: 820px; }
+  .city-cta h2 {
+    color: var(--canvas);
+    font-size: clamp(36px, 5.4vw, 72px);
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    margin: 18px 0 24px;
+    max-width: 28ch;
+    text-wrap: balance;
+  }
+  .city-cta h2 em { font-style: italic; color: var(--rust); font-weight: 400; }
+  .city-cta p {
+    font-size: 18px;
+    line-height: 1.55;
+    max-width: 56ch;
+    margin: 0 0 32px;
+    color: #d9c9a8;
+  }
+  .city-cta-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .city-cta :global(.btn) {
+    background: var(--canvas);
+    color: var(--charcoal);
+    border-color: var(--canvas);
+  }
+  .city-cta :global(.btn:hover) { background: #fff; color: var(--charcoal); }
+  .city-cta :global(.btn-secondary) {
+    background: transparent;
+    color: var(--canvas);
+    border-color: var(--canvas);
+  }
+  .city-cta :global(.btn-secondary:hover) {
+    background: var(--canvas);
+    color: var(--charcoal);
+  }
+  .city-cta-small {
+    margin-top: 28px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #b0a99f;
+  }
+</style>

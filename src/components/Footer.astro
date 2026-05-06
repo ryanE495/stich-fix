@@ -1,5 +1,6 @@
 ---
 import { site } from '../config/site';
+import { serviceAreas } from '../data/service-areas';
 
 const serviceAreaLine = site.serviceArea.join(' · ');
 ---
@@ -26,6 +27,18 @@ const serviceAreaLine = site.serviceArea.join(' · ');
         <a href="/contact">{site.location} · {site.hours}</a>
       </div>
     </div>
+
+    <div class="footer-areas">
+      <h4>Service Areas</h4>
+      <ul class="footer-areas-list">
+        {serviceAreas.map((area) => (
+          <li>
+            <a href={`/service-areas/${area.slug}/`}>{area.cityName}, {area.state}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+
     <div class="footer-base">
       <span>© {site.name}</span>
       <span>Serving {serviceAreaLine}</span>

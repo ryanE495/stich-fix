@@ -1,0 +1,4 @@
+# Netlify redirects
+# @astrojs/sitemap emits /sitemap-index.xml — alias the conventional /sitemap.xml
+# to it (200 = rewrite, serves the sitemap content under both URLs).
+/sitemap.xml  /sitemap-index.xml  200

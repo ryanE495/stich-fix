@@ -5,4 +5,4 @@ Disallow: /admin/
 Disallow: /_astro/
 Disallow: /404
 
-Sitemap: https://westernslopestitchworks.com/sitemap-index.xml
+Sitemap: https://westernslopestitchworks.com/sitemap.xml

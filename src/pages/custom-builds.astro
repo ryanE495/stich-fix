@@ -1,0 +1,466 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site, seo } from '../config/site';
+import { serviceAreas, HERO } from '../data/service-areas';
+
+const heroImage = HERO.sewing;
+const canonicalPath = '/custom-builds/';
+
+const categories = [
+  {
+    num: '01',
+    title: 'Camper & RV Awning Modifications',
+    body:
+      'RV awnings are sized to standard specs, but older campers and custom rigs aren’t. I resize awnings, hem long edges, add rod pockets, sew reinforcement at high-wear points, and modify the hardware-adjacent fabric. Recently completed: shortened a brand-new replacement awning by 18 inches, added a fishing rod pocket along the foot, and reinforced both valance corners with matching vinyl. Most awning mods run 2–4 hours and quote between $120–$275.',
+  },
+  {
+    num: '02',
+    title: 'Sleeping Bag & Quilt Conversions',
+    body:
+      'Mummy bags built for backpacking aren’t always what someone needs once they shift to car camping or van life. I remove hoods, install drawcord collars, convert bags into top quilts, replace blown zippers, and patch torn shells. Down containment is the tricky part — done right, no feathers escape and the bag works better than before. Most conversions run $75–$200.',
+  },
+  {
+    num: '03',
+    title: 'Pack & Harness Modifications',
+    body:
+      'Backpacks rarely fit perfectly out of the box. I add custom pockets, rebuild blown hipbelts, retrofit shoulder straps, replace compression strap systems, and add load-bearing webbing where it’s needed. Useful for through-hikers, hunters, and anyone using an older pack that’s still structurally sound but missing features.',
+  },
+  {
+    num: '04',
+    title: 'Custom Carry Bags & Stuff Sacks',
+    body:
+      'Sometimes you need a bag that doesn’t exist as a stock item — a tool roll for a specific kit, a stuff sack sized to your tent, a rod tube that fits a non-standard rod, a gear bag for a specialty piece of equipment. Built from canvas, Cordura, or technical fabrics depending on the use case.',
+  },
+  {
+    num: '05',
+    title: 'Hunting & Outfitter Custom',
+    body:
+      'Wall tent annexes, custom-sized game bags, horse tack canvas, gun scabbard modifications, customized pack canvas. Outfitters and serious hunters tend to wear gear out faster than retail makes sense for, and replacement isn’t always available. I work with hunters across the Western Slope on pre-season prep and in-season repair.',
+  },
+  {
+    num: '06',
+    title: 'Marine & Powersports Custom',
+    body:
+      'Custom-fit boat covers, organizer pouches for boats and UTVs, modified seat designs, custom canvas for non-standard rigs. The Western Slope’s mix of rafting, boating, snowmobiling, and side-by-side culture means a lot of one-off needs that retail shops don’t address.',
+  },
+  {
+    num: '07',
+    title: 'Industrial & One-Off Sewing',
+    body:
+      'If it doesn’t fit any of the above categories, ask. Common requests include custom truck cab organizers, motorcycle tank bags, modified luggage, custom dog gear, modified work belts, and specialty industrial fabrics. If it’s sewable and under about four layers thick, there’s a good chance I can do it.',
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: 'Custom Sewing & Modifications',
+  serviceType: 'Custom Industrial Sewing and Gear Modification',
+  description:
+    'Custom builds and modifications for fabric, canvas, vinyl, and webbing gear. RV awning resizing, sleeping bag conversions, pack mods, custom carry bags, hunting and outfitter custom work, marine and powersports custom, and one-off industrial sewing.',
+  url: `${site.url}${canonicalPath}`,
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': seo.businessId,
+  },
+  areaServed: serviceAreas.map((a) => ({
+    '@type': 'City',
+    name: `${a.cityName}, ${a.state}`,
+  })),
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Custom Build Categories',
+    itemListElement: categories.map((c) => ({
+      '@type': 'Offer',
+      itemOffered: { '@type': 'Service', name: c.title },
+    })),
+  },
+};
+---
+
+<Layout
+  active="custom-builds"
+  title="Custom Sewing, Gear Modifications & RV Awning Mods | Western Slope Stitchworks"
+  description="Custom builds and gear modifications by an industrial sewing shop in Montrose, Colorado. RV awning mods, sleeping bag conversions, custom bags, hunting gear customization. Free quote in 24 hours."
+  canonicalPath={canonicalPath}
+  preloadImage={heroImage}
+  jsonLd={jsonLd}
+>
+  <!-- HERO -->
+  <section class="page-head">
+    <div class="wrap">
+      <div class="section-num">§ Custom Work · Modifications</div>
+      <h1>Custom Builds &amp; <em>Modifications.</em></h1>
+      <div class="page-head-grid">
+        <div class="page-head-text">
+          <p class="page-tagline">Most repair shops won&rsquo;t take on custom work because there&rsquo;s no script. Bring me what you have, tell me what you need, and we&rsquo;ll figure it out.</p>
+          <div class="page-ctas">
+            <a href={site.phoneHref} class="btn">Text a photo to {site.phoneDisplay}</a>
+            <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+          </div>
+        </div>
+        <div class="page-head-media">
+          <img
+            class="page-head-image"
+            src={heroImage}
+            alt="Industrial walking-foot sewing machine working a custom canvas modification at the Western Slope Stitchworks shop"
+            loading="eager"
+            decoding="async"
+            fetchpriority="high"
+          />
+          <div class="page-head-caption">
+            <span>Plate · Custom Bench</span>
+            <span>Montrose, CO</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INTRO -->
+  <section class="intro">
+    <div class="wrap">
+      <div class="intro-grid">
+        <div class="section-num">§ The Approach</div>
+        <p class="intro-body">
+          Most repair shops only know how to put gear back the way it came from the factory. That&rsquo;s a fine job for half of what walks in the door, but a lot of useful gear was never quite right to start with. Western Slope Stitchworks specializes in the other half: <strong>modifying</strong> gear so it actually works the way you use it. Shortening an RV awning to fit an older camper. Pulling the hood off a mummy bag for car camping. Adding a rod pocket to an awning. Reinforcing the high-wear corners on a wall tent before another season. Five-plus years of industrial sewing, one machine, one person making the call.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section class="categories">
+    <div class="wrap">
+      <div class="categories-head">
+        <div class="section-num">§ The Work</div>
+        <h2>What Counts as a <em>Custom Build</em></h2>
+      </div>
+      <ol class="cat-grid">
+        {categories.map((cat) => (
+          <li class="cat-card">
+            <div class="cat-num">{cat.num} / Category</div>
+            <h3>{cat.title}</h3>
+            <p>{cat.body}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing">
+    <div class="wrap">
+      <div class="pricing-grid">
+        <div>
+          <div class="section-num">§ Pricing</div>
+          <h2>How Custom Pricing <em>Works</em></h2>
+        </div>
+        <div class="pricing-body">
+          <p>Custom work is quoted per job because every project is different. Most custom builds land between <strong>$50 and $300</strong>, materials included in the quote.</p>
+          <p>Process is straightforward. Text a photo and a short description of what you want done. I&rsquo;ll come back inside 24 hours with a real number and a turnaround date. Drop off in Montrose or arrange pickup along one of the weekly Western Slope routes. Work happens. You get it back.</p>
+          <p class="pricing-foot">No estimate fees. $25 shop minimum on any single job.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECENT WORK PLACEHOLDER -->
+  <section class="recent">
+    <div class="wrap">
+      <div class="recent-inner">
+        <div class="section-num">§ Recent Custom Work</div>
+        <h2>Portfolio coming soon.</h2>
+        <p>Build-in-progress photos go up on Instagram first. Follow <strong>@westernslopestitchworks</strong> for the in-the-shop look at recent custom builds and modifications.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="weird-cta">
+    <div class="wrap">
+      <div class="weird-inner">
+        <div class="section-num">§ Got Something Weird?</div>
+        <h2>Got Something <em>Weird</em>?</h2>
+        <p>If it&rsquo;s fabric, canvas, vinyl, or webbing &mdash; and it&rsquo;s under about four layers thick &mdash; there&rsquo;s a good chance I can do it. Most of my best work has come from people texting a photo with the message &ldquo;I don&rsquo;t even know if this is fixable.&rdquo; Send the photo. Let&rsquo;s see.</p>
+        <div class="weird-ctas">
+          <a href={site.phoneHref} class="btn">Text {site.phoneDisplay}</a>
+          <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+        </div>
+        <div class="weird-small">{site.hours} &middot; {site.location} &middot; Free 24-hour quote</div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- HERO ---------- */
+  .page-head {
+    padding: 72px 0 56px;
+    background: var(--canvas-light);
+    border-bottom: 2px solid var(--charcoal);
+  }
+  .page-head h1 {
+    font-size: clamp(48px, 8.2vw, 124px);
+    line-height: 0.94;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+    margin-top: 18px;
+    max-width: 16ch;
+    text-wrap: balance;
+  }
+  .page-head h1 em { font-style: italic; font-weight: 400; color: var(--river); }
+  .page-head-grid {
+    margin-top: 56px;
+    padding-top: 40px;
+    border-top: 1px solid var(--rule-strong);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .page-tagline {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.5;
+    max-width: 52ch;
+    color: var(--ink);
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 500;
+  }
+  .page-ctas {
+    margin-top: 28px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .page-head-image {
+    width: 100%;
+    aspect-ratio: 5 / 4;
+    display: block;
+    object-fit: cover;
+    background: var(--canvas-dark);
+  }
+  .page-head-caption {
+    margin-top: 14px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+  }
+  @media (min-width: 960px) {
+    .page-head-grid { grid-template-columns: 1.1fr 1fr; gap: 64px; }
+  }
+
+  /* ---------- INTRO ---------- */
+  .intro {
+    padding: 80px 0;
+    background: var(--canvas);
+  }
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    border-top: 2px solid var(--charcoal);
+    padding-top: 28px;
+  }
+  .intro-body {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.65;
+    color: var(--ink);
+    max-width: 64ch;
+  }
+  .intro-body strong { color: var(--charcoal); font-weight: 600; }
+  @media (min-width: 900px) {
+    .intro-grid { grid-template-columns: 200px 1fr; gap: 64px; align-items: start; }
+  }
+
+  /* ---------- CATEGORIES ---------- */
+  .categories {
+    padding: 90px 0;
+    background: var(--canvas-light);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .categories-head { margin-bottom: 40px; }
+  .categories h2 {
+    font-size: clamp(34px, 5vw, 64px);
+    letter-spacing: -0.035em;
+    margin-top: 14px;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+  .categories h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .cat-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .cat-card {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cat-card:last-child { border-bottom: none; }
+  .cat-num {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .cat-card h3 {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(22px, 2.6vw, 28px);
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--charcoal);
+    max-width: 22ch;
+  }
+  .cat-card p {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+  @media (min-width: 720px) {
+    .cat-grid { grid-template-columns: repeat(2, 1fr); column-gap: 48px; }
+    .cat-card { padding: 32px 0; border-bottom: 1px solid var(--rule-strong); }
+    .cat-grid > .cat-card:nth-last-child(-n+2):not(:last-child) { border-bottom: 1px solid var(--rule-strong); }
+    .cat-grid > .cat-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+      border-bottom: none;
+    }
+  }
+
+  /* ---------- PRICING ---------- */
+  .pricing {
+    padding: 88px 0;
+    background: var(--canvas);
+    border-top: 2px solid var(--charcoal);
+  }
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .pricing h2 {
+    font-size: clamp(32px, 4.6vw, 56px);
+    letter-spacing: -0.035em;
+    margin-top: 14px;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .pricing h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .pricing-body p {
+    margin: 0 0 18px;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 56ch;
+  }
+  .pricing-body strong { font-weight: 600; color: var(--charcoal); }
+  .pricing-foot {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 24px !important;
+  }
+  @media (min-width: 900px) {
+    .pricing-grid { grid-template-columns: 1fr 1.2fr; gap: 64px; align-items: start; }
+  }
+
+  /* ---------- RECENT ---------- */
+  .recent {
+    padding: 90px 0;
+    background: var(--river);
+    color: var(--canvas-light);
+  }
+  .recent :global(.section-num) { color: #d9c9a8; }
+  .recent-inner { max-width: 760px; }
+  .recent h2 {
+    color: var(--canvas-light);
+    font-size: clamp(32px, 5vw, 60px);
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+    margin: 14px 0 22px;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .recent p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin: 0;
+    color: #f1e5cd;
+    max-width: 56ch;
+  }
+  .recent strong { color: #ffffff; font-weight: 500; }
+
+  /* ---------- WEIRD CTA ---------- */
+  .weird-cta {
+    padding: 110px 0;
+    background: var(--charcoal);
+    color: var(--canvas);
+  }
+  .weird-cta :global(.section-num) { color: #b0a99f; }
+  .weird-inner { max-width: 820px; }
+  .weird-cta h2 {
+    color: var(--canvas);
+    font-size: clamp(40px, 6vw, 80px);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin: 18px 0 24px;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .weird-cta h2 em { font-style: italic; color: var(--rust); font-weight: 400; }
+  .weird-cta p {
+    font-size: 19px;
+    line-height: 1.55;
+    max-width: 58ch;
+    margin: 0 0 32px;
+    color: #d9c9a8;
+  }
+  .weird-ctas {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .weird-cta :global(.btn) {
+    background: var(--canvas);
+    color: var(--charcoal);
+    border-color: var(--canvas);
+  }
+  .weird-cta :global(.btn:hover) { background: #fff; color: var(--charcoal); }
+  .weird-cta :global(.btn-secondary) {
+    background: transparent;
+    color: var(--canvas);
+    border-color: var(--canvas);
+  }
+  .weird-cta :global(.btn-secondary:hover) {
+    background: var(--canvas);
+    color: var(--charcoal);
+  }
+  .weird-small {
+    margin-top: 28px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #b0a99f;
+  }
+</style>

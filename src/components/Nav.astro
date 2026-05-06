@@ -30,6 +30,7 @@ const { active } = Astro.props;
     <div class="nav-links">
       <a href="/" class={active === 'home' ? 'active' : ''}>Home</a>
       <a href="/services" class={active === 'services' ? 'active' : ''}>Services &amp; Pricing</a>
+      <a href="/custom-builds" class={active === 'custom-builds' ? 'active' : ''}>Custom Builds</a>
       <div class={`nav-dropdown ${active === 'service-areas' ? 'active' : ''}`}>
         <button
           type="button"

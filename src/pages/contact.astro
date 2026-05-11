@@ -28,6 +28,23 @@ const jsonLd = {
     </div>
   </section>
 
+  <!-- PHONE BANNER -->
+  <section class="phone-banner">
+    <div class="wrap">
+      <div class="phone-banner-inner">
+        <div class="pb-text">
+          <span class="pb-kicker">§ Heads Up — Fastest Path</span>
+          <h2>The best way to reach me is <em>my phone</em>.</h2>
+          <p>The form below works fine — but my phone is the quickest route. This is my <strong>personal cell</strong>, not a service. Call or text any time and you'll get me directly.</p>
+        </div>
+        <a href={site.phoneHref} class="pb-phone" aria-label={`Call or text ${site.phoneDisplay}`}>
+          <span class="pb-phone-k">Call or Text</span>
+          <span class="pb-phone-num">{site.phoneDisplay}</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
   <!-- MAIN -->
   <section class="main" data-screen-label="02 Form">
     <div class="wrap">
@@ -203,6 +220,86 @@ const jsonLd = {
   }
   .page-head h1 em { font-style: italic; font-weight: 400; color: var(--river); }
   .page-sub { margin-top: 36px; font-size: 20px; line-height: 1.5; max-width: 56ch; color: var(--ink); }
+
+  /* PHONE BANNER */
+  .phone-banner {
+    padding: 56px 0;
+    background: var(--charcoal);
+    color: var(--canvas);
+    border-top: 2px solid var(--charcoal);
+    border-bottom: 2px solid var(--charcoal);
+  }
+  .phone-banner-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    align-items: center;
+  }
+  .pb-kicker {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 14px;
+  }
+  .phone-banner h2 {
+    color: var(--canvas);
+    font-size: clamp(32px, 5vw, 60px);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin: 0 0 18px;
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .phone-banner h2 em { font-style: italic; color: #E8CDA9; font-weight: 400; }
+  .phone-banner p {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+    color: #d9c9a8;
+    max-width: 58ch;
+  }
+  .phone-banner p strong { color: var(--canvas); font-weight: 600; }
+  .pb-phone {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 24px 28px;
+    background: var(--canvas);
+    color: var(--charcoal);
+    border-radius: 2px;
+    text-decoration: none;
+    transition: transform 0.15s ease, background 0.15s ease;
+    align-self: start;
+    justify-self: start;
+  }
+  .pb-phone:hover {
+    background: #fff;
+    transform: translateY(-2px);
+  }
+  .pb-phone-k {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .pb-phone-num {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(30px, 4.2vw, 48px);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--charcoal);
+  }
+  @media (min-width: 900px) {
+    .phone-banner { padding: 72px 0; }
+    .phone-banner-inner { grid-template-columns: 1.4fr 1fr; gap: 56px; }
+    .pb-phone { justify-self: end; padding: 28px 36px; }
+  }
 
   .main { padding: 0 0 90px; background: var(--canvas-light); }
   .main-grid {

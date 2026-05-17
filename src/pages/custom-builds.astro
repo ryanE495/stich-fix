@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { serviceAreas, HERO } from '../data/service-areas';
@@ -83,7 +84,6 @@ const jsonLd = {
   title="Custom Sewing, Gear Modifications & RV Awning Mods | Western Slope Stitchworks"
   description="Custom builds and gear modifications by an industrial sewing shop in Montrose, Colorado. RV awning mods, sleeping bag conversions, custom bags, hunting gear customization. Free quote in 24 hours."
   canonicalPath={canonicalPath}
-  preloadImage={heroImage}
   jsonLd={jsonLd}
 >
   <!-- HERO -->
@@ -100,9 +100,15 @@ const jsonLd = {
           </div>
         </div>
         <div class="page-head-media">
-          <img
+          <Image
             class="page-head-image"
             src={heroImage}
+            width={1280}
+            height={960}
+            widths={[480, 768, 1280]}
+            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+            format="webp"
+            quality={82}
             alt="Industrial walking-foot sewing machine working a custom canvas modification at the Western Slope Stitchworks shop"
             loading="eager"
             decoding="async"

@@ -1,6 +1,33 @@
 /* Western Slope Stitchworks — shared styles */
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700&display=swap');
+/*
+ * Self-hosted variable fonts (Fraunces + Inter) are loaded via @fontsource
+ * imports in src/layouts/Layout.astro — they ship with font-display: swap.
+ *
+ * The two @font-face declarations below define metric-adjusted fallbacks so
+ * the system font shown before the web font swap-in occupies almost the
+ * same vertical/horizontal space, eliminating the post-swap layout shift
+ * (CLS). Override values come from the perfect-ish-font-fallback technique
+ * (Industrial Empathy / Capsize).
+ */
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Arial');
+  size-adjust: 107.4%;
+  ascent-override: 90.2%;
+  descent-override: 22.48%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Fraunces Fallback';
+  src: local('Times New Roman'), local('Times');
+  size-adjust: 104%;
+  ascent-override: 94%;
+  descent-override: 28%;
+  line-gap-override: 0%;
+}
 
 :root {
   --canvas: #EBDFC5;
@@ -16,8 +43,8 @@
   --rule: #2B28261A;
   --rule-strong: #2B282633;
 
-  --f-serif: 'Fraunces', 'Times New Roman', serif;
-  --f-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --f-serif: 'Fraunces Variable', 'Fraunces Fallback', 'Times New Roman', serif;
+  --f-sans: 'Inter Variable', 'Inter Fallback', system-ui, -apple-system, sans-serif;
   --f-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 

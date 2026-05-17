@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { serviceAreas, universalServices, type ServiceArea } from '../../data/service-areas';
@@ -68,7 +69,6 @@ const jsonLd = {
   title={area.metaTitle}
   description={area.metaDescription}
   canonicalPath={canonicalPath}
-  preloadImage={area.heroImage}
   jsonLd={jsonLd}
 >
   <!-- PAGE HEAD -->
@@ -86,9 +86,15 @@ const jsonLd = {
           </div>
         </div>
         <div class="page-head-media">
-          <img
+          <Image
             class="page-head-image"
             src={area.heroImage}
+            width={1200}
+            height={960}
+            widths={[480, 768, 1200]}
+            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+            format="webp"
+            quality={82}
             alt={area.heroImageAlt}
             loading="eager"
             decoding="async"
@@ -129,9 +135,15 @@ const jsonLd = {
     <div class="wrap">
       <div class="personal-grid">
         <div>
-          <img
+          <Image
             class="personal-photo"
             src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp"
+            width={640}
+            height={800}
+            widths={[320, 480, 640]}
+            sizes="(max-width: 900px) 280px, 320px"
+            format="webp"
+            quality={82}
             alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
             loading="lazy"
             decoding="async"

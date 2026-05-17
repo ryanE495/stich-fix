@@ -1,9 +1,11 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { serviceAreas } from '../data/service-areas';
 
 const heroImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/sewing-hero.webp';
+const personalImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -92,7 +94,6 @@ const jsonLd = {
   title={`${site.name} | Gear, Canvas & Upholstery Repair — Montrose, CO`}
   description="Heavy-duty gear, canvas, and upholstery repair on Colorado's Western Slope. Tipis, packs, rafts, UTV seats, commercial canvas. Serving Montrose, Grand Junction, Telluride, Ouray. Free photo quotes in 24 hours."
   canonicalPath="/"
-  preloadImage={heroImage}
   jsonLd={jsonLd}
 >
   <!-- HERO -->
@@ -117,9 +118,15 @@ const jsonLd = {
           </div>
         </div>
         <div>
-          <img
+          <Image
             class="hero-image"
             src={heroImage}
+            width={1280}
+            height={960}
+            widths={[480, 768, 1280]}
+            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+            format="webp"
+            quality={82}
             alt="Industrial sewing machine mid-stitch on heavy canvas in the Western Slope Stitchworks workshop"
             loading="eager"
             decoding="async"
@@ -188,9 +195,15 @@ const jsonLd = {
     <div class="wrap">
       <div class="personal-grid" data-reveal>
         <div>
-          <img
+          <Image
             class="personal-photo"
-            src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp"
+            src={personalImage}
+            width={640}
+            height={800}
+            widths={[320, 480, 640]}
+            sizes="(max-width: 900px) 280px, 320px"
+            format="webp"
+            quality={82}
             alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
             loading="lazy"
             decoding="async"

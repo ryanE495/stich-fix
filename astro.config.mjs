@@ -9,6 +9,12 @@ export default defineConfig({
     format: 'directory',
   },
   trailingSlash: 'ignore',
+  image: {
+    // Allow Astro's <Image> component to fetch + resize the portfolio images
+    // hosted on Supabase Storage at build time. Without this, remote sources
+    // throw "src must be a known remote image".
+    domains: ['bswmrfxdadcmuyhmsagv.supabase.co'],
+  },
   integrations: [
     sitemap({
       changefreq: 'weekly',

@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
@@ -83,12 +84,19 @@ const jsonLd = {
           </p>
         </div>
         <div class="page-head-media" data-hero-in style="--hero-delay: 0.48s">
-          <img
+          <Image
             class="page-head-image"
             src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-sewing-hero.webp"
+            width={1200}
+            height={960}
+            widths={[480, 768, 1200]}
+            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+            format="webp"
+            quality={82}
             alt="Industrial sewing machine stitching heavy canvas in the Western Slope Stitchworks shop"
             loading="eager"
             decoding="async"
+            fetchpriority="high"
           />
           <div class="page-head-caption">
             <span>Plate 01 / Workshop</span>

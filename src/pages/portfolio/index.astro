@@ -1,0 +1,227 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { site, seo } from '../../config/site';
+import { fetchPublishedPortfolio, withSlugs, pickThumbnail } from '../../lib/portfolio';
+
+const items = withSlugs(await fetchPublishedPortfolio());
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'Portfolio — Western Slope Stitchworks',
+  description:
+    "Gear, canvas, and upholstery repair work completed by Western Slope Stitchworks on the Colorado Western Slope. Before and after photos of tipi patches, raft frame bag rebuilds, custom builds, and commercial canvas.",
+  url: `${site.url}/portfolio/`,
+  isPartOf: {
+    '@type': 'WebSite',
+    name: site.name,
+    url: site.url,
+  },
+  about: {
+    '@type': 'LocalBusiness',
+    '@id': seo.businessId,
+  },
+};
+---
+
+<Layout
+  active="portfolio"
+  title="Portfolio — Gear & Canvas Repair Work | Western Slope Stitchworks"
+  description="Before-and-after photos of gear, canvas, and upholstery repair work completed by Western Slope Stitchworks. Tipi patches, raft frame bag rebuilds, UTV seats, custom builds — real work, on Colorado's Western Slope."
+  canonicalPath="/portfolio/"
+  jsonLd={jsonLd}
+>
+  <!-- HEAD -->
+  <section class="page-head">
+    <div class="wrap">
+      <div class="section-num">§ Portfolio · Recent Work</div>
+      <h1>Our Work — <em>Gear &amp; Canvas Repair on the Western Slope.</em></h1>
+      <p class="page-lead">
+        A running record of repairs and custom builds. Tipi patches and wall tent rebuilds, raft frame bags, UTV seats, sleeping bag conversions, RV awning mods, and the one-off jobs that don't fit a standard line item. Most of these were photographed mid-job in the shop.
+      </p>
+    </div>
+  </section>
+
+  {items.length === 0 ? (
+    <!-- EMPTY STATE -->
+    <section class="portfolio-empty">
+      <div class="wrap">
+        <div class="empty-inner">
+          <div class="section-num">§ Coming Soon</div>
+          <h2>Work samples coming soon.</h2>
+          <p>
+            Build-in-progress photos go up on Instagram first while the portfolio gets seeded.
+            Follow <strong>@westernslopestitchworks</strong> for the latest, or text a photo of
+            your project and you'll get a quote inside 24 hours.
+          </p>
+          <div class="empty-ctas">
+            <a href={site.phoneHref} class="btn">Text {site.phoneDisplay}</a>
+            <a href="/custom-builds" class="btn btn-secondary">See custom builds &rarr;</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  ) : (
+    <!-- GRID -->
+    <section class="portfolio-grid-section">
+      <div class="wrap">
+        <ul class="portfolio-grid">
+          {items.map((item) => {
+            const thumb = pickThumbnail(item);
+            return (
+              <li class="portfolio-card">
+                <a href={`/portfolio/${item.slug}/`}>
+                  <div class="card-media">
+                    {thumb ? (
+                      <img
+                        src={thumb}
+                        alt={`${item.title} — ${item.category}`}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div class="card-media-empty" aria-hidden="true"></div>
+                    )}
+                  </div>
+                  <div class="card-body">
+                    <span class="card-category">{item.category}</span>
+                    <h3 class="card-title">{item.title}</h3>
+                    <span class="card-arrow">See the build &rarr;</span>
+                  </div>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )}
+</Layout>
+
+<style>
+  .page-head {
+    padding: 72px 0 56px;
+    background: var(--canvas-light);
+    border-bottom: 2px solid var(--charcoal);
+  }
+  .page-head h1 {
+    font-size: clamp(44px, 7vw, 96px);
+    line-height: 0.96;
+    letter-spacing: -0.035em;
+    margin-top: 18px;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .page-head h1 em { font-style: italic; font-weight: 400; color: var(--river); }
+  .page-lead {
+    margin-top: 28px;
+    font-size: 18px;
+    line-height: 1.6;
+    max-width: 64ch;
+    color: var(--ink);
+  }
+
+  /* ---------- EMPTY ---------- */
+  .portfolio-empty {
+    padding: 90px 0 110px;
+    background: var(--canvas);
+  }
+  .empty-inner { max-width: 720px; }
+  .portfolio-empty h2 {
+    font-size: clamp(34px, 5vw, 60px);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    margin: 14px 0 22px;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .portfolio-empty p {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 56ch;
+    margin: 0 0 28px;
+  }
+  .portfolio-empty strong { color: var(--charcoal); font-weight: 600; }
+  .empty-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* ---------- GRID ---------- */
+  .portfolio-grid-section {
+    padding: 70px 0 110px;
+    background: var(--canvas);
+  }
+  .portfolio-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px 28px;
+  }
+  .portfolio-card a {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  .card-media {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .card-media-empty {
+    width: 100%;
+    height: 100%;
+    background:
+      repeating-linear-gradient(45deg, #c9b590 0 14px, #d4c3a0 14px 28px);
+  }
+  .portfolio-card a:hover .card-media img { transform: scale(1.03); }
+  .card-body { padding: 18px 2px 4px; }
+  .card-category {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 10px;
+  }
+  .card-title {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(22px, 2.6vw, 28px);
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+    color: var(--charcoal);
+    text-wrap: balance;
+  }
+  .card-arrow {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    border-bottom: 1px solid var(--charcoal);
+    padding-bottom: 2px;
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .portfolio-card a:hover .card-arrow {
+    color: var(--rust);
+    border-bottom-color: var(--rust);
+  }
+
+  @media (min-width: 640px) {
+    .portfolio-grid { grid-template-columns: repeat(2, 1fr); gap: 48px 36px; }
+  }
+  @media (min-width: 960px) {
+    .portfolio-grid { grid-template-columns: repeat(3, 1fr); gap: 56px 40px; }
+  }
+</style>

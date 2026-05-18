@@ -1,0 +1,410 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { site, seo } from '../../config/site';
+import {
+  fetchPublishedPortfolio,
+  withSlugs,
+  type PortfolioItemWithSlug,
+} from '../../lib/portfolio';
+
+export async function getStaticPaths() {
+  const items = withSlugs(await fetchPublishedPortfolio());
+  return items.map((item) => ({
+    params: { slug: item.slug },
+    props: { item },
+  }));
+}
+
+interface Props {
+  item: PortfolioItemWithSlug;
+}
+
+const { item } = Astro.props;
+const canonicalPath = `/portfolio/${item.slug}/`;
+
+const details = [
+  { label: item.detail_1_label, value: item.detail_1_value },
+  { label: item.detail_2_label, value: item.detail_2_value },
+  { label: item.detail_3_label, value: item.detail_3_value },
+].filter((d) => d.label && d.value);
+
+const hasApproach = !!item.approach && item.approach.trim().length > 0;
+const hasChallenge = !!item.challenge && item.challenge.trim().length > 0;
+const hasMaterials =
+  Array.isArray(item.materials_techniques) && item.materials_techniques.length > 0;
+const hasDetails = details.length > 0;
+
+const images = [item.before_image_url, item.after_image_url].filter(Boolean) as string[];
+
+const metaTitle = `${item.title} — ${item.category} | ${site.name}`;
+const metaDescription = (item.description?.trim() ||
+  `${item.category} repair work by ${site.name} on Colorado's Western Slope.`)
+  .slice(0, 158);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: item.title,
+  description: item.description ?? undefined,
+  about: item.category,
+  keywords: hasMaterials ? item.materials_techniques!.join(', ') : undefined,
+  image: images.length > 0 ? images : undefined,
+  datePublished: item.created_at,
+  dateModified: item.updated_at,
+  url: `${site.url}${canonicalPath}`,
+  creator: {
+    '@type': 'LocalBusiness',
+    '@id': seo.businessId,
+  },
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': seo.businessId,
+  },
+  areaServed: {
+    '@type': 'AdministrativeArea',
+    name: 'Western Slope, Colorado',
+  },
+};
+---
+
+<Layout
+  active="portfolio"
+  title={metaTitle}
+  description={metaDescription}
+  canonicalPath={canonicalPath}
+  jsonLd={jsonLd}
+>
+  <!-- HEAD -->
+  <section class="page-head">
+    <div class="wrap">
+      <a href="/portfolio/" class="crumb">← Back to portfolio</a>
+      <span class="cat-label">{item.category}</span>
+      <h1>{item.title}</h1>
+      {item.description && <p class="lead">{item.description}</p>}
+    </div>
+  </section>
+
+  <!-- BEFORE / AFTER -->
+  {(item.before_image_url || item.after_image_url) && (
+    <section class="before-after">
+      <div class="wrap">
+        <div class="ba-grid">
+          {item.before_image_url && (
+            <figure class="ba-figure">
+              <div class="ba-kicker">Before</div>
+              <div class="ba-frame">
+                <img
+                  src={item.before_image_url}
+                  alt={`${item.title} — before`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </figure>
+          )}
+          {item.after_image_url && (
+            <figure class="ba-figure">
+              <div class="ba-kicker after">After</div>
+              <div class="ba-frame">
+                <img
+                  src={item.after_image_url}
+                  alt={`${item.title} — after`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+            </figure>
+          )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- BODY: approach + challenge + details + materials -->
+  {(hasApproach || hasChallenge || hasDetails || hasMaterials) && (
+    <section class="project-body">
+      <div class="wrap">
+        <div class="body-grid">
+          <div class="body-prose">
+            {hasApproach && (
+              <div class="prose-block">
+                <div class="section-num">§ How I Approached It</div>
+                <h2>How I approached it</h2>
+                <p>{item.approach}</p>
+              </div>
+            )}
+            {hasChallenge && (
+              <div class="prose-block">
+                <div class="section-num">§ The Challenge</div>
+                <h2>The challenge</h2>
+                <p>{item.challenge}</p>
+              </div>
+            )}
+          </div>
+
+          <aside class="body-meta">
+            {hasDetails && (
+              <div class="meta-block">
+                <div class="section-num">§ Project Details</div>
+                <dl class="detail-list">
+                  {details.map((d) => (
+                    <div class="detail-row">
+                      <dt>{d.label}</dt>
+                      <dd>{d.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            )}
+            {hasMaterials && (
+              <div class="meta-block">
+                <div class="section-num">§ Materials &amp; Techniques</div>
+                <ul class="tag-list">
+                  {item.materials_techniques!.map((tag) => (
+                    <li class="tag">{tag}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </aside>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- CTA -->
+  <section class="project-cta">
+    <div class="wrap">
+      <div class="cta-inner">
+        <div class="section-num">§ Have Something Like This?</div>
+        <h2>Got a project like this? <em>Text me a photo.</em></h2>
+        <p>Free quote in 24 hours. This is a personal cell — call or text and you'll get me direct.</p>
+        <div class="cta-row">
+          <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
+          <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+        </div>
+        <div class="cta-small">$25 shop minimum · {site.hours} · {site.location}</div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- HEAD ---------- */
+  .page-head {
+    padding: 64px 0 48px;
+    background: var(--canvas-light);
+    border-bottom: 2px solid var(--charcoal);
+  }
+  .crumb {
+    display: inline-block;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 28px;
+    border-bottom: 1px solid transparent;
+    padding-bottom: 2px;
+  }
+  .crumb:hover { color: var(--charcoal); border-bottom-color: var(--charcoal); }
+  .cat-label {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 14px;
+  }
+  .page-head h1 {
+    font-size: clamp(40px, 6.5vw, 88px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin: 0;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+  .lead {
+    margin-top: 28px;
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+
+  /* ---------- BEFORE / AFTER ---------- */
+  .before-after {
+    padding: 80px 0 60px;
+    background: var(--canvas);
+  }
+  .ba-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .ba-figure { margin: 0; }
+  .ba-kicker {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .ba-kicker.after { color: var(--rust); }
+  .ba-frame {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .ba-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @media (min-width: 720px) {
+    .ba-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  }
+
+  /* ---------- BODY ---------- */
+  .project-body {
+    padding: 64px 0 90px;
+    background: var(--canvas);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .body-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .prose-block + .prose-block { margin-top: 40px; }
+  .prose-block h2 {
+    font-size: clamp(28px, 3.6vw, 40px);
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin: 12px 0 18px;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+  .prose-block p {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.65;
+    color: var(--ink);
+    max-width: 60ch;
+    white-space: pre-line;
+  }
+
+  .meta-block + .meta-block { margin-top: 36px; }
+  .meta-block .section-num { margin-bottom: 14px; display: block; }
+  .detail-list { margin: 0; padding: 0; }
+  .detail-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .detail-row:first-child { border-top: 1px solid var(--rule-strong); }
+  .detail-row dt {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .detail-row dd {
+    margin: 0;
+    font-family: var(--f-serif);
+    font-weight: 500;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--charcoal);
+  }
+
+  .tag-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .tag {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 6px 12px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 100px;
+    color: var(--ink);
+    background: var(--canvas-light);
+  }
+
+  @media (min-width: 960px) {
+    .body-grid {
+      grid-template-columns: 1.4fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+  }
+
+  /* ---------- CTA ---------- */
+  .project-cta {
+    padding: 100px 0;
+    background: var(--charcoal);
+    color: var(--canvas);
+  }
+  .project-cta :global(.section-num) { color: #b0a99f; }
+  .cta-inner { max-width: 760px; }
+  .project-cta h2 {
+    color: var(--canvas);
+    font-size: clamp(36px, 5.4vw, 64px);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 18px 0 22px;
+    max-width: 20ch;
+    text-wrap: balance;
+  }
+  .project-cta h2 em { font-style: italic; color: var(--rust); font-weight: 400; }
+  .project-cta p {
+    font-size: 18px;
+    line-height: 1.55;
+    margin: 0 0 30px;
+    color: #d9c9a8;
+    max-width: 54ch;
+  }
+  .cta-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .project-cta :global(.btn) {
+    background: var(--canvas);
+    color: var(--charcoal);
+    border-color: var(--canvas);
+  }
+  .project-cta :global(.btn:hover) { background: #fff; color: var(--charcoal); }
+  .project-cta :global(.btn-secondary) {
+    background: transparent;
+    color: var(--canvas);
+    border-color: var(--canvas);
+  }
+  .project-cta :global(.btn-secondary:hover) {
+    background: var(--canvas);
+    color: var(--charcoal);
+  }
+  .cta-small {
+    margin-top: 26px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #b0a99f;
+  }
+</style>

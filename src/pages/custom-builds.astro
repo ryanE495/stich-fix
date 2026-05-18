@@ -171,13 +171,14 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- RECENT WORK PLACEHOLDER -->
+  <!-- RECENT WORK -->
   <section class="recent">
     <div class="wrap">
       <div class="recent-inner">
         <div class="section-num">§ Recent Custom Work</div>
-        <h2>Portfolio coming soon.</h2>
-        <p>Build-in-progress photos go up on Instagram first. Follow <strong>@westernslopestitchworks</strong> for the in-the-shop look at recent custom builds and modifications.</p>
+        <h2>Proof of work, <em>build by build.</em></h2>
+        <p>The portfolio has before-and-after photos and write-ups from real custom jobs that have come through the shop &mdash; RV awning resizes, sleeping-bag conversions, gear modifications, and one-offs.</p>
+        <a href="/portfolio/" class="btn recent-cta">See the full portfolio &rarr;</a>
       </div>
     </div>
   </section>
@@ -410,11 +411,18 @@ const jsonLd = {
   .recent p {
     font-size: 18px;
     line-height: 1.6;
-    margin: 0;
+    margin: 0 0 28px;
     color: #f1e5cd;
     max-width: 56ch;
   }
+  .recent h2 em { font-style: italic; color: #E8CDA9; font-weight: 400; }
   .recent strong { color: #ffffff; font-weight: 500; }
+  .recent-cta {
+    background: var(--canvas);
+    color: var(--charcoal);
+    border-color: var(--canvas);
+  }
+  .recent-cta:hover { background: #fff; color: var(--charcoal); transform: translateY(-1px); }
 
   /* ---------- WEIRD CTA ---------- */
   .weird-cta {

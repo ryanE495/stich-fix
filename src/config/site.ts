@@ -29,6 +29,7 @@ export const nav = [
   { href: '/', label: 'Home', key: 'home' },
   { href: '/services', label: 'Services & Pricing', key: 'services' },
   { href: '/custom-builds', label: 'Custom Builds', key: 'custom-builds' },
+  { href: '/portfolio', label: 'Portfolio', key: 'portfolio' },
   { href: '/contact', label: 'Contact', key: 'contact' },
 ] as const;
 

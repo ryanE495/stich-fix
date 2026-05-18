@@ -47,6 +47,27 @@ These are the highest-ROI SEO moves for a local service business. Do them in thi
 
 5. **Reviews** — ask your first 3 paying customers for a Google review. Send them the direct review link from your Business Profile rather than "search for us on Google." Conversion is 3–5× higher.
 
+## Portfolio (Supabase-backed)
+
+The `/portfolio` archive and per-item detail pages are statically generated from the shared Supabase project at **build time**. Source code lives in `src/lib/portfolio.ts` and `src/pages/portfolio/`.
+
+**Required env vars** (set in Netlify → Site settings → Environment variables):
+
+- `SUPABASE_URL` — e.g. `https://xxxxxxxxxxxx.supabase.co`
+- `SUPABASE_ANON_KEY` — the public anon key. RLS on `stitchworks_portfolio_items` restricts the anon role to rows where `status = 'published'`, so only published items ever ship to the public site.
+
+There is a `.env.example` in the repo root showing the shape. Copy to `.env` for local builds (`.env` is git-ignored).
+
+**Behavior when env vars are missing or Supabase is unreachable:**
+- `/portfolio/` renders a graceful "Work samples coming soon" empty state.
+- No detail pages are generated.
+- Homepage Recent Work block is omitted entirely.
+- Build still succeeds — the fetchers swallow errors and return `[]`.
+
+**Routes are generated from the title** (slugified, with an 8-char id fragment appended on collision) since the table has no `slug` column.
+
+**To refresh the portfolio after Ryan publishes new items in the CMS:** trigger a Netlify rebuild (Deploys → Trigger deploy → Deploy site). The portfolio rebuilds against the latest published rows at build time; no in-page client fetch.
+
 ## Contact form — Netlify Forms
 
 The contact form (`src/pages/contact.astro`) is wired to **Netlify Forms**:

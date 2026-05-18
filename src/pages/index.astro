@@ -3,9 +3,12 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { serviceAreas } from '../data/service-areas';
+import { fetchRecentPortfolio, withSlugs, pickThumbnail } from '../lib/portfolio';
 
 const heroImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/sewing-hero.webp';
 const personalImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp';
+
+const recentPortfolio = withSlugs(await fetchRecentPortfolio(3));
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -276,6 +279,37 @@ const jsonLd = {
     </div>
   </section>
 
+  {recentPortfolio.length > 0 && (
+    <!-- RECENT WORK -->
+    <section class="recent-work">
+      <div class="wrap">
+        <div class="recent-head" data-reveal>
+          <div>
+            <div class="section-num">§ Recent Work</div>
+            <h2>A look at what's <em>come through the shop.</em></h2>
+          </div>
+          <a class="recent-cta" href="/portfolio/">See the full portfolio &rarr;</a>
+        </div>
+        <ul class="recent-grid" data-reveal style="--reveal-delay: 120ms">
+          {recentPortfolio.map((p) => {
+            const thumb = pickThumbnail(p);
+            return (
+              <li class="recent-card">
+                <a href={`/portfolio/${p.slug}/`}>
+                  <div class="recent-media">
+                    {thumb && <img src={thumb} alt={`${p.title} — ${p.category}`} loading="lazy" decoding="async" />}
+                  </div>
+                  <span class="recent-category">{p.category}</span>
+                  <h3 class="recent-title">{p.title}</h3>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )}
+
   <!-- CUSTOM BUILDS CALLOUT -->
   <section class="custom-callout">
     <div class="wrap">
@@ -539,6 +573,86 @@ const jsonLd = {
     margin-top: 28px; font-family: var(--f-mono);
     font-size: 12px; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--muted);
+  }
+
+  /* RECENT WORK */
+  .recent-work {
+    padding: 88px 0;
+    background: var(--canvas-light);
+    border-top: 2px solid var(--charcoal);
+  }
+  .recent-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 44px;
+  }
+  .recent-head h2 {
+    font-size: clamp(30px, 4.2vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    max-width: 18ch;
+    text-wrap: balance;
+  }
+  .recent-head h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .recent-cta {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    text-decoration: none;
+    border-bottom: 1px solid var(--charcoal);
+    padding-bottom: 2px;
+  }
+  .recent-cta:hover { color: var(--rust); border-bottom-color: var(--rust); }
+  .recent-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .recent-card a { display: block; text-decoration: none; color: inherit; }
+  .recent-media {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+  .recent-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .recent-card a:hover .recent-media img { transform: scale(1.03); }
+  .recent-category {
+    display: block;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 8px;
+  }
+  .recent-title {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--charcoal);
+    text-wrap: balance;
+  }
+  @media (min-width: 720px) {
+    .recent-grid { grid-template-columns: repeat(3, 1fr); gap: 36px; }
   }
 
   @media (max-width: 900px) {

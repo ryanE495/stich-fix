@@ -121,20 +121,22 @@ const jsonLd = {
           </div>
         </div>
         <div>
-          <Image
-            class="hero-image"
-            src={heroImage}
-            width={1280}
-            height={960}
-            widths={[480, 768, 1280]}
-            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-            format="webp"
-            quality={82}
-            alt="Industrial sewing machine mid-stitch on heavy canvas in the Western Slope Stitchworks workshop"
-            loading="eager"
-            decoding="async"
-            fetchpriority="high"
-          />
+          <div class="hero-image-frame">
+            <Image
+              class="hero-image"
+              src={heroImage}
+              width={1280}
+              height={960}
+              widths={[480, 768, 1280]}
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+              format="webp"
+              quality={82}
+              alt="Industrial sewing machine mid-stitch on heavy canvas in the Western Slope Stitchworks workshop"
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </div>
           <div class="hero-image-caption">
             <span>Plate 01 / Workshop</span>
             <span>Montrose, CO</span>
@@ -198,19 +200,21 @@ const jsonLd = {
     <div class="wrap">
       <div class="personal-grid" data-reveal>
         <div>
-          <Image
-            class="personal-photo"
-            src={personalImage}
-            width={640}
-            height={800}
-            widths={[320, 480, 640]}
-            sizes="(max-width: 900px) 280px, 320px"
-            format="webp"
-            quality={82}
-            alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
-            loading="lazy"
-            decoding="async"
-          />
+          <div class="personal-photo-frame">
+            <Image
+              class="personal-photo"
+              src={personalImage}
+              width={640}
+              height={800}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 900px) 280px, 320px"
+              format="webp"
+              quality={82}
+              alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
           <div class="personal-photo-tag">Ryan, Proprietor · Plate 02</div>
         </div>
         <div class="personal-body">
@@ -414,12 +418,18 @@ const jsonLd = {
   }
   .hero-sub { margin: 0; font-size: 19px; line-height: 1.55; max-width: 46ch; color: var(--ink); }
   .hero-ctas { margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap; }
-  .hero-image {
-    aspect-ratio: 5 / 4;
+  .hero-image-frame {
     width: 100%;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .hero-image {
+    width: 100%;
+    height: 100%;
     display: block;
     object-fit: cover;
-    background: var(--canvas-dark);
   }
   .hero-image-caption {
     margin-top: 14px; font-family: var(--f-mono);
@@ -459,12 +469,18 @@ const jsonLd = {
 
   .personal { padding: 96px 0 60px; }
   .personal-grid { display: grid; grid-template-columns: 320px 1fr; gap: 72px; align-items: start; }
-  .personal-photo {
-    aspect-ratio: 4 / 5;
+  .personal-photo-frame {
     width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .personal-photo {
+    width: 100%;
+    height: 100%;
     display: block;
     object-fit: cover;
-    background: var(--canvas-dark);
   }
   .personal-photo-tag {
     margin-top: 12px; font-family: var(--f-mono);
@@ -657,9 +673,9 @@ const jsonLd = {
 
   @media (max-width: 900px) {
     .hero-lower { grid-template-columns: 1fr; gap: 36px; }
-    .hero-image { aspect-ratio: 4/3; max-width: 560px; }
+    .hero-image-frame { aspect-ratio: 4/3; max-width: 560px; }
     .personal-grid { grid-template-columns: 1fr; gap: 32px; }
-    .personal-photo { max-width: 280px; }
+    .personal-photo-frame { max-width: 280px; }
     .service-cards { grid-template-columns: 1fr; }
     .service-card { border-right: none; border-bottom: 1px solid var(--rule-strong); min-height: auto; }
     .service-card:last-child { border-bottom: none; }

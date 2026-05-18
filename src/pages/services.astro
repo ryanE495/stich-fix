@@ -84,6 +84,7 @@ const jsonLd = {
           </p>
         </div>
         <div class="page-head-media" data-hero-in style="--hero-delay: 0.48s">
+          <div class="page-head-image-frame">
           <Image
             class="page-head-image"
             src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-sewing-hero.webp"
@@ -98,6 +99,7 @@ const jsonLd = {
             decoding="async"
             fetchpriority="high"
           />
+          </div>
           <div class="page-head-caption">
             <span>Plate 01 / Workshop</span>
             <span>Montrose, CO</span>
@@ -272,12 +274,18 @@ const jsonLd = {
     max-width: 58ch;
     color: var(--ink);
   }
-  .page-head-image {
+  .page-head-image-frame {
     width: 100%;
     aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .page-head-image {
+    width: 100%;
+    height: 100%;
     display: block;
     object-fit: cover;
-    background: var(--canvas-dark);
   }
   .page-head-caption {
     margin-top: 14px;

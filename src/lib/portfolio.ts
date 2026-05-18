@@ -40,8 +40,13 @@ export interface PortfolioItemWithSlug extends PortfolioItem {
   slug: string;
 }
 
-const SUPABASE_URL = import.meta.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.SUPABASE_ANON_KEY;
+// Accept either prefix so the same lib reads from a typical Astro/Vite-style
+// `.env` (VITE_*) or a server-only env-var setup (no prefix). Whichever
+// convention is set at build/dev time wins.
+const SUPABASE_URL =
+  import.meta.env.SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY =
+  import.meta.env.SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let client: SupabaseClient | null = null;
 function getClient(): SupabaseClient | null {

@@ -102,8 +102,8 @@ a { color: inherit; }
   color: var(--ink);
 }
 .brand-mark {
-  width: 76px;
-  height: 76px;
+  width: 56px;
+  height: 56px;
   display: block;
   object-fit: contain;
   border-radius: 2px;
@@ -112,9 +112,10 @@ a { color: inherit; }
 .brand-text {
   font-family: var(--f-serif);
   font-weight: 600;
-  font-size: 19px;
+  font-size: 17px;
   letter-spacing: -0.01em;
-  line-height: 1;
+  line-height: 1.05;
+  white-space: nowrap;
 }
 .brand-text small {
   display: block;
@@ -129,27 +130,29 @@ a { color: inherit; }
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 22px;
 }
 .nav-links a {
   text-decoration: none;
   font-weight: 500;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--ink);
   padding: 6px 0;
   border-bottom: 2px solid transparent;
+  white-space: nowrap;
 }
 .nav-links a:hover { border-bottom-color: var(--ink); }
 .nav-links a.active { border-bottom-color: var(--rust); }
 .nav-phone {
   font-family: var(--f-mono);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   text-decoration: none;
   color: var(--ink);
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 .nav-phone::before {
   content: '';
@@ -169,7 +172,7 @@ a { color: inherit; }
 .nav-dropdown-trigger {
   font-family: var(--f-sans);
   font-weight: 500;
-  font-size: 15px;
+  font-size: 14px;
   color: var(--ink);
   background: transparent;
   border: none;
@@ -180,6 +183,7 @@ a { color: inherit; }
   gap: 4px;
   border-bottom: 2px solid transparent;
   letter-spacing: inherit;
+  white-space: nowrap;
 }
 .nav-dropdown-trigger:hover { border-bottom-color: var(--ink); }
 .nav-dropdown.active .nav-dropdown-trigger { border-bottom-color: var(--rust); }
@@ -257,7 +261,7 @@ a { color: inherit; }
   font-weight: 400;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 920px) {
   .nav-dropdown { display: none; }
 }
 
@@ -441,7 +445,7 @@ body.menu-open { overflow: hidden; }
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 920px) {
   .nav-links { display: none; }
   .nav-toggle { display: inline-flex; }
   .nav-inner { padding: 12px 20px; gap: 12px; }
@@ -449,6 +453,11 @@ body.menu-open { overflow: hidden; }
   .brand-mark { width: 48px; height: 48px; }
   .brand-text { font-size: 16px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .brand-text small { font-size: 9px; }
+}
+
+/* Update the existing nav also needs a min-width: 0 to allow ellipsis on cramped widths */
+@media (min-width: 921px) {
+  .nav-inner { gap: 24px; }
 }
 
 /* ---------------- Buttons ---------------- */

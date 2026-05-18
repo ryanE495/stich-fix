@@ -86,20 +86,22 @@ const jsonLd = {
           </div>
         </div>
         <div class="page-head-media">
-          <Image
-            class="page-head-image"
-            src={area.heroImage}
-            width={1200}
-            height={960}
-            widths={[480, 768, 1200]}
-            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-            format="webp"
-            quality={82}
-            alt={area.heroImageAlt}
-            loading="eager"
-            decoding="async"
-            fetchpriority="high"
-          />
+          <div class="page-head-image-frame">
+            <Image
+              class="page-head-image"
+              src={area.heroImage}
+              width={1200}
+              height={960}
+              widths={[480, 768, 1200]}
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+              format="webp"
+              quality={82}
+              alt={area.heroImageAlt}
+              loading="eager"
+              decoding="async"
+              fetchpriority="high"
+            />
+          </div>
           <div class="page-head-caption">
             <span>Plate · Workshop</span>
             <span>Montrose, CO</span>
@@ -135,19 +137,21 @@ const jsonLd = {
     <div class="wrap">
       <div class="personal-grid">
         <div>
-          <Image
-            class="personal-photo"
-            src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp"
-            width={640}
-            height={800}
-            widths={[320, 480, 640]}
-            sizes="(max-width: 900px) 280px, 320px"
-            format="webp"
-            quality={82}
-            alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
-            loading="lazy"
-            decoding="async"
-          />
+          <div class="personal-photo-frame">
+            <Image
+              class="personal-photo"
+              src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp"
+              width={640}
+              height={800}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 900px) 280px, 320px"
+              format="webp"
+              quality={82}
+              alt="Ryan at his industrial sewing machine in the Western Slope Stitchworks shop"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
           <div class="personal-photo-tag">Ryan, Proprietor · Plate 02</div>
         </div>
         <div class="personal-body">
@@ -263,12 +267,18 @@ const jsonLd = {
     gap: 14px;
     flex-wrap: wrap;
   }
-  .page-head-image {
+  .page-head-image-frame {
     width: 100%;
     aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .page-head-image {
+    width: 100%;
+    height: 100%;
     display: block;
     object-fit: cover;
-    background: var(--canvas-dark);
   }
   .page-head-caption {
     margin-top: 14px;
@@ -359,13 +369,19 @@ const jsonLd = {
     gap: 32px;
     align-items: start;
   }
-  .personal-photo {
+  .personal-photo-frame {
     aspect-ratio: 4 / 5;
     width: 100%;
     max-width: 280px;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .personal-photo {
+    width: 100%;
+    height: 100%;
     display: block;
     object-fit: cover;
-    background: var(--canvas-dark);
   }
   .personal-photo-tag {
     margin-top: 12px;
@@ -409,7 +425,7 @@ const jsonLd = {
       grid-template-columns: 320px 1fr;
       gap: 72px;
     }
-    .personal-photo { max-width: none; }
+    .personal-photo-frame { max-width: none; }
   }
 
   /* ---------- LOCAL FOCUS ---------- */

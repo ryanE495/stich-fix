@@ -91,11 +91,10 @@ const jsonLd = {
         <div class="ba-grid">
           {item.before_image_url && (
             <figure class="ba-figure">
-              <div class="ba-kicker">Before</div>
               <div class="ba-frame">
                 <img
                   src={item.before_image_url}
-                  alt={`${item.title} — before`}
+                  alt={item.title}
                   loading="lazy"
                   decoding="async"
                 />
@@ -104,11 +103,10 @@ const jsonLd = {
           )}
           {item.after_image_url && (
             <figure class="ba-figure">
-              <div class="ba-kicker after">After</div>
               <div class="ba-frame">
                 <img
                   src={item.after_image_url}
-                  alt={`${item.title} — after`}
+                  alt={item.title}
                   loading="lazy"
                   decoding="async"
                 />

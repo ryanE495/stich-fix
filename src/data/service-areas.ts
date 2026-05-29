@@ -266,3 +266,30 @@ export const serviceAreas: ServiceArea[] = [
 
 export const findServiceArea = (slug: string): ServiceArea | undefined =>
   serviceAreas.find((a) => a.slug === slug);
+
+/**
+ * Nearby-area cross-link map for internal linking / SEO. Each service-area
+ * page links to 2–3 geographic neighbors. Weighted so Montrose, Ridgway,
+ * and Grand Junction (the hub pages) receive the most inbound links.
+ */
+const NEARBY: Record<string, string[]> = {
+  'montrose-co': ['delta-co', 'olathe-co', 'ridgway-co'],
+  'delta-co': ['montrose-co', 'cedaredge-co', 'grand-junction-co'],
+  'olathe-co': ['montrose-co', 'delta-co', 'ridgway-co'],
+  'ridgway-co': ['ouray-co', 'montrose-co', 'telluride-co'],
+  'ouray-co': ['ridgway-co', 'telluride-co', 'montrose-co'],
+  'telluride-co': ['ridgway-co', 'ouray-co', 'montrose-co'],
+  'grand-junction-co': ['fruita-co', 'delta-co', 'montrose-co'],
+  'fruita-co': ['grand-junction-co', 'delta-co', 'montrose-co'],
+  'cedaredge-co': ['delta-co', 'hotchkiss-co', 'grand-junction-co'],
+  'hotchkiss-co': ['paonia-co', 'cedaredge-co', 'delta-co'],
+  'paonia-co': ['hotchkiss-co', 'cedaredge-co', 'delta-co'],
+  'crested-butte-co': ['gunnison-co', 'montrose-co', 'ridgway-co'],
+  'gunnison-co': ['crested-butte-co', 'montrose-co', 'grand-junction-co'],
+};
+
+/** Resolve a slug's nearby areas to full ServiceArea objects (order preserved). */
+export const getNearbyAreas = (slug: string): ServiceArea[] =>
+  (NEARBY[slug] ?? [])
+    .map((s) => serviceAreas.find((a) => a.slug === s))
+    .filter((a): a is ServiceArea => Boolean(a));

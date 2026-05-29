@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { serviceAreas, HERO } from '../data/service-areas';
+import AreasServed from '../components/AreasServed.astro';
 
 const heroImage = HERO.sewing;
 const canonicalPath = '/custom-builds/';
@@ -184,6 +185,8 @@ const jsonLd = {
       </div>
     </div>
   </section>
+
+  <AreasServed intro="Custom builds and gear modifications, available across the Western Slope. Tell me what you need from any of these communities and we'll figure it out:" />
 
   <!-- CTA -->
   <section class="weird-cta">

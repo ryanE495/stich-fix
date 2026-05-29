@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
-import { serviceAreas, universalServices, type ServiceArea } from '../../data/service-areas';
+import { serviceAreas, universalServices, getNearbyAreas, type ServiceArea } from '../../data/service-areas';
 
 export function getStaticPaths() {
   return serviceAreas.map((area) => ({
@@ -17,6 +17,7 @@ interface Props {
 
 const { area } = Astro.props;
 const canonicalPath = `/service-areas/${area.slug}/`;
+const nearby = getNearbyAreas(area.slug);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -204,6 +205,29 @@ const jsonLd = {
       </div>
     </div>
   </section>
+
+  {nearby.length > 0 && (
+    <!-- NEARBY AREAS -->
+    <section class="nearby">
+      <div class="wrap">
+        <div class="nearby-head">
+          <div class="section-num">§ Nearby Areas</div>
+          <h2>Also serving near <em>{area.cityName}</em></h2>
+        </div>
+        <ul class="nearby-grid">
+          {nearby.map((n) => (
+            <li>
+              <a href={`/service-areas/${n.slug}/`}>
+                <span class="nearby-city">{n.cityName}, {n.state}</span>
+                <span class="nearby-region">{n.region}</span>
+                <span class="nearby-arrow" aria-hidden="true">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
 
   <!-- CTA -->
   <section class="city-cta">
@@ -515,6 +539,80 @@ const jsonLd = {
     }
     .city-log-card:first-child { padding-left: 0; }
     .city-log-card:last-child { border-right: none; padding-right: 0; }
+  }
+
+  /* ---------- NEARBY AREAS ---------- */
+  .nearby {
+    padding: 80px 0;
+    background: var(--canvas-light);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .nearby-head { margin-bottom: 32px; }
+  .nearby h2 {
+    font-size: clamp(28px, 3.8vw, 44px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    text-wrap: balance;
+  }
+  .nearby h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .nearby-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-top: 2px solid var(--charcoal);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .nearby-grid li { border-bottom: 1px solid var(--rule-strong); }
+  .nearby-grid li:last-child { border-bottom: none; }
+  .nearby-grid a {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 22px 2px;
+    text-decoration: none;
+    color: var(--charcoal);
+    transition: padding-left 0.14s ease, color 0.14s ease;
+  }
+  .nearby-grid a:hover { padding-left: 8px; color: var(--rust); }
+  .nearby-city {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(20px, 2.6vw, 26px);
+    letter-spacing: -0.02em;
+  }
+  .nearby-region {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .nearby-arrow {
+    margin-left: auto;
+    font-family: var(--f-serif);
+    font-size: 24px;
+    color: var(--rust);
+    line-height: 1;
+  }
+  @media (min-width: 760px) {
+    .nearby-grid { grid-template-columns: repeat(3, 1fr); gap: 0; border-bottom: none; }
+    .nearby-grid li {
+      border-bottom: none;
+      border-right: 1px solid var(--rule-strong);
+    }
+    .nearby-grid li:last-child { border-right: none; }
+    .nearby-grid a {
+      flex-direction: column;
+      gap: 8px;
+      padding: 28px 28px 28px 0;
+    }
+    .nearby-grid li:not(:first-child) a { padding-left: 28px; }
+    .nearby-grid a:hover { padding-left: 0; }
+    .nearby-grid li:not(:first-child) a:hover { padding-left: 28px; }
+    .nearby-arrow { margin-left: 0; }
   }
 
   /* ---------- CTA ---------- */

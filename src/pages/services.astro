@@ -3,7 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
-import { serviceAreas } from '../data/service-areas';
+import AreasServed from '../components/AreasServed.astro';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -140,21 +140,7 @@ const jsonLd = {
   </section>
 
   <!-- SERVICE AREA STRIP -->
-  <section class="service-area-strip" aria-label="Service areas">
-    <div class="wrap">
-      <div class="sas-row">
-        <span class="sas-kicker">Now serving the Western Slope</span>
-        <p class="sas-list">
-          {serviceAreas.map((area, i) => (
-            <>
-              <a href={`/service-areas/${area.slug}/`}>{area.cityName}</a>{i < serviceAreas.length - 1 ? ' · ' : ''}
-            </>
-          ))}
-          <span class="sas-suffix"> — and surrounding communities.</span>
-        </p>
-      </div>
-    </div>
-  </section>
+  <AreasServed intro="Full price-list repairs and custom work, available across the Western Slope. Free local pickup and 3–7 day turnaround in each of these communities:" />
 
   <!-- WHAT I DON'T DO -->
   <section class="dont">

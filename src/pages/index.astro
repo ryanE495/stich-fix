@@ -269,17 +269,17 @@ const jsonLd = {
     </div>
   </section>
 
-  {recentPortfolio.length > 0 && (
-    <!-- RECENT WORK -->
-    <section class="recent-work">
-      <div class="wrap">
-        <div class="recent-head" data-reveal>
-          <div>
-            <div class="section-num">§ Recent Work</div>
-            <h2>A look at what's <em>come through the shop.</em></h2>
-          </div>
-          <a class="recent-cta" href="/portfolio/">See the full portfolio &rarr;</a>
+  <!-- RECENT WORK -->
+  <section class="recent-work">
+    <div class="wrap">
+      <div class="recent-head" data-reveal>
+        <div>
+          <div class="section-num">§ Recent Work</div>
+          <h2>A look at what's <em>come through the shop.</em></h2>
         </div>
+        <a class="recent-cta" href="/portfolio/">See the full portfolio &rarr;</a>
+      </div>
+      {recentPortfolio.length > 0 ? (
         <ul class="recent-grid" data-reveal style="--reveal-delay: 120ms">
           {recentPortfolio.map((p) => {
             const thumb = pickThumbnail(p);
@@ -296,9 +296,13 @@ const jsonLd = {
             );
           })}
         </ul>
-      </div>
-    </section>
-  )}
+      ) : (
+        <p class="recent-empty" data-reveal>
+          Fresh repairs and custom builds go up regularly. <a href="/portfolio/">Browse the portfolio &rarr;</a>
+        </p>
+      )}
+    </div>
+  </section>
 
   <!-- CUSTOM BUILDS CALLOUT -->
   <section class="custom-callout">
@@ -635,6 +639,9 @@ const jsonLd = {
     transition: transform 0.4s ease;
   }
   .recent-card a:hover .recent-media img { transform: scale(1.03); }
+  .recent-empty { margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink); }
+  .recent-empty a { color: var(--charcoal); border-bottom: 1px solid var(--charcoal); text-decoration: none; }
+  .recent-empty a:hover { color: var(--rust); border-bottom-color: var(--rust); }
   .recent-category {
     display: block;
     font-family: var(--f-mono);

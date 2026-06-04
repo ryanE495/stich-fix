@@ -139,3 +139,29 @@ export async function fetchRecentPortfolio(limit = 3): Promise<PortfolioItem[]> 
 export function pickThumbnail(item: PortfolioItem): string | null {
   return item.after_image_url || item.before_image_url || null;
 }
+
+/**
+ * Pure helper: given the full slugged list and a current item, return up to
+ * `limit` "related" items for cross-linking. Same-category items come first
+ * (preserving list order), then the most-recent others fill any remaining
+ * slots so every entry always gets a related mesh even in a single-item
+ * category. The current item is always excluded.
+ */
+export function getRelatedItems(
+  all: PortfolioItemWithSlug[],
+  current: PortfolioItemWithSlug,
+  limit = 3
+): PortfolioItemWithSlug[] {
+  const others = all.filter((i) => i.slug !== current.slug);
+  const sameCategory = others.filter((i) => i.category === current.category);
+  const rest = others.filter((i) => i.category !== current.category);
+  const seen = new Set<string>();
+  const out: PortfolioItemWithSlug[] = [];
+  for (const i of [...sameCategory, ...rest]) {
+    if (seen.has(i.slug)) continue;
+    seen.add(i.slug);
+    out.push(i);
+    if (out.length >= limit) break;
+  }
+  return out;
+}

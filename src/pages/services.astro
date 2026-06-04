@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
 import AreasServed from '../components/AreasServed.astro';
+import RecentWorkLinks from '../components/RecentWorkLinks.astro';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -217,6 +218,11 @@ const jsonLd = {
       </a>
     </div>
   </section>
+
+  <RecentWorkLinks
+    heading="See Our Recent Work"
+    intro="Real repairs and custom builds from the shop — before-and-after photos and the story behind each fix."
+  />
 
   <!-- FINAL CTA -->
   <section class="final">

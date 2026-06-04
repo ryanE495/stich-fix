@@ -1,0 +1,134 @@
+---
+/**
+ * Compact, in-body "recent work" internal-linking block. Server-rendered
+ * plain <a> tags to /portfolio/ and to individual entries so Googlebot has
+ * crawlable in-content paths into the portfolio from other key pages.
+ *
+ * Dynamic: pulls from published portfolio data, so future CMS entries are
+ * linked automatically. `category` optionally biases toward relevant entries
+ * (falls back to most-recent to fill the slot count). Fails soft to just the
+ * /portfolio/ index link when there is no data.
+ */
+import { fetchPublishedPortfolio, withSlugs } from '../lib/portfolio';
+
+interface Props {
+  heading?: string;
+  intro?: string;
+  category?: string;
+  limit?: number;
+}
+
+const {
+  heading = 'See Our Recent Work',
+  intro = 'Before-and-after photos and write-ups from real repairs and custom builds across the Western Slope.',
+  category,
+  limit = 3,
+} = Astro.props;
+
+const all = withSlugs(await fetchPublishedPortfolio());
+let picks = all;
+if (category) {
+  const matches = all.filter((i) => i.category === category);
+  const rest = all.filter((i) => i.category !== category);
+  picks = [...matches, ...rest];
+}
+picks = picks.slice(0, limit);
+---
+
+<section class="recent-links">
+  <div class="wrap">
+    <div class="rl-inner">
+      <div class="rl-head">
+        <div class="section-num">§ Recent Work</div>
+        <h2>{heading}</h2>
+        <p class="rl-intro">{intro}</p>
+        <a class="rl-cta" href="/portfolio/">See our recent work &rarr;</a>
+      </div>
+      {picks.length > 0 && (
+        <ul class="rl-list">
+          {picks.map((p) => (
+            <li>
+              <a href={`/portfolio/${p.slug}/`}>
+                <span class="rl-title">{p.title}</span>
+                <span class="rl-cat">{p.category}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .recent-links {
+    padding: 72px 0;
+    background: var(--canvas);
+    border-top: 1px solid var(--rule-strong);
+  }
+  .rl-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .rl-head h2 {
+    font-size: clamp(28px, 3.8vw, 46px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    text-wrap: balance;
+  }
+  .rl-intro {
+    margin: 18px 0 22px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 52ch;
+  }
+  .rl-cta {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    text-decoration: none;
+    border-bottom: 1px solid var(--charcoal);
+    padding-bottom: 2px;
+  }
+  .rl-cta:hover { color: var(--rust); border-bottom-color: var(--rust); }
+  .rl-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .rl-list li { border-bottom: 1px solid var(--rule-strong); }
+  .rl-list a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 2px;
+    text-decoration: none;
+    color: var(--charcoal);
+    transition: padding-left 0.14s ease, color 0.14s ease;
+  }
+  .rl-list a:hover { padding-left: 8px; color: var(--rust); }
+  .rl-title {
+    font-family: var(--f-serif);
+    font-weight: 500;
+    font-size: clamp(17px, 2vw, 21px);
+    letter-spacing: -0.01em;
+  }
+  .rl-cat {
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: right;
+    flex-shrink: 0;
+  }
+  @media (min-width: 900px) {
+    .rl-inner { grid-template-columns: 0.9fr 1.1fr; gap: 64px; align-items: start; }
+  }
+</style>

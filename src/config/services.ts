@@ -23,8 +23,6 @@ export const categories: ServiceCategory[] = [
     title: 'Outdoor & Expedition Gear',
     items: [
       { name: 'Tipi & wall tent patches', price: '$60 – $150' },
-      { name: 'Backpack repair (seams, panels, compression straps)', price: '$45 – $120' },
-      { name: 'Hipbelt & shoulder strap rebuilds', price: '$60 – $120' },
       { name: 'Drybag patches & roll-top repair', price: '$25 – $50' },
       { name: 'Sleeping bag zipper replacement', price: '$55 – $90' },
       { name: 'Tarp, bivy, and shelter repair', price: '$30 – $80' },
@@ -37,8 +35,8 @@ export const categories: ServiceCategory[] = [
     items: [
       { name: 'Raft frame bag repair & rebuilds', price: '$40 – $100' },
       { name: 'Strap, webbing & cam-strap repair (3+ per order)', price: '$15 per strap' },
-      { name: 'UTV / side-by-side seat re-upholstery', price: '$150 per seat' },
-      { name: 'Snowmobile seat re-cover', price: '$150 – $200' },
+      { name: 'UTV / side-by-side seat re-upholstery (higher if sewing is required)', price: '$120 – $200 per seat' },
+      { name: 'Snowmobile seat re-cover (higher if sewing is required)', price: '$150 – $350' },
       { name: 'Boat seat, cushion & bimini repair', price: '$60 – $180' },
       { name: 'Dog vest & K9 gear', price: '$30 – $75' },
     ],

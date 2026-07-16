@@ -34,20 +34,21 @@ const jsonLd = {
       },
       {
         '@type': 'Offer',
-        name: 'Backpack repair',
+        name: 'UTV and side-by-side seat re-upholstery',
         priceSpecification: {
           '@type': 'PriceSpecification',
-          minPrice: '45',
-          maxPrice: '120',
+          minPrice: '120',
+          maxPrice: '200',
           priceCurrency: 'USD',
         },
       },
       {
         '@type': 'Offer',
-        name: 'UTV and side-by-side seat re-upholstery',
+        name: 'Snowmobile seat re-cover',
         priceSpecification: {
           '@type': 'PriceSpecification',
-          price: '150',
+          minPrice: '150',
+          maxPrice: '350',
           priceCurrency: 'USD',
         },
       },
@@ -69,7 +70,7 @@ const jsonLd = {
 <Layout
   active="services"
   title={`Gear & Canvas Repair Services + Pricing | ${site.name}`}
-  description="Honest pricing for outdoor gear, raft, UTV, and commercial upholstery repair. Tipi patches from $60, backpack repair from $45, UTV seat re-upholstery $150. Free photo quotes in Montrose, GJ, and the Western Slope."
+  description="Honest pricing for outdoor gear, raft, UTV, and commercial upholstery repair. Tipi patches from $60, UTV seat re-upholstery from $120, snowmobile seats from $150. Free photo quotes in Montrose, GJ, and the Western Slope."
   canonicalPath="/services"
   jsonLd={jsonLd}
 >
@@ -141,7 +142,7 @@ const jsonLd = {
   </section>
 
   <!-- SERVICE AREA STRIP -->
-  <AreasServed intro="Full price-list repairs and custom work, available across the Western Slope. Free local pickup and 3–7 day turnaround in each of these communities:" />
+  <AreasServed intro="Full price-list repairs and custom work, available across the Western Slope. Free local pickup in Montrose, Olathe & Delta — a small route fee everywhere else — and 3–7 day turnaround in each of these communities:" />
 
   <!-- WHAT I DON'T DO -->
   <section class="dont">
@@ -176,7 +177,7 @@ const jsonLd = {
             </svg>
           </div>
           <h4>Pickup</h4>
-          <p>Free local pickup in Delta, Montrose, Grand Junction, Ridgway, Ouray &amp; Telluride.</p>
+          <p>Free local pickup in Montrose, Olathe &amp; Delta. Pickup everywhere else on the Western Slope for a small route fee.</p>
         </div>
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">

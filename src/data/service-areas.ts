@@ -102,12 +102,12 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       "Ridgway customers lean into technical mountain gear — ski touring packs, climbing-adjacent hardware (the auxiliary stuff, not life-safety gear), backcountry shelters, and ultralight tarps. There's a strong river community pushing gear hard each summer, plus a steady run of UTV/ATV repairs from folks exploring the Cimarron and Owl Creek country. The machine setup at the shop handles all of it without compromise — same setup, all weights of fabric.",
     driveTime: 'About 25 minutes south on Highway 550',
-    pickupNote: 'Free pickup runs weekly — text to schedule',
+    pickupNote: 'Pickup runs weekly for a small route fee — text to schedule',
     heroImage: HERO.shop,
     heroImageAlt: 'Industrial sewing repair for Ridgway, CO ski touring and backcountry packs',
     metaTitle: 'Gear Repair Ridgway CO | Backpack, Tent & Climbing Pack Repair',
     metaDescription:
-      'Industrial gear repair for Ridgway, CO. Backcountry ski packs, climbing gear, backpack rebuilds, raft & tent repair. 25 min from Montrose. Free local pickup.',
+      'Industrial gear repair for Ridgway, CO. Backcountry ski packs, climbing gear, backpack rebuilds, raft & tent repair. 25 min from Montrose. Weekly pickup runs.',
   },
   {
     slug: 'ouray-co',
@@ -119,7 +119,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       'Ouray gear is technical — ice climbing packs, alpine tents and bivys, backcountry ski rigs, ultralight haul bags, and the abused side-by-side seats of every guide rig in the area. We work on all the auxiliary gear (not life-safety hardware) — restitching hauling straps, replacing worn webbing on packs, patching shelters, and rebuilding shock-absorbed shoulder straps. The shop is also a regular stop for jeep tour operators with seat upholstery that won’t survive another summer.',
     driveTime: 'About 45 minutes south through Ridgway',
-    pickupNote: 'Pickup runs through Ridgway weekly',
+    pickupNote: 'Pickup runs through Ridgway weekly — small route fee',
     heroImage: HERO.sewing,
     heroImageAlt: 'Industrial sewing machine repairing climbing pack for Ouray, CO mountaineers',
     metaTitle: 'Gear Repair Ouray CO | Ice Climbing Pack & Mountain Gear Repair',
@@ -136,7 +136,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       'Telluride leans premium and technical. The shop sees high-end backpacks needing hipbelt rebuilds and zipper replacements, ski touring packs torn on the boot pack, alpine bivys with blown-out seam tape, and a regular run of commercial gear from outfitters and guide services. Restaurant booth and event canvas work comes out of the resort and the festival circuit too. Same machine, same hands — no rotation through subcontractors.',
     driveTime: 'About 1 hour 15 minutes south, over Dallas Divide',
-    pickupNote: 'Pickup available — text to coordinate timing',
+    pickupNote: 'Pickup available for a small route fee — text to coordinate timing',
     heroImage: HERO.shop,
     heroImageAlt: 'Industrial gear repair shop serving Telluride, CO ski touring and alpine community',
     metaTitle: 'Gear Repair Telluride CO | Ski Pack, Hipbelt & Alpine Gear Repair',
@@ -153,12 +153,12 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       "Grand Junction's gear runs across the full spectrum. Raft frame bags, drybag patches, and PFD repair from the river outfitters; mountain biking packs and hydration rigs from the Lunch Loops crowd; commercial awnings, restaurant booths, and gym pad re-upholstery from the city's larger commercial scene. The shop runs heavy canvas, ballistic nylon, and vinyl on the same setup, so commercial-account work and personal gear repair share the same bench, the same machine, and the same turnaround.",
     driveTime: 'About 1 hour north of our Montrose shop',
-    pickupNote: 'Free pickup runs weekly',
+    pickupNote: 'Pickup runs weekly for a small route fee',
     heroImage: HERO.sewing,
     heroImageAlt: 'Industrial sewing machine repairing raft frame bag for Grand Junction, CO river outfitters',
     metaTitle: 'Gear Repair Grand Junction CO | Raft, Bike Pack & Canvas Repair',
     metaDescription:
-      'Industrial gear, raft, and canvas repair for Grand Junction, CO. Frame bags, biking packs, awnings, commercial canvas. 1 hr from Montrose. Free local pickup.',
+      'Industrial gear, raft, and canvas repair for Grand Junction, CO. Frame bags, biking packs, awnings, commercial canvas. 1 hr from Montrose. Weekly pickup runs.',
   },
   {
     slug: 'fruita-co',
@@ -170,12 +170,12 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       'Fruita sends through a heavy mix of mountain-biking gear — pack rebuilds, bikepacking frame bags, hydration sleeves, and torn bike-touring shelters — plus rafts, dry bags, and frame bags from the Colorado River crew. There’s also a steady stream of UTV and side-by-side seats from the desert traffic out toward the Book Cliffs. Same shop, same machine, same person — all of it gets handled together rather than rotated through subcontractors.',
     driveTime: 'About 1 hour 15 minutes north',
-    pickupNote: 'Free pickup runs alongside Grand Junction routes weekly',
+    pickupNote: 'Pickup runs alongside Grand Junction routes weekly — small route fee',
     heroImage: HERO.shop,
     heroImageAlt: 'Industrial sewing repair for Fruita, CO mountain biking and rafting community',
     metaTitle: 'Gear Repair Fruita CO | Bikepacking, Raft & Frame Bag Repair',
     metaDescription:
-      'Industrial gear repair for Fruita, CO. Bikepacking bags, raft frame bags, UTV seats, dry bag repair. 1 hr 15 from Montrose. Free pickup with GJ routes.',
+      'Industrial gear repair for Fruita, CO. Bikepacking bags, raft frame bags, UTV seats, dry bag repair. 1 hr 15 from Montrose. Pickup with GJ routes.',
   },
   {
     slug: 'cedaredge-co',
@@ -187,7 +187,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       "Cedaredge gear is ag- and hunting-heavy. Wall tents headed for the Mesa, ice fishing shelters that need patching every spring, ranch and orchard tarps, and the regular flow of UTV and side-by-side seats that come with high-elevation summer use. Snowmobile seats too — most of the Mesa snowmobile community stages through here. The shop's industrial walking-foot machine handles canvas, vinyl, and webbing without rotation through different setups.",
     driveTime: 'About 45 minutes north over the Uncompahgre Plateau',
-    pickupNote: 'Pickup available with North Fork routes — text to schedule',
+    pickupNote: 'Pickup available with North Fork routes for a small route fee — text to schedule',
     heroImage: HERO.sewing,
     heroImageAlt: 'Industrial sewing machine repairing wall tent for Cedaredge, CO Grand Mesa hunting customers',
     metaTitle: 'Gear Repair Cedaredge CO | Wall Tent & Snowmobile Seat Repair',
@@ -204,7 +204,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       "Hotchkiss gear runs working-ag and hunting-heavy, with a small but distinct food-and-wine commercial canvas thread running through it. Wall tents, ranch tarps, irrigation gear, hunting packs, and the rafts and dry bags of the North Fork river community — all common visitors to the bench. The shop's setup runs heavy canvas, webbing, and vinyl on the same machine, which means a one-trip North Fork drop-off can usually clear a whole pile.",
     driveTime: 'About 50 minutes north into the North Fork',
-    pickupNote: 'Pickup runs weekly with the North Fork loop',
+    pickupNote: 'Pickup runs weekly with the North Fork loop — small route fee',
     heroImage: HERO.shop,
     heroImageAlt: 'Industrial sewing machine repairing ranch canvas for Hotchkiss, CO North Fork customers',
     metaTitle: 'Gear Repair Hotchkiss CO | Ranch Canvas & Hunting Tent Repair',
@@ -221,7 +221,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       "Paonia gear is wide-spectrum — wall tents, ranch tarps, packrafts and dry bags, UTV seats, hunting pack rebuilds, and the occasional vineyard canvas job. The North Fork's rafting and packrafting community sends through a steady run of frame-bag and dry-bag work each summer too. The shop's industrial walking-foot setup handles all of it without rotation, which keeps turnaround tight even when a Paonia drop-off includes four unrelated repairs in one trip.",
     driveTime: 'About 1 hour north into the North Fork',
-    pickupNote: 'Pickup runs weekly with the North Fork loop',
+    pickupNote: 'Pickup runs weekly with the North Fork loop — small route fee',
     heroImage: HERO.sewing,
     heroImageAlt: 'Industrial sewing repair for Paonia, CO North Fork ranch and packraft community',
     metaTitle: 'Gear Repair Paonia CO | Wall Tent, Packraft & Ranch Canvas Repair',
@@ -238,7 +238,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       'Crested Butte sends through technical gear — mountain bike packs, bikepacking frame bags, ski touring packs, alpine bivys, and high-end packs that need hipbelt and webbing rebuilds. Climbing-adjacent packs and shelters, packrafts, and the occasional commercial outfitter canvas job round out the rest. The shop runs canvas, ballistic nylon, and heavy webbing on the same machine, so a multi-piece drop-off from one CB customer goes through together rather than getting split up.',
     driveTime: 'About 2 hours east through Gunnison',
-    pickupNote: 'Pickup runs alongside Gunnison routes — text to schedule',
+    pickupNote: 'Pickup runs alongside Gunnison routes for a small route fee — text to schedule',
     heroImage: HERO.shop,
     heroImageAlt: 'Industrial sewing repair for Crested Butte, CO mountain biking and ski touring community',
     metaTitle: 'Gear Repair Crested Butte CO | MTB Pack & Ski Touring Repair',
@@ -255,7 +255,7 @@ export const serviceAreas: ServiceArea[] = [
     localServiceFocus:
       "Gunnison gear is hunting and fishing-heavy. Wall tents and outfitter canvas headed for the high country every fall, hunting pack rebuilds — hipbelts, shoulder straps, frame webbing — drift boat covers and bimini work for the Taylor and Gunnison rivers, and the occasional commercial repair from a guide service. The shop's industrial walking-foot machine, set up to handle the heaviest layers, keeps turnaround tight even when a single outfitter drops off ten pieces at once.",
     driveTime: 'About 1 hour 45 minutes east on Highway 50',
-    pickupNote: 'Pickup runs weekly',
+    pickupNote: 'Pickup runs weekly for a small route fee',
     heroImage: HERO.sewing,
     heroImageAlt: 'Industrial sewing repair for Gunnison, CO hunting and fishing outfitter community',
     metaTitle: 'Gear Repair Gunnison CO | Hunting Pack & Outfitter Canvas Repair',

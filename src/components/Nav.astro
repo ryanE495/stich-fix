@@ -1,5 +1,5 @@
 ---
-import { site, nav, type NavKey } from '../config/site';
+import { site, nav, customBuildLinks, type NavKey } from '../config/site';
 import { serviceAreas } from '../data/service-areas';
 
 interface Props {
@@ -30,7 +30,31 @@ const { active } = Astro.props;
     <div class="nav-links">
       <a href="/" class={active === 'home' ? 'active' : ''}>Home</a>
       <a href="/services" class={active === 'services' ? 'active' : ''}>Services &amp; Pricing</a>
-      <a href="/custom-builds" class={active === 'custom-builds' ? 'active' : ''}>Custom Builds</a>
+      <div class={`nav-dropdown ${active === 'custom-builds' ? 'active' : ''}`}>
+        <button
+          type="button"
+          class="nav-dropdown-trigger"
+          aria-haspopup="true"
+          aria-expanded="false"
+          aria-controls="nav-custom-builds"
+        >
+          Custom Builds
+          <span class="nav-dropdown-caret" aria-hidden="true">▾</span>
+        </button>
+        <div id="nav-custom-builds" class="nav-dropdown-panel" role="menu">
+          <div class="nav-dropdown-kicker">Made-to-fit · Western Slope</div>
+          <ul class="nav-dropdown-grid">
+            {customBuildLinks.map((item) => (
+              <li role="none">
+                <a href={item.href} role="menuitem">
+                  {item.label}
+                  <span class="nav-dd-region">{item.tag}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
       <a href="/portfolio" class={active === 'portfolio' ? 'active' : ''}>Portfolio</a>
       <div class={`nav-dropdown ${active === 'service-areas' ? 'active' : ''}`}>
         <button
@@ -94,6 +118,20 @@ const { active } = Astro.props;
         ))}
       </ul>
 
+      <div class={`mm-custom ${active === 'custom-builds' ? 'is-active' : ''}`}>
+        <div class="mm-areas-head">
+          <span class="mm-kicker">Custom Builds</span>
+          <span class="mm-areas-count">{customBuildLinks.length} categories</span>
+        </div>
+        <ul class="mm-areas-list">
+          {customBuildLinks.map((item) => (
+            <li>
+              <a href={item.href} data-menu-link>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
       <div class={`mm-areas ${active === 'service-areas' ? 'is-active' : ''}`}>
         <div class="mm-areas-head">
           <span class="mm-kicker">Service Areas</span>
@@ -123,8 +161,7 @@ const { active } = Astro.props;
   const nav = document.querySelector<HTMLElement>('.nav');
   const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
   const menu = document.querySelector<HTMLElement>('.mobile-menu');
-  const dropdown = document.querySelector<HTMLElement>('.nav-dropdown');
-  const ddTrigger = document.querySelector<HTMLButtonElement>('.nav-dropdown-trigger');
+  const dropdowns = document.querySelectorAll<HTMLElement>('.nav-dropdown');
   const body = document.body;
 
   if (nav && toggle && menu) {
@@ -160,13 +197,17 @@ const { active } = Astro.props;
     });
   }
 
-  // Desktop dropdown — open on hover via CSS, click-to-toggle for keyboard / touch
-  if (dropdown && ddTrigger) {
+  // Desktop dropdowns — open on hover via CSS, click-to-toggle for keyboard / touch.
+  // Supports any number of .nav-dropdown instances (Custom Builds, Service Areas, ...).
+  dropdowns.forEach((dropdown) => {
+    const ddTrigger = dropdown.querySelector<HTMLButtonElement>('.nav-dropdown-trigger');
+    if (!ddTrigger) return;
     const closeDd = () => {
       dropdown.classList.remove('is-open');
       ddTrigger.setAttribute('aria-expanded', 'false');
     };
     const openDd = () => {
+      dropdowns.forEach((d) => { if (d !== dropdown) d.classList.remove('is-open'); });
       dropdown.classList.add('is-open');
       ddTrigger.setAttribute('aria-expanded', 'true');
     };
@@ -180,5 +221,5 @@ const { active } = Astro.props;
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') closeDd();
     });
-  }
+  });
 </script>

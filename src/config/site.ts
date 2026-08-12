@@ -33,6 +33,16 @@ export const nav = [
   { href: '/contact', label: 'Contact', key: 'contact' },
 ] as const;
 
+/**
+ * Custom Builds nav dropdown entries. First item is the featured category
+ * (currently Sun Shades); more categories can be inserted between it and
+ * "All Custom Builds" as they get their own pages.
+ */
+export const customBuildLinks = [
+  { href: '/custom-builds/sun-shades/', label: 'Custom Sun Shades', tag: 'Awnings & Shade' },
+  { href: '/custom-builds/', label: 'All Custom Builds', tag: 'Full Overview' },
+] as const;
+
 // Keys that can appear as `active` on a page — includes the dropdown parent
 // 'service-areas' even though it's not in the flat nav array above.
 export type NavKey = (typeof nav)[number]['key'] | 'service-areas';

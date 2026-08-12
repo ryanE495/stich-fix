@@ -363,9 +363,11 @@ body.menu-open { overflow: hidden; }
 .mobile-menu-list a.active .mm-num { color: var(--rust); }
 .mobile-menu-list a:hover .mm-label { color: var(--rust); }
 
-.mm-areas {
+.mm-areas,
+.mm-custom {
   padding-top: 8px;
 }
+.mm-custom.is-active .mm-kicker { color: var(--rust); }
 .mm-areas-head {
   display: flex;
   align-items: baseline;

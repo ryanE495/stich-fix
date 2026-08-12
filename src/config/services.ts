@@ -7,6 +7,8 @@
 export interface PriceItem {
   name: string;
   price: string;
+  /** Optional deep-link to a dedicated page for this line item (SEO internal linking). */
+  href?: string;
 }
 
 export interface ServiceCategory {
@@ -22,7 +24,7 @@ export const categories: ServiceCategory[] = [
     num: '§ 01',
     title: 'Outdoor & Expedition Gear',
     items: [
-      { name: 'Tipi & wall tent patches', price: '$60 – $150' },
+      { name: 'Tipi & wall tent patches', price: '$60 – $150', href: '/services/canvas-tent-repair/' },
       { name: 'Drybag patches & roll-top repair', price: '$25 – $50' },
       { name: 'Sleeping bag zipper replacement', price: '$55 – $90' },
       { name: 'Tarp, bivy, and shelter repair', price: '$30 – $80' },

@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { serviceAreas, universalServices, getNearbyAreas, type ServiceArea } from '../../data/service-areas';
+import { universalServiceLinks } from '../../data/service-pages';
 
 export function getStaticPaths() {
   return serviceAreas.map((area) => ({
@@ -83,7 +84,7 @@ const jsonLd = {
           <p class="page-context">{area.localContext}</p>
           <div class="page-ctas">
             <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
-            <a href="/contact" class="btn btn-secondary">Send a photo →</a>
+            <a href="/contact/" class="btn btn-secondary">Send a photo →</a>
           </div>
         </div>
         <div class="page-head-media">
@@ -123,12 +124,14 @@ const jsonLd = {
         {universalServices.map((s, i) => (
           <li>
             <span class="cs-num">{String(i + 1).padStart(2, '0')}</span>
-            <span class="cs-name">{s}</span>
+            <span class="cs-name">
+              {universalServiceLinks[s] ? <a href={universalServiceLinks[s]}>{s}</a> : s}
+            </span>
           </li>
         ))}
       </ul>
       <p class="city-services-note">
-        Don't see what you've got listed? <a href="/contact">Ask anyway</a> — if it's stitched, there's a good chance I can fix it. Looking for something not on the standard menu? <a href="/custom-builds/">Custom builds and modifications</a> are available across the Western Slope. For before-and-after photos from real {area.cityName} and Western Slope repairs, <a href="/portfolio/">see the portfolio</a>.
+        Don't see what you've got listed? <a href="/contact/">Ask anyway</a> — if it's stitched, there's a good chance I can fix it. Looking for something not on the standard menu? <a href="/custom-builds/">Custom builds and modifications</a> are available across the Western Slope. For before-and-after photos from real {area.cityName} and Western Slope repairs, <a href="/portfolio/">see the portfolio</a>.
       </p>
     </div>
   </section>
@@ -238,7 +241,7 @@ const jsonLd = {
         <p>Standing next to a torn wall tent, a blown-out hipbelt, or a UTV seat that won't survive another summer? Send me a picture from {area.cityName} and I'll come back inside 24 hours with a real number and a turnaround date.</p>
         <div class="city-cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
-          <a href="/contact" class="btn btn-secondary">Use the contact form →</a>
+          <a href="/contact/" class="btn btn-secondary">Use the contact form →</a>
         </div>
         <div class="city-cta-small">$25 shop minimum · {site.hours} · {site.location}</div>
       </div>
@@ -367,6 +370,13 @@ const jsonLd = {
     letter-spacing: -0.01em;
     color: var(--charcoal);
   }
+  .cs-name a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .cs-name a:hover { color: var(--rust); border-bottom-color: var(--rust); }
   .city-services-note {
     margin: 26px 0 0;
     font-size: 15px;

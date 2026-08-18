@@ -55,6 +55,46 @@ function getClient(): SupabaseClient | null {
   return client;
 }
 
+/**
+ * Human-readable labels for the raw DB category enum. The database stores
+ * snake_case values ('canvas_tent', 'other'); those must never reach a page
+ * title, alt attribute, schema field, or visible label — they read as broken
+ * in search results. Anything unmapped falls back to Title Case rather than
+ * leaking the raw slug.
+ */
+const CATEGORY_LABELS: Record<string, string> = {
+  canvas_tent: 'Canvas & Wall Tent',
+  upholstery_seats: 'Seat Upholstery',
+  pack_bag_repair: 'Pack & Bag Repair',
+  custom_build: 'Custom Build',
+  awning: 'Awning & Sun Shade',
+  other: 'Repair Work',
+};
+
+export function categoryLabel(category: string | null | undefined): string {
+  if (!category) return 'Repair Work';
+  return (
+    CATEGORY_LABELS[category] ??
+    category.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+  );
+}
+
+/**
+ * Build a <title> that fits Google's ~60-character display budget. The brand
+ * suffix is appended only when it actually fits — otherwise it would be
+ * truncated away in the SERP anyway, and the descriptive part of the title is
+ * worth more than a half-rendered shop name.
+ */
+export function buildMetaTitle(title: string, brand: string, max = 60): string {
+  const withBrand = `${title} | ${brand}`;
+  if (withBrand.length <= max) return withBrand;
+  if (title.length <= max) return title;
+  // Trim to the last word boundary that fits, then add an ellipsis.
+  const cut = title.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(' ');
+  return `${(lastSpace > 30 ? cut.slice(0, lastSpace) : cut).replace(/[\s—–-]+$/, '')}…`;
+}
+
 /** Slugify a title to a URL fragment. */
 export function slugify(text: string): string {
   return text

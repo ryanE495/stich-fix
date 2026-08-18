@@ -1,8 +1,17 @@
 ---
 import { site } from '../config/site';
 import { serviceAreas } from '../data/service-areas';
+import { servicePages } from '../data/service-pages';
 
 const serviceAreaLine = site.serviceArea.join(' · ');
+
+// Site-wide links into every dedicated service page. Without this the service
+// pages sit at the edge of the site with a single inbound link from the price
+// list, which starves them of crawl priority and internal link equity.
+const footerServices = [
+  { href: '/services/canvas-tent-repair/', label: 'Canvas Tent Repair' },
+  ...servicePages.map((p) => ({ href: `/services/${p.slug}/`, label: p.h1 })),
+];
 ---
 
 <footer class="footer">
@@ -17,17 +26,26 @@ const serviceAreaLine = site.serviceArea.join(' · ');
       <div>
         <h4>Site</h4>
         <a href="/">Home</a>
-        <a href="/services">Services &amp; Pricing</a>
-        <a href="/custom-builds">Custom Builds</a>
-        <a href="/portfolio">Portfolio</a>
-        <a href="/contact">Contact</a>
+        <a href="/services/">Services &amp; Pricing</a>
+        <a href="/custom-builds/">Custom Builds</a>
+        <a href="/portfolio/">Portfolio</a>
+        <a href="/contact/">Contact</a>
       </div>
       <div>
         <h4>Reach Me</h4>
         <a href={site.phoneHref}>{site.phoneDisplay}</a>
-        <a href="/contact">Send a photo →</a>
-        <a href="/contact">{site.location} · {site.hours}</a>
+        <a href="/contact/">Send a photo →</a>
+        <a href="/contact/">{site.location} · {site.hours}</a>
       </div>
+    </div>
+
+    <div class="footer-areas">
+      <h4>Repairs</h4>
+      <ul class="footer-areas-list">
+        {footerServices.map((s) => (
+          <li><a href={s.href}>{s.label}</a></li>
+        ))}
+      </ul>
     </div>
 
     <div class="footer-areas">

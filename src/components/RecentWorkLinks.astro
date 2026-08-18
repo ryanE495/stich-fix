@@ -9,7 +9,7 @@
  * (falls back to most-recent to fill the slot count). Fails soft to just the
  * /portfolio/ index link when there is no data.
  */
-import { fetchPublishedPortfolio, withSlugs } from '../lib/portfolio';
+import { fetchPublishedPortfolio, withSlugs, categoryLabel } from '../lib/portfolio';
 
 interface Props {
   heading?: string;
@@ -50,7 +50,7 @@ picks = picks.slice(0, limit);
             <li>
               <a href={`/portfolio/${p.slug}/`}>
                 <span class="rl-title">{p.title}</span>
-                <span class="rl-cat">{p.category}</span>
+                <span class="rl-cat">{categoryLabel(p.category)}</span>
               </a>
             </li>
           ))}

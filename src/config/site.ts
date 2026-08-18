@@ -7,7 +7,7 @@ export const site = {
   name: 'Western Slope Stitchworks',
   tagline: 'Est. Montrose, CO',
   description:
-    "Heavy-duty gear and canvas repair on Colorado's Western Slope. Tipis, packs, rafts, tents, UTV seats, commercial canvas. Montrose, Grand Junction, Telluride. Free estimates.",
+    "Heavy-duty gear and canvas repair on Colorado's Western Slope. Wall tents, tipis, rafts, UTV seats, commercial canvas. Montrose, CO — free photo estimates.",
   url: 'https://westernslopestitchworks.com',
 
   phoneDisplay: '(970) 275-7962',
@@ -25,12 +25,15 @@ export const site = {
   ],
 } as const;
 
+// Hrefs keep a trailing slash to match the canonical URLs and the sitemap
+// (build.format: 'directory'). Mixed /services and /services/ internal links
+// split signals across two URLs for the same page.
 export const nav = [
   { href: '/', label: 'Home', key: 'home' },
-  { href: '/services', label: 'Services & Pricing', key: 'services' },
-  { href: '/custom-builds', label: 'Custom Builds', key: 'custom-builds' },
-  { href: '/portfolio', label: 'Portfolio', key: 'portfolio' },
-  { href: '/contact', label: 'Contact', key: 'contact' },
+  { href: '/services/', label: 'Services & Pricing', key: 'services' },
+  { href: '/custom-builds/', label: 'Custom Builds', key: 'custom-builds' },
+  { href: '/portfolio/', label: 'Portfolio', key: 'portfolio' },
+  { href: '/contact/', label: 'Contact', key: 'contact' },
 ] as const;
 
 /**

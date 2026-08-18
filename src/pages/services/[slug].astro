@@ -3,50 +3,37 @@ import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { serviceAreas, HERO } from '../../data/service-areas';
+import { servicePages, sharedHowItWorks, type ServicePage } from '../../data/service-pages';
 import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
 
-const canonicalPath = '/custom-builds/sun-shades/';
+export function getStaticPaths() {
+  return servicePages.map((page) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
 
-// Sun shade / awning work is pulled live from the portfolio rather than
-// hardcoded, so the hero image and gallery below stay accurate as new jobs
-// get published under the 'awning' category — no code change needed later.
+const { page } = Astro.props as { page: ServicePage };
+const canonicalPath = `/services/${page.slug}/`;
+
+// Real photos only — filtered from the live portfolio when a match exists.
+// No filter (or no match) falls back to the homepage hero image, same as
+// the rest of the shop's SEO pages.
 const allPortfolio = withSlugs(await fetchPublishedPortfolio());
-const sunShadeWork = allPortfolio.filter((p) => p.category === 'awning');
+const matchedWork = page.portfolioFilter ? allPortfolio.filter(page.portfolioFilter) : [];
 
-const heroPortfolioItem = sunShadeWork[0];
-const heroImage = (heroPortfolioItem && pickThumbnail(heroPortfolioItem)) || HERO.shop;
+const heroPortfolioItem = matchedWork.find((p) => p.after_image_url) || matchedWork[0];
+const heroImage = (heroPortfolioItem && pickThumbnail(heroPortfolioItem)) || HERO.sewing;
 const heroImageAlt = heroPortfolioItem
-  ? `${heroPortfolioItem.title} — custom sun shade work by Western Slope Stitchworks`
-  : 'Industrial sewing machine and canvas work bench at the Western Slope Stitchworks shop';
+  ? `${heroPortfolioItem.title} — ${page.h1.toLowerCase()} by Western Slope Stitchworks`
+  : 'Industrial sewing machine stitching heavy canvas in the Western Slope Stitchworks shop';
 
-const whyCustom = [
-  { name: 'Exact fit to your space', body: 'Built to the real measurements of your patio, deck, or camp setup — not the closest stock rectangle.' },
-  { name: 'Wind-ready hardware', body: 'Reinforced grommets, hems, and buckle points sewn to hold under load — not what comes stapled to a patio-store shade.' },
-  { name: 'Fabric & color options', body: 'Lineup is still being finalized — ask what’s available when you send your dimensions.' },
-  { name: 'Built locally, fast turnaround', body: 'Sewn here in Montrose. No shipping a shade cross-country, no waiting on a warehouse order.' },
-];
-
-const sizeTiers = [
-  { name: 'Small sun shade (up to roughly 10’ × 10’)', price: 'Quote by size' },
-  { name: 'Medium sun shade (up to roughly 14’ × 16’)', price: 'Quote by size' },
-  { name: 'Large or custom-shaped sun shade', price: 'Quote by size' },
-  { name: 'Grommet, buckle & wind-tie reinforcement', price: 'Quote by size' },
-];
-
-const howItWorks = [
-  { title: 'Send Dimensions or a Photo', body: 'Text the measurements of the space, or just a photo — I can usually work out the rest.' },
-  { title: 'Real Quote in 24 Hours', body: 'I’ll come back with an honest number and a turnaround date. No estimate fee.' },
-  { title: 'Build', body: 'Cut and sewn on the same industrial machine that handles every job in the shop.' },
-  { title: 'Pickup or Install', body: 'Grab it in Montrose, or arrange pickup along a Western Slope route.' },
-];
-
-const jsonLd = {
+const serviceJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Service',
-  name: 'Custom Sun Shades',
-  serviceType: 'Custom Sun Shade & Awning Fabrication',
-  description:
-    'Custom-built sun shades sewn to the exact dimensions of the space, in fabric built to hold up to Western Slope sun and wind. Reinforced grommets, hems, and wind-tie hardware.',
+  name: page.h1,
+  serviceType: page.h1,
+  description: page.metaDescription,
   url: `${site.url}${canonicalPath}`,
   provider: {
     '@type': 'LocalBusiness',
@@ -58,31 +45,45 @@ const jsonLd = {
   })),
   hasOfferCatalog: {
     '@type': 'OfferCatalog',
-    name: 'Custom Sun Shade Sizes',
-    itemListElement: sizeTiers.map((t) => ({
+    name: page.h1,
+    itemListElement: page.whatGetsFixed.map((w) => ({
       '@type': 'Offer',
-      itemOffered: { '@type': 'Service', name: t.name },
+      itemOffered: { '@type': 'Service', name: w.name },
     })),
   },
+};
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: page.faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: {
+      '@type': 'Answer',
+      text: f.a,
+    },
+  })),
 };
 ---
 
 <Layout
-  active="custom-builds"
-  title="Custom Sun Shades — Made-to-Fit Awnings | Western Slope Stitchworks"
-  description="Custom sun shades sewn to the exact dimensions of your space, in fabric built for Western Slope sun and wind. Text your dimensions, get a real quote in 24 hours."
+  active="services"
+  title={page.metaTitle}
+  description={page.metaDescription}
   canonicalPath={canonicalPath}
-  jsonLd={jsonLd}
-  breadcrumbs={[{ name: 'Custom Builds', path: '/custom-builds/' }]}
+  jsonLd={[serviceJsonLd, faqJsonLd]}
+  breadcrumbs={[{ name: 'Services & Pricing', path: '/services/' }]}
 >
   <!-- HERO -->
   <section class="page-head">
     <div class="wrap">
-      <div class="section-num">§ Custom Builds</div>
-      <h1>Custom <em>Sun Shades.</em></h1>
+      <div class="section-num">{page.eyebrow}</div>
+      <h1>{page.h1}</h1>
       <div class="page-head-grid">
         <div class="page-head-text">
-          <p class="page-tagline">Off-the-shelf shades never fit right. I build these to the exact dimensions of your space, in fabric that holds up to Western Slope sun and wind.</p>
+          <p class="page-tagline">{page.tagline}</p>
+          <p class="page-body">{page.intro}</p>
           <div class="page-ctas">
             <a href={site.phoneHref} class="btn">Text a photo to {site.phoneDisplay}</a>
             <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
@@ -106,7 +107,7 @@ const jsonLd = {
             />
           </div>
           <div class="page-head-caption">
-            <span>Plate 01 / Sun Shade</span>
+            <span>{page.heroCaption}</span>
             <span>{site.location}</span>
           </div>
         </div>
@@ -114,40 +115,27 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- WHY CUSTOM -->
-  <section class="why">
+  <!-- WHAT GETS FIXED -->
+  <section class="fixed">
     <div class="wrap">
-      <div class="why-head">
-        <div class="section-num">§ Why Custom</div>
-        <h2>Why Not Just Buy One?</h2>
+      <div class="fixed-head">
+        <div class="section-num">§ What Gets Fixed</div>
+        <h2>{page.whatGetsFixedHeading}</h2>
       </div>
-      <ul class="why-list">
-        {whyCustom.map((item, i) => (
-          <li>
-            <span class="why-num">{String(i + 1).padStart(2, '0')}</span>
-            <span class="why-text"><strong>{item.name}</strong> — {item.body}</span>
+      <ul class="fixed-grid">
+        {page.whatGetsFixed.map((item, i) => (
+          <li class="fixed-card">
+            <div class="fixed-num">{String(i + 1).padStart(2, '0')} / Repair</div>
+            <h3>{item.name}</h3>
+            <p>{item.body}</p>
           </li>
         ))}
       </ul>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section class="cat">
-    <div class="wrap">
-      <div class="cat-head">
-        <span class="cat-num">§ Pricing</span>
-        <h2>Sun Shade Pricing</h2>
-      </div>
-      <ul class="price-list">
-        {sizeTiers.map((item) => (
-          <li class="price-item">
-            <span class="pi-name">{item.name}</span>
-            <span class="pi-price">{item.price}</span>
-          </li>
-        ))}
-      </ul>
-      <p class="cat-foot">Real numbers are still being worked out size by size — nobody's publishing a range until the math is right. Text your dimensions and I'll quote it directly, same as everything else in the shop.</p>
+      {page.crossLink && (
+        <p class="cross-link">
+          <strong>{page.crossLink.lead}</strong> {page.crossLink.body} <a href={page.crossLink.href}>{page.crossLink.cta}</a>
+        </p>
+      )}
     </div>
   </section>
 
@@ -163,8 +151,8 @@ const jsonLd = {
               <circle cx="16" cy="19" r="4" />
             </svg>
           </div>
-          <h4>{howItWorks[0].title}</h4>
-          <p>{howItWorks[0].body}</p>
+          <h4>{sharedHowItWorks[0].title}</h4>
+          <p>{sharedHowItWorks[0].body}</p>
         </div>
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">
@@ -173,18 +161,8 @@ const jsonLd = {
               <path d="M12 14h10M12 18h7" />
             </svg>
           </div>
-          <h4>{howItWorks[1].title}</h4>
-          <p>{howItWorks[1].body}</p>
-        </div>
-        <div class="how-card">
-          <div class="how-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="16" cy="16" r="4" />
-              <path d="M16 6v3M16 23v3M6 16h3M23 16h3M9.5 9.5l2 2M20.5 20.5l2 2M9.5 22.5l2-2M20.5 11.5l2-2" />
-            </svg>
-          </div>
-          <h4>{howItWorks[2].title}</h4>
-          <p>{howItWorks[2].body}</p>
+          <h4>{sharedHowItWorks[1].title}</h4>
+          <p>{sharedHowItWorks[1].body}</p>
         </div>
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">
@@ -193,8 +171,18 @@ const jsonLd = {
               <circle cx="16" cy="13" r="3.25" />
             </svg>
           </div>
-          <h4>{howItWorks[3].title}</h4>
-          <p>{howItWorks[3].body}</p>
+          <h4>{sharedHowItWorks[2].title}</h4>
+          <p>{sharedHowItWorks[2].body}</p>
+        </div>
+        <div class="how-card">
+          <div class="how-icon" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="16" cy="16" r="11" />
+              <path d="M16 9v7l4.5 3" />
+            </svg>
+          </div>
+          <h4>{sharedHowItWorks[3].title}</h4>
+          <p>{sharedHowItWorks[3].body}</p>
         </div>
       </div>
     </div>
@@ -204,13 +192,13 @@ const jsonLd = {
   <section class="gallery">
     <div class="wrap">
       <div class="gallery-head">
-        <div class="section-num">§ Recent Sun Shade Work</div>
+        <div class="section-num">§ Recent Work</div>
         <h2>Real Jobs, <em>Real Fixes.</em></h2>
-        <p class="gallery-intro">Before-and-after photos from actual sun shade and awning work that's come through the shop. More go up here as new jobs wrap.</p>
+        <p class="gallery-intro">Before-and-after photos from actual jobs that have come through the shop. More go up here as new work wraps.</p>
       </div>
-      {sunShadeWork.length > 0 ? (
+      {matchedWork.length > 0 ? (
         <ul class="portfolio-grid">
-          {sunShadeWork.map((item) => {
+          {matchedWork.map((item) => {
             const thumb = pickThumbnail(item);
             return (
               <li class="portfolio-card">
@@ -223,7 +211,7 @@ const jsonLd = {
                     )}
                   </div>
                   <div class="card-body">
-                    <span class="card-category">Awning &amp; Sun Shade</span>
+                    <span class="card-category">{page.h1}</span>
                     <h3 class="card-title">{item.title}</h3>
                     <span class="card-arrow">See the build &rarr;</span>
                   </div>
@@ -233,9 +221,27 @@ const jsonLd = {
           })}
         </ul>
       ) : (
-        <p class="gallery-empty">Photos from sun shade jobs are getting added to the portfolio. Text a photo of your own project and it might be the next one up.</p>
+        <p class="gallery-empty">{page.galleryEmptyCopy}</p>
       )}
       <a href="/portfolio/" class="btn btn-secondary gallery-cta">See the full portfolio &rarr;</a>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <div class="wrap">
+      <div class="faq-head">
+        <div class="section-num">§ Questions</div>
+        <h2>{page.h1}, <em>Straight Answers.</em></h2>
+      </div>
+      <ul class="faq-list">
+        {page.faqs.map((item) => (
+          <li class="faq-item">
+            <h3 class="faq-q">{item.q}</h3>
+            <p class="faq-a">{item.a}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   </section>
 
@@ -244,8 +250,8 @@ const jsonLd = {
     <div class="wrap">
       <div class="city-cta-inner">
         <div class="section-num">§ Next Step</div>
-        <h2>Text your dimensions to <em>{site.phoneDisplay}</em><br />— quote back in 24 hours.</h2>
-        <p>Send a photo of the space or the measurements you've got, and I'll come back with a real number and a turnaround date. No estimate fee, no obligation.</p>
+        <h2>Text a photo to <em>{site.phoneDisplay}</em><br />— quote back in 24 hours.</h2>
+        <p>Send a photo of the damage and I'll come back with a real number and a turnaround date. No estimate fee, no obligation.</p>
         <div class="city-cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
           <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
@@ -257,7 +263,7 @@ const jsonLd = {
 </Layout>
 
 <style>
-  /* ---------- HERO (matches services.astro / custom-builds.astro page-head) ---------- */
+  /* ---------- HERO (matches services.astro / sun-shades.astro / canvas-tent-repair.astro page-head) ---------- */
   .page-head {
     padding: 72px 0 56px;
     background: var(--canvas-light);
@@ -272,7 +278,6 @@ const jsonLd = {
     max-width: 16ch;
     text-wrap: balance;
   }
-  .page-head h1 em { font-style: italic; font-weight: 400; color: var(--river); }
   .page-head-grid {
     margin-top: 56px;
     padding-top: 40px;
@@ -291,6 +296,13 @@ const jsonLd = {
     font-family: var(--f-serif);
     font-style: italic;
     font-weight: 500;
+  }
+  .page-body {
+    margin: 18px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 54ch;
+    color: var(--ink);
   }
   .page-ctas {
     margin-top: 28px;
@@ -325,120 +337,92 @@ const jsonLd = {
     .page-head-grid { grid-template-columns: 1.1fr 1fr; gap: 64px; }
   }
 
-  /* ---------- WHY CUSTOM (matches service-areas city-services numbered list) ---------- */
-  .why {
+  /* ---------- WHAT GETS FIXED (exact reuse of the canvas-tent-repair.astro odd/even grid pattern) ---------- */
+  .fixed {
     padding: 80px 0;
     background: var(--canvas);
   }
-  .why-head { margin-bottom: 36px; }
-  .why h2 {
+  .fixed-head { margin-bottom: 40px; }
+  .fixed h2 {
     font-size: clamp(30px, 4vw, 52px);
     letter-spacing: -0.03em;
     margin-top: 14px;
     max-width: 24ch;
     text-wrap: balance;
   }
-  .why-list {
+  .fixed-grid {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
     grid-template-columns: 1fr;
-    gap: 0;
     border-top: 1px solid var(--rule-strong);
-  }
-  .why-list li {
-    display: grid;
-    grid-template-columns: 40px 1fr;
-    gap: 18px;
-    padding: 20px 0;
     border-bottom: 1px solid var(--rule-strong);
-    align-items: baseline;
   }
-  .why-num {
-    font-family: var(--f-mono);
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    color: var(--rust);
-  }
-  .why-text {
-    font-size: 16px;
-    line-height: 1.55;
-    color: var(--ink);
-    max-width: 62ch;
-  }
-  .why-text strong { color: var(--charcoal); font-weight: 600; }
-
-  /* ---------- PRICING (exact reuse of services.astro price-list component) ---------- */
-  .cat {
-    padding: 72px 0;
-    background: var(--canvas-light);
-    border-top: 1px solid var(--rule-strong);
-  }
-  .cat-head {
+  .fixed-card {
+    padding: 28px 0;
+    border-bottom: 1px solid var(--rule-strong);
     display: flex;
-    align-items: baseline;
-    gap: 20px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 10px;
   }
-  .cat-num {
+  .fixed-card:last-child { border-bottom: none; }
+  .fixed-num {
     font-family: var(--f-mono);
     font-size: 12px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--rust);
   }
-  .cat h2 {
-    font-size: clamp(30px, 4vw, 44px);
-    line-height: 1.05;
-    letter-spacing: -0.025em;
-  }
-  .price-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    border-top: 1px solid var(--rule-strong);
-  }
-  .price-item {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 20px;
-    padding: 20px 0;
-    border-bottom: 1px solid var(--rule-strong);
-    align-items: baseline;
-  }
-  .pi-name {
+  .fixed-card h3 {
     font-family: var(--f-serif);
-    font-size: clamp(18px, 2.2vw, 22px);
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    line-height: 1.25;
+    font-weight: 600;
+    font-size: clamp(20px, 2.4vw, 24px);
+    letter-spacing: -0.02em;
+    margin: 0;
     color: var(--charcoal);
+    max-width: 26ch;
+  }
+  .fixed-card p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
     max-width: 46ch;
   }
-  .pi-price {
-    font-family: var(--f-mono);
-    font-size: clamp(14px, 1.6vw, 15px);
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--charcoal);
-    text-align: right;
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
-  .cat-foot {
-    margin: 24px 0 0;
+  .cross-link {
+    margin: 28px 0 0;
+    padding: 20px 24px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    background: var(--canvas-light);
     font-size: 15px;
     line-height: 1.6;
-    color: var(--muted);
-    max-width: 60ch;
+    color: var(--ink);
+    max-width: 68ch;
+  }
+  .cross-link strong { color: var(--charcoal); }
+  .cross-link a {
+    color: var(--charcoal);
+    border-bottom: 1px solid var(--charcoal);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .cross-link a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+  @media (min-width: 720px) {
+    .fixed-grid { grid-template-columns: repeat(2, 1fr); column-gap: 48px; border-bottom: none; }
+    .fixed-card { padding: 32px 0; border-bottom: 1px solid var(--rule-strong); }
+    .fixed-grid > .fixed-card:nth-last-child(-n+2):not(:last-child) { border-bottom: 1px solid var(--rule-strong); }
+    .fixed-grid > .fixed-card:last-child:nth-child(odd) {
+      grid-column: 1 / -1;
+      border-bottom: none;
+    }
   }
 
   /* ---------- HOW IT WORKS (exact reuse of services.astro how-grid component) ---------- */
   .how {
     padding: 88px 0 100px;
-    background: var(--canvas);
+    background: var(--canvas-light);
     border-top: 2px solid var(--charcoal);
   }
   .how h2 {
@@ -473,7 +457,7 @@ const jsonLd = {
     color: var(--river);
     border: 1px solid var(--rule-strong);
     border-radius: 2px;
-    background: var(--canvas-light);
+    background: var(--canvas);
     flex-shrink: 0;
   }
   .how-icon svg { width: 22px; height: 22px; }
@@ -496,7 +480,7 @@ const jsonLd = {
   /* ---------- GALLERY (exact reuse of portfolio/index.astro portfolio-grid component) ---------- */
   .gallery {
     padding: 88px 0;
-    background: var(--canvas-light);
+    background: var(--canvas);
     border-top: 2px solid var(--charcoal);
   }
   .gallery-head { max-width: 64ch; margin-bottom: 44px; }
@@ -587,6 +571,46 @@ const jsonLd = {
   .portfolio-card a:hover .card-arrow { color: var(--rust); border-bottom-color: var(--rust); }
   .gallery-cta { margin-top: 44px; }
 
+  /* ---------- FAQ ---------- */
+  .faq {
+    padding: 88px 0;
+    background: var(--canvas-light);
+    border-top: 2px solid var(--charcoal);
+  }
+  .faq-head { max-width: 64ch; margin-bottom: 40px; }
+  .faq h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    text-wrap: balance;
+  }
+  .faq h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .faq-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-strong);
+    max-width: 72ch;
+  }
+  .faq-item {
+    padding: 26px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .faq-q {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(19px, 2.2vw, 23px);
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+    color: var(--charcoal);
+  }
+  .faq-a {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
   /* ---------- CTA (exact reuse of service-areas city-cta component) ---------- */
   .city-cta {
     padding: 110px 0;
@@ -646,8 +670,6 @@ const jsonLd = {
     .how-grid { grid-template-columns: repeat(2, 1fr); gap: 0; }
     .how-card { padding: 36px 16px; }
     .how-card:nth-last-child(-n+2) { border-bottom: none; }
-    .why-list { grid-template-columns: repeat(2, 1fr); }
-    .why-list li:nth-last-child(-n+2) { border-bottom: none; }
   }
   @media (min-width: 720px) {
     .portfolio-grid { grid-template-columns: repeat(2, 1fr); gap: 64px 48px; }
@@ -668,10 +690,5 @@ const jsonLd = {
   }
   @media (min-width: 1100px) {
     .portfolio-grid { gap: 80px 56px; }
-  }
-  @media (max-width: 639px) {
-    .pi-name { font-size: 16px; }
-    .pi-price { font-size: 13px; }
-    .price-item { gap: 14px; }
   }
 </style>

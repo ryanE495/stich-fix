@@ -1,17 +1,19 @@
 # Deploy Checklist — Western Slope Stitchworks
 
-## Before first deploy
+## Binary assets — DONE (generated, in `public/`)
 
-Binary assets referenced in `<head>` / webmanifest that need to be generated and dropped into `public/`:
+These were missing and 404ing in production; all six now exist:
 
-- `public/og-image.jpg` — 1200×630, used by Open Graph / Twitter Card
-- `public/logo.png` — square, used by `LocalBusiness.logo` in JSON-LD
-- `public/favicon.ico` — 32×32
-- `public/favicon-16.png` — 16×16
-- `public/favicon-32.png` — 32×32
-- `public/apple-touch-icon.png` — 180×180
+- `public/og-image.jpg` — 1200×630, Open Graph / Twitter Card. Shop photo with
+  a charcoal scrim + brand text.
+- `public/logo.png` — 512×512, used by `LocalBusiness.logo` in JSON-LD
+- `public/favicon.ico` — 32×32 (PNG-in-ICO)
+- `public/favicon-16.png`, `public/favicon-32.png`, `public/apple-touch-icon.png`
 
-Generator tip: https://realfavicongenerator.net will produce all five favicon sizes + the manifest in one pass from a single source image.
+All derive from the `public/favicon.svg` brand mark (charcoal ground, cream
+serif "W"). To replace with professionally designed versions later, just drop
+new files at the same paths — nothing in the code needs to change.
+https://realfavicongenerator.net produces the whole favicon set in one pass.
 
 ## Build & deploy
 

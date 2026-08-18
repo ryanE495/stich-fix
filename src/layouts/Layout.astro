@@ -12,6 +12,12 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { site, seo, type NavKey } from '../config/site';
 
+/** One rung of the breadcrumb trail. `path` is site-relative, e.g. '/services/'. */
+export interface Crumb {
+  name: string;
+  path: string;
+}
+
 interface Props {
   title?: string;
   description?: string;
@@ -20,20 +26,52 @@ interface Props {
   preloadImage?: string;
   jsonLd?: object | object[];
   active?: NavKey;
+  /**
+   * Ancestor trail for BreadcrumbList schema, excluding Home (added
+   * automatically) and excluding the current page (appended automatically
+   * from `title`/`canonicalPath`). Lets deep pages render a breadcrumb trail
+   * in search results instead of a bare URL.
+   */
+  breadcrumbs?: Crumb[];
 }
 
 const {
-  title = `${site.name} | Gear, Canvas & Upholstery Repair — Montrose, CO`,
+  // Keyword + location first, brand last — a local searcher scans for the
+  // service, not the shop name they don't know yet.
+  title = `Gear & Canvas Repair, Montrose CO | ${site.name}`,
   description = site.description,
   canonicalPath,
   ogImage = seo.ogImage,
   preloadImage,
   jsonLd,
   active,
+  breadcrumbs,
 } = Astro.props;
 
 const canonical = new URL(canonicalPath ?? Astro.url.pathname, site.url).toString();
 const schemas = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+
+// Strip any " — …" / " | brand" suffix so the final crumb reads as a short
+// page name rather than the full SEO title.
+const crumbLeafName = title.split(/\s+[—|]\s+/)[0];
+
+if (breadcrumbs?.length) {
+  const trail = [
+    { name: 'Home', path: '/' },
+    ...breadcrumbs,
+    { name: crumbLeafName, path: canonicalPath ?? Astro.url.pathname },
+  ];
+  schemas.push({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: trail.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      item: new URL(c.path, site.url).toString(),
+    })),
+  });
+}
 ---
 
 <!doctype html>

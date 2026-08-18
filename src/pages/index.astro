@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
-import { fetchRecentPortfolio, withSlugs, pickThumbnail } from '../lib/portfolio';
+import { fetchRecentPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../lib/portfolio';
 import AreasServed from '../components/AreasServed.astro';
 
 const heroImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/sewing-hero.webp';
@@ -94,8 +94,8 @@ const jsonLd = {
 
 <Layout
   active="home"
-  title={`${site.name} | Gear, Canvas & Upholstery Repair — Montrose, CO`}
-  description="Heavy-duty gear, canvas, and upholstery repair on Colorado's Western Slope. Tipis, packs, rafts, UTV seats, commercial canvas. Serving Montrose, Grand Junction, Telluride, Ouray. Free photo quotes in 24 hours."
+  title={`Gear & Canvas Repair, Montrose CO | ${site.name}`}
+  description="Heavy-duty gear, canvas, and upholstery repair on Colorado's Western Slope. Wall tents, rafts, UTV seats, commercial canvas. Montrose, CO — photo quotes in 24 hours."
   canonicalPath="/"
   jsonLd={jsonLd}
 >
@@ -117,7 +117,7 @@ const jsonLd = {
           </p>
           <div class="hero-ctas">
             <a href={site.phoneHref} class="btn">Call or Text&nbsp;&nbsp;→&nbsp;{site.phoneDisplay}</a>
-            <a href="/contact" class="btn btn-secondary">Send a photo of the damage →</a>
+            <a href="/contact/" class="btn btn-secondary">Send a photo of the damage →</a>
           </div>
         </div>
         <div>
@@ -287,9 +287,9 @@ const jsonLd = {
               <li class="recent-card">
                 <a href={`/portfolio/${p.slug}/`}>
                   <div class="recent-media">
-                    {thumb && <img src={thumb} alt={`${p.title} — ${p.category}`} loading="lazy" decoding="async" />}
+                    {thumb && <img src={thumb} alt={`${p.title} — ${categoryLabel(p.category)}`} loading="lazy" decoding="async" />}
                   </div>
-                  <span class="recent-category">{p.category}</span>
+                  <span class="recent-category">{categoryLabel(p.category)}</span>
                   <h3 class="recent-title">{p.title}</h3>
                 </a>
               </li>
@@ -376,7 +376,7 @@ const jsonLd = {
         <p>I'll tell you if it's worth repairing and what it'll cost. No charge to ask, no runaround. Just text me the photos.</p>
         <div class="final-ctas">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
-          <a href="/contact" class="btn btn-secondary">Use the contact form →</a>
+          <a href="/contact/" class="btn btn-secondary">Use the contact form →</a>
         </div>
         <div class="final-small">{site.hours} · {site.location}</div>
       </div>

@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
-import { fetchPublishedPortfolio, withSlugs, pickThumbnail } from '../../lib/portfolio';
+import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
 
 const items = withSlugs(await fetchPublishedPortfolio());
 
@@ -26,8 +26,8 @@ const jsonLd = {
 
 <Layout
   active="portfolio"
-  title="Portfolio — Gear & Canvas Repair Work | Western Slope Stitchworks"
-  description="Before-and-after photos of gear, canvas, and upholstery repair work completed by Western Slope Stitchworks. Tipi patches, raft frame bag rebuilds, UTV seats, custom builds — real work, on Colorado's Western Slope."
+  title="Portfolio — Gear & Canvas Repair Work | WSS"
+  description="Before-and-after photos of real gear, canvas, and upholstery repair: tipi patches, wall tents, raft frame bags, UTV seats, and custom builds on Colorado's Western Slope."
   canonicalPath="/portfolio/"
   jsonLd={jsonLd}
 >
@@ -56,7 +56,7 @@ const jsonLd = {
           </p>
           <div class="empty-ctas">
             <a href={site.phoneHref} class="btn">Text {site.phoneDisplay}</a>
-            <a href="/custom-builds" class="btn btn-secondary">See custom builds &rarr;</a>
+            <a href="/custom-builds/" class="btn btn-secondary">See custom builds &rarr;</a>
           </div>
         </div>
       </div>
@@ -75,7 +75,7 @@ const jsonLd = {
                     {thumb ? (
                       <img
                         src={thumb}
-                        alt={`${item.title} — ${item.category}`}
+                        alt={`${item.title} — ${categoryLabel(item.category)}`}
                         loading="lazy"
                         decoding="async"
                       />
@@ -84,7 +84,7 @@ const jsonLd = {
                     )}
                   </div>
                   <div class="card-body">
-                    <span class="card-category">{item.category}</span>
+                    <span class="card-category">{categoryLabel(item.category)}</span>
                     <h3 class="card-title">{item.title}</h3>
                     <span class="card-arrow">See the build &rarr;</span>
                   </div>

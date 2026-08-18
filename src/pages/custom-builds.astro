@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { serviceAreas, HERO } from '../data/service-areas';
 import AreasServed from '../components/AreasServed.astro';
-import { fetchRecentPortfolio, withSlugs } from '../lib/portfolio';
+import { fetchRecentPortfolio, withSlugs, categoryLabel } from '../lib/portfolio';
 
 const heroImage = HERO.sewing;
 const canonicalPath = '/custom-builds/';
@@ -85,8 +85,8 @@ const jsonLd = {
 
 <Layout
   active="custom-builds"
-  title="Custom Sewing, Gear Modifications & RV Awning Mods | Western Slope Stitchworks"
-  description="Custom builds and gear modifications by an industrial sewing shop in Montrose, Colorado. RV awning mods, sleeping bag conversions, custom bags, hunting gear customization. Free quote in 24 hours."
+  title="Custom Sewing & Gear Modifications | Western Slope Stitchworks"
+  description="Custom builds and gear modifications from an industrial sewing shop in Montrose, CO. RV awning mods, sleeping bag conversions, custom bags. Quote in 24 hours."
   canonicalPath={canonicalPath}
   jsonLd={jsonLd}
 >
@@ -100,7 +100,7 @@ const jsonLd = {
           <p class="page-tagline">Most repair shops won&rsquo;t take on custom work because there&rsquo;s no script. Bring me what you have, tell me what you need, and we&rsquo;ll figure it out.</p>
           <div class="page-ctas">
             <a href={site.phoneHref} class="btn">Text a photo to {site.phoneDisplay}</a>
-            <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+            <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
           </div>
         </div>
         <div class="page-head-media">
@@ -190,7 +190,7 @@ const jsonLd = {
               <li>
                 <a href={`/portfolio/${p.slug}/`}>
                   <span class="re-title">{p.title}</span>
-                  <span class="re-cat">{p.category}</span>
+                  <span class="re-cat">{categoryLabel(p.category)}</span>
                 </a>
               </li>
             ))}
@@ -212,7 +212,7 @@ const jsonLd = {
         <p>If it&rsquo;s fabric, canvas, vinyl, or webbing &mdash; and it&rsquo;s under about four layers thick &mdash; there&rsquo;s a good chance I can do it. Most of my best work has come from people texting a photo with the message &ldquo;I don&rsquo;t even know if this is fixable.&rdquo; Send the photo. Let&rsquo;s see.</p>
         <div class="weird-ctas">
           <a href={site.phoneHref} class="btn">Text {site.phoneDisplay}</a>
-          <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+          <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
         </div>
         <div class="weird-small">{site.hours} &middot; {site.location} &middot; Free 24-hour quote</div>
       </div>

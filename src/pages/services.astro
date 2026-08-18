@@ -3,8 +3,15 @@ import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
+import { servicePages } from '../data/service-pages';
 import AreasServed from '../components/AreasServed.astro';
 import RecentWorkLinks from '../components/RecentWorkLinks.astro';
+
+// Deep-link every price-list row to its dedicated SEO page automatically —
+// service-pages.ts is the single source of truth for slugs, so this can't
+// drift out of sync the way hand-written hrefs on each PriceItem would.
+const servicePageHrefByName = new Map(servicePages.map((p) => [p.priceItemName, `/services/${p.slug}/`]));
+const priceItemHref = (name: string, explicitHref?: string) => explicitHref ?? servicePageHrefByName.get(name);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -70,8 +77,8 @@ const jsonLd = {
 <Layout
   active="services"
   title={`Gear & Canvas Repair Services + Pricing | ${site.name}`}
-  description="Honest pricing for outdoor gear, raft, UTV, and commercial upholstery repair. Tipi patches from $60, UTV seat re-upholstery from $120, snowmobile seats from $150. Free photo quotes in Montrose, GJ, and the Western Slope."
-  canonicalPath="/services"
+  description="Real pricing for gear, canvas, raft, UTV, and commercial upholstery repair. Tipi patches from $60, UTV seats from $120. Free photo quotes — Montrose, CO."
+  canonicalPath="/services/"
   jsonLd={jsonLd}
 >
   <!-- PAGE HEAD -->
@@ -120,14 +127,17 @@ const jsonLd = {
           <h2>{cat.title}</h2>
         </div>
         <ul class="price-list" data-reveal style="--reveal-delay: 140ms">
-          {cat.items.map((item) => (
-            <li class="price-item">
-              <span class="pi-name">
-                {item.href ? <a href={item.href}>{item.name}</a> : item.name}
-              </span>
-              <span class="pi-price">{item.price}</span>
-            </li>
-          ))}
+          {cat.items.map((item) => {
+            const href = priceItemHref(item.name, item.href);
+            return (
+              <li class="price-item">
+                <span class="pi-name">
+                  {href ? <a href={href}>{item.name}</a> : item.name}
+                </span>
+                <span class="pi-price">{item.price}</span>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>
@@ -235,7 +245,7 @@ const jsonLd = {
         <p>Text me a photo of the damage. I'll tell you what it'll cost and when I can have it back to you.</p>
         <div class="final-ctas">
           <a href={site.phoneHref} class="btn">Call or Text</a>
-          <a href="/contact" class="btn btn-secondary">Send a Photo</a>
+          <a href="/contact/" class="btn btn-secondary">Send a Photo</a>
         </div>
       </div>
     </div>

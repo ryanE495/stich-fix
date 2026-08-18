@@ -6,6 +6,8 @@ import {
   withSlugs,
   getRelatedItems,
   pickThumbnail,
+  categoryLabel,
+  buildMetaTitle,
   type PortfolioItemWithSlug,
 } from '../../lib/portfolio';
 
@@ -39,9 +41,10 @@ const hasDetails = details.length > 0;
 
 const images = [item.before_image_url, item.after_image_url].filter(Boolean) as string[];
 
-const metaTitle = `${item.title} — ${item.category} | ${site.name}`;
+const catLabel = categoryLabel(item.category);
+const metaTitle = buildMetaTitle(item.title, site.name);
 const metaDescription = (item.description?.trim() ||
-  `${item.category} repair work by ${site.name} on Colorado's Western Slope.`)
+  `${catLabel} work by ${site.name} on Colorado's Western Slope.`)
   .slice(0, 158);
 
 const jsonLd = {
@@ -49,7 +52,7 @@ const jsonLd = {
   '@type': 'CreativeWork',
   name: item.title,
   description: item.description ?? undefined,
-  about: item.category,
+  about: catLabel,
   keywords: hasMaterials ? item.materials_techniques!.join(', ') : undefined,
   image: images.length > 0 ? images : undefined,
   datePublished: item.created_at,
@@ -76,12 +79,13 @@ const jsonLd = {
   description={metaDescription}
   canonicalPath={canonicalPath}
   jsonLd={jsonLd}
+  breadcrumbs={[{ name: 'Portfolio', path: '/portfolio/' }]}
 >
   <!-- HEAD -->
   <section class="page-head">
     <div class="wrap">
       <a href="/portfolio/" class="crumb">← Back to portfolio</a>
-      <span class="cat-label">{item.category}</span>
+      <span class="cat-label">{catLabel}</span>
       <h1>{item.title}</h1>
       {item.description && <p class="lead">{item.description}</p>}
     </div>
@@ -188,9 +192,9 @@ const jsonLd = {
               <li class="related-card">
                 <a href={`/portfolio/${r.slug}/`}>
                   <div class="related-media">
-                    {thumb && <img src={thumb} alt={`${r.title} — ${r.category}`} loading="lazy" decoding="async" />}
+                    {thumb && <img src={thumb} alt={`${r.title} — ${categoryLabel(r.category)}`} loading="lazy" decoding="async" />}
                   </div>
-                  <span class="related-cat">{r.category}</span>
+                  <span class="related-cat">{categoryLabel(r.category)}</span>
                   <h3 class="related-title">{r.title}</h3>
                 </a>
               </li>
@@ -211,7 +215,7 @@ const jsonLd = {
         <p>Free quote in 24 hours. This is a personal cell — call or text and you'll get me direct.</p>
         <div class="cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
-          <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+          <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
         </div>
         <div class="cta-small">$25 shop minimum · {site.hours} · {site.location}</div>
       </div>

@@ -2,7 +2,10 @@ User-agent: *
 Allow: /
 
 Disallow: /admin/
-Disallow: /_astro/
 Disallow: /404
 
-Sitemap: https://westernslopestitchworks.com/sitemap.xml
+# NOTE: do not Disallow /_astro/ — it holds the hashed CSS, JS, fonts, and
+# optimized portfolio images. Blocking it stops Google rendering pages properly
+# and makes every portfolio photo ineligible for Google Images.
+
+Sitemap: https://westernslopestitchworks.com/sitemap-index.xml

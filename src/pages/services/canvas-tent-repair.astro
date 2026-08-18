@@ -4,7 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { serviceAreas, HERO } from '../../data/service-areas';
 import { categories } from '../../config/services';
-import { fetchPublishedPortfolio, withSlugs, pickThumbnail } from '../../lib/portfolio';
+import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
 
 const canonicalPath = '/services/canvas-tent-repair/';
 
@@ -141,10 +141,11 @@ const faqJsonLd = {
 
 <Layout
   active="services"
-  title="Canvas Tent Repair — Wall Tents, Tipis & Bell Tents | Western Slope Stitchworks"
-  description="Canvas tent repair for wall tents, tipis, and bell tents on Colorado's Western Slope. Panel patches, tent zipper repair, tent pole repair, seam work. Send a photo, get a real quote in 24 hours."
+  title="Canvas Tent Repair — Wall Tents & Tipis | Western Slope Stitchworks"
+  description="Canvas tent repair for wall tents, tipis, and bell tents. Panel patches, tent zipper repair, tent pole repair, seam work. Montrose, CO — real quote in 24 hours."
   canonicalPath={canonicalPath}
   jsonLd={[serviceJsonLd, faqJsonLd]}
+  breadcrumbs={[{ name: 'Services & Pricing', path: '/services/' }]}
 >
   <!-- HERO -->
   <section class="page-head">
@@ -157,7 +158,7 @@ const faqJsonLd = {
           <p class="page-body">Whether you found this searching tent repair near me, tarp repair near me, or just asked around Montrose — this is the shop. Send a photo, I'll give you a real quote inside 24 hours.</p>
           <div class="page-ctas">
             <a href={site.phoneHref} class="btn">Text a photo to {site.phoneDisplay}</a>
-            <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+            <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
           </div>
         </div>
         <div class="page-head-media">
@@ -220,7 +221,7 @@ const faqJsonLd = {
           </li>
         ))}
       </ul>
-      <p class="cat-foot">Pole and zipper work is quoted by the job since every tent's different — send a photo and I'll give you a real number, not a guess. For the full shop price list, see <a href="/services">Services &amp; Pricing</a>.</p>
+      <p class="cat-foot">Pole and zipper work is quoted by the job since every tent's different — send a photo and I'll give you a real number, not a guess. For the full shop price list, see <a href="/services/">Services &amp; Pricing</a>.</p>
     </div>
   </section>
 
@@ -291,7 +292,7 @@ const faqJsonLd = {
                 <a href={`/portfolio/${item.slug}/`}>
                   <div class="card-media">
                     {thumb ? (
-                      <img src={thumb} alt={`${item.title} — ${item.category}`} loading="lazy" decoding="async" />
+                      <img src={thumb} alt={`${item.title} — ${categoryLabel(item.category)}`} loading="lazy" decoding="async" />
                     ) : (
                       <div class="card-media-empty" aria-hidden="true"></div>
                     )}
@@ -340,7 +341,7 @@ const faqJsonLd = {
         <p>Torn panel, busted zipper, bent pole — whatever it is, send a photo and I'll come back with a real number and a turnaround date. No estimate fee, no obligation.</p>
         <div class="city-cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
-          <a href="/contact" class="btn btn-secondary">Use the contact form &rarr;</a>
+          <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
         </div>
         <div class="city-cta-small">$25 shop minimum &middot; {site.hours} &middot; {site.location}</div>
       </div>

@@ -5,6 +5,7 @@ import { site, seo } from '../../config/site';
 import { serviceAreas, HERO } from '../../data/service-areas';
 import { categories } from '../../config/services';
 import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
+import MailInCallout from '../../components/MailInCallout.astro';
 
 const canonicalPath = '/services/canvas-tent-repair/';
 
@@ -331,6 +332,8 @@ const faqJsonLd = {
       </ul>
     </div>
   </section>
+
+  <MailInCallout />
 
   <!-- CTA -->
   <section class="city-cta">

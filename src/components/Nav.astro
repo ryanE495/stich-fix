@@ -30,6 +30,7 @@ const { active } = Astro.props;
     <div class="nav-links">
       <a href="/" class={active === 'home' ? 'active' : ''}>Home</a>
       <a href="/services/" class={active === 'services' ? 'active' : ''}>Services &amp; Pricing</a>
+      <a href="/mail-in-repair/" class={active === 'mail-in' ? 'active' : ''}>Mail-In Repair</a>
       <div class={`nav-dropdown ${active === 'custom-builds' ? 'active' : ''}`}>
         <button
           type="button"
@@ -191,7 +192,8 @@ const { active } = Astro.props;
       if (e.key === 'Escape' && body.classList.contains('menu-open')) close();
     });
 
-    const mq = window.matchMedia('(min-width: 921px)');
+    // Must match the nav breakpoint in styles/global.css.
+    const mq = window.matchMedia('(min-width: 1200px)');
     mq.addEventListener('change', (e) => {
       if (e.matches && body.classList.contains('menu-open')) close();
     });

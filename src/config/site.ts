@@ -31,6 +31,8 @@ export const site = {
 export const nav = [
   { href: '/', label: 'Home', key: 'home' },
   { href: '/services/', label: 'Services & Pricing', key: 'services' },
+  // Top-level on purpose: mail-in is its own business line, not a local service.
+  { href: '/mail-in-repair/', label: 'Mail-In Repair', key: 'mail-in' },
   { href: '/custom-builds/', label: 'Custom Builds', key: 'custom-builds' },
   { href: '/portfolio/', label: 'Portfolio', key: 'portfolio' },
   { href: '/contact/', label: 'Contact', key: 'contact' },

@@ -53,6 +53,12 @@ export interface ServicePage {
   portfolioFilter?: (item: PortfolioItem) => boolean;
   galleryEmptyCopy: string;
   crossLink?: ServiceCrossLink;
+  /**
+   * Show the mail-in repair link band above the closing CTA. Only for repairs
+   * the mail-in service actually takes (tents, awnings, seats). The band is a
+   * link only — it must not change this page's local targeting.
+   */
+  mailInCallout?: boolean;
 }
 
 export const servicePages: ServicePage[] = [
@@ -188,6 +194,7 @@ export const servicePages: ServicePage[] = [
   },
   {
     slug: 'utv-seat-upholstery',
+    mailInCallout: true,
     priceItemName: 'UTV / side-by-side seat re-upholstery (higher if sewing is required)',
     eyebrow: '§ UTV & Side-by-Side Seat Upholstery',
     h1: 'UTV Seat Upholstery',
@@ -214,6 +221,7 @@ export const servicePages: ServicePage[] = [
   },
   {
     slug: 'snowmobile-seat-recover',
+    mailInCallout: true,
     priceItemName: 'Snowmobile seat re-cover (higher if sewing is required)',
     eyebrow: '§ Snowmobile Seat Re-Cover',
     h1: 'Snowmobile Seat Re-Cover',
@@ -343,6 +351,7 @@ export const servicePages: ServicePage[] = [
   },
   {
     slug: 'commercial-awning-repair',
+    mailInCallout: true,
     priceItemName: 'Awnings, patio covers, commercial canvas',
     eyebrow: '§ Awning & Commercial Canvas Repair',
     h1: 'Commercial Awning Repair',

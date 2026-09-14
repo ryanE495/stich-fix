@@ -261,7 +261,13 @@ a { color: inherit; }
   font-weight: 400;
 }
 
-@media (max-width: 920px) {
+/*
+ * Nav breakpoint: the full desktop nav needs ~1195px of width (7 items +
+ * phone). Below 1200px it collapses to the hamburger. Keep this value in sync
+ * with the matchMedia query in components/Nav.astro. If you add a top-level
+ * nav item, re-measure — the old 920px breakpoint let the nav run off-screen.
+ */
+@media (max-width: 1199px) {
   .nav-dropdown { display: none; }
 }
 
@@ -447,9 +453,11 @@ body.menu-open { overflow: hidden; }
   }
 }
 
-@media (max-width: 920px) {
+@media (max-width: 1199px) {
   .nav-links { display: none; }
   .nav-toggle { display: inline-flex; }
+}
+@media (max-width: 920px) {
   .nav-inner { padding: 12px 20px; gap: 12px; }
   .brand { min-width: 0; }
   .brand-mark { width: 48px; height: 48px; }
@@ -458,8 +466,12 @@ body.menu-open { overflow: hidden; }
 }
 
 /* Update the existing nav also needs a min-width: 0 to allow ellipsis on cramped widths */
-@media (min-width: 921px) {
+@media (min-width: 1200px) {
   .nav-inner { gap: 24px; }
+}
+/* Just above the breakpoint, tighten link spacing so the nav keeps some slack. */
+@media (min-width: 1200px) and (max-width: 1320px) {
+  .nav-links { gap: 18px; }
 }
 
 /* ---------------- Buttons ---------------- */

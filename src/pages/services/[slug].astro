@@ -5,6 +5,7 @@ import { site, seo } from '../../config/site';
 import { serviceAreas, HERO } from '../../data/service-areas';
 import { servicePages, sharedHowItWorks, type ServicePage } from '../../data/service-pages';
 import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
+import MailInCallout from '../../components/MailInCallout.astro';
 
 export function getStaticPaths() {
   return servicePages.map((page) => ({
@@ -244,6 +245,8 @@ const faqJsonLd = {
       </ul>
     </div>
   </section>
+
+  {page.mailInCallout && <MailInCallout />}
 
   <!-- CTA -->
   <section class="city-cta">

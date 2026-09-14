@@ -1,0 +1,61 @@
+---
+/**
+ * Slim link band pointing local pages at /mail-in-repair.
+ *
+ * Deliberately worded in mail-in terms only ("ship it in", "mail-in repair")
+ * so it adds a path for out-of-area visitors without adding national-intent
+ * keywords to pages that rank for local "near me" searches. Don't put service
+ * keywords (e.g. "tent repair") in the anchor text.
+ */
+import { mailIn } from '../config/mail-in';
+---
+
+<aside class="mail-in-callout" aria-label="Mail-in repair">
+  <div class="wrap">
+    <div class="mic-row">
+      <span class="mic-kicker">Outside the Western Slope?</span>
+      <p class="mic-text">
+        Ship it in from anywhere in the US. Prepaid label, a firm quote with photos, and no repair charge until you approve it.
+        <a href={mailIn.path}>How mail-in repair works &rarr;</a>
+      </p>
+    </div>
+  </div>
+</aside>
+
+<style>
+  .mail-in-callout {
+    padding: 26px 0;
+    background: var(--canvas);
+    border-top: 1px solid var(--rule-strong);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .mic-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 28px;
+  }
+  .mic-kicker {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    flex-shrink: 0;
+  }
+  .mic-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 72ch;
+  }
+  .mic-text a {
+    color: var(--charcoal);
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid var(--charcoal);
+    white-space: nowrap;
+  }
+  .mic-text a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+</style>

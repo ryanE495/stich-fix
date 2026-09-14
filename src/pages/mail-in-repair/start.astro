@@ -1,0 +1,1356 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { site } from '../../config/site';
+import { mailIn } from '../../config/mail-in';
+import {
+  BOX_PRESETS,
+  CARRIER_DEFAULT_COVERAGE_USD,
+  CATEGORIES,
+  CUSTOM_BOX_ID,
+  INTAKE_CAPACITY_PER_WEEK,
+  MAX_SEAT_QUANTITY,
+  MINIMUM_USD,
+  PHOTO_SLOTS,
+  PRICE_BANDS,
+  SEAT_SENDING,
+  SEAT_TYPES,
+  SHADE_TYPES,
+  STEP_COUNT,
+  STEP_TITLES,
+  TENT_AGES,
+  TENT_TYPES,
+  UNCLAIMED_RELEASE_DAYS,
+  UNREPAIRABLE_CHOICES,
+} from '../../config/mail-in-intake';
+import { formatUsd, formatUsdRange } from '../../lib/mail-in/rules';
+
+// Markup only. Options, prices, presets, and limits all come from
+// config/mail-in-intake.ts; behavior and rules live in lib/mail-in/.
+
+/** Error element id for a field name — mirrors the controller's aria-describedby targets. */
+const errId = (name: string) => `err-${name.replace(/[^a-zA-Z0-9]+/g, '-')}`;
+const minimum = formatUsd(MINIMUM_USD);
+const stepHeading = (n: number) => ({ kicker: `Step ${n} of ${STEP_COUNT}`, title: STEP_TITLES[n - 1] });
+const priceCategories = (['tent', 'shade', 'seat'] as const);
+---
+
+<Layout
+  active="mail-in"
+  title="Start a Mail-In Repair Request | Western Slope Stitchworks"
+  description="Start a mail-in repair request: tell me what you're sending, add photos, and see an estimate and shipping for your ZIP."
+  canonicalPath="/mail-in-repair/start/"
+  noindex
+>
+  <div class="intake" data-intake data-phone={site.phoneDisplay}>
+    <!-- HEAD -->
+    <section class="intake-head">
+      <div class="wrap-narrow">
+        <a class="intake-crumb" href={mailIn.path}>&larr; Mail-in repair</a>
+        <div class="section-num">§ Mail-In Repair Request</div>
+        <h1>Start my repair request</h1>
+        <p class="intake-lede">Seven steps. Have three photos and a tape measure ready. Nothing is charged today.</p>
+        <p class="intake-note">This form doesn’t save your progress. If you refresh or leave the page, you’ll start over.</p>
+        <ol class="progress" data-progress aria-hidden="true">
+          {STEP_TITLES.map((_, i) => (
+            <li class:list={['progress-seg', { 'is-current': i === 0 }]} data-progress-step={i + 1}></li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <noscript>
+      <div class="wrap-narrow">
+        <p class="notice notice-block">This form needs JavaScript turned on. Call or text <a href={site.phoneHref}>{site.phoneDisplay}</a> and I’ll take your request over the phone.</p>
+      </div>
+    </noscript>
+
+    <form class="intake-form wrap-narrow" data-intake-form novalidate>
+
+      <!-- ===================== STEP 1 — CATEGORY ===================== -->
+      <section class="step" data-step="1" aria-labelledby="step-1-heading">
+        <h2 class="step-heading" id="step-1-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(1).kicker}</span>
+          <span class="step-title">{stepHeading(1).title}</span>
+        </h2>
+
+        <fieldset class="field-group">
+          <legend class="visually-hidden">Category</legend>
+          <div class="tiles tiles-2">
+            {CATEGORIES.map((c) => (
+              <label class="tile">
+                <input class="tile-input" type="radio" name="category" value={c.id} required aria-describedby={errId('category')} />
+                <span class="tile-body">
+                  <span class="tile-title">{c.label}</span>
+                  <span class="tile-hint">{c.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p class="field-error" id={errId('category')} data-error-for="category" hidden></p>
+        </fieldset>
+
+        <p class="notice"><strong>{minimum} minimum on every mail-in job.</strong> Shipping is separate. You’ll see it for your ZIP on step 6.</p>
+      </section>
+
+      <!-- ===================== STEP 2 — ITEM DETAILS ===================== -->
+      <section class="step" data-step="2" aria-labelledby="step-2-heading" hidden>
+        <h2 class="step-heading" id="step-2-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(2).kicker}</span>
+          <span class="step-title">{stepHeading(2).title}</span>
+        </h2>
+
+        <!-- Tent -->
+        <div class="branch" data-branch="tent" hidden>
+          <fieldset class="field-group">
+            <legend>What kind of tent?</legend>
+            <div class="tiles tiles-3">
+              {TENT_TYPES.map((o) => (
+                <label class="tile tile-compact">
+                  <input class="tile-input" type="radio" name="details.tent.type" value={o.id} required aria-describedby={errId('details.tent.type')} />
+                  <span class="tile-body"><span class="tile-title">{o.label}</span></span>
+                </label>
+              ))}
+            </div>
+            <p class="field-error" id={errId('details.tent.type')} data-error-for="details.tent.type" hidden></p>
+          </fieldset>
+
+          <div class="field">
+            <label for="tent-size">Size</label>
+            <p class="field-hint" id="tent-size-hint">Floor size, like 12 × 14, or whatever the tag says.</p>
+            <input id="tent-size" type="text" name="details.tent.size" maxlength="60" autocomplete="off" required aria-describedby={`tent-size-hint ${errId('details.tent.size')}`} />
+            <p class="field-error" id={errId('details.tent.size')} data-error-for="details.tent.size" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="tent-age">Rough age</label>
+            <select id="tent-age" name="details.tent.age" required aria-describedby={errId('details.tent.age')}>
+              <option value="">Choose one</option>
+              {TENT_AGES.map((o) => <option value={o.id}>{o.label}</option>)}
+            </select>
+            <p class="field-error" id={errId('details.tent.age')} data-error-for="details.tent.age" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="tent-brand">Brand <span class="optional">(optional)</span></label>
+            <input id="tent-brand" type="text" name="details.tent.brand" maxlength="80" autocomplete="off" />
+          </div>
+        </div>
+
+        <!-- Shade -->
+        <div class="branch" data-branch="shade" hidden>
+          <div class="notice notice-warn" role="note">
+            <p class="notice-title">Send the fabric only, off the roller.</p>
+            <p>A full awning assembly runs 16 to 20 feet and won’t ship as a parcel at any price. The roller, arms, and hardware stay home.</p>
+          </div>
+
+          <fieldset class="field-group">
+            <legend>What kind of shade or awning?</legend>
+            <div class="tiles tiles-3">
+              {SHADE_TYPES.map((o) => (
+                <label class="tile tile-compact">
+                  <input class="tile-input" type="radio" name="details.shade.type" value={o.id} required aria-describedby={errId('details.shade.type')} />
+                  <span class="tile-body"><span class="tile-title">{o.label}</span></span>
+                </label>
+              ))}
+            </div>
+            <p class="field-error" id={errId('details.shade.type')} data-error-for="details.shade.type" hidden></p>
+          </fieldset>
+
+          <div class="field">
+            <label for="shade-dimensions">Approximate dimensions</label>
+            <p class="field-hint" id="shade-dimensions-hint">Length and width of the fabric, like 16 ft × 8 ft.</p>
+            <input id="shade-dimensions" type="text" name="details.shade.dimensions" maxlength="60" autocomplete="off" required aria-describedby={`shade-dimensions-hint ${errId('details.shade.dimensions')}`} />
+            <p class="field-error" id={errId('details.shade.dimensions')} data-error-for="details.shade.dimensions" hidden></p>
+          </div>
+
+          <div class="field">
+            <label for="shade-brand">Brand <span class="optional">(optional)</span></label>
+            <input id="shade-brand" type="text" name="details.shade.brand" maxlength="80" autocomplete="off" />
+          </div>
+        </div>
+
+        <!-- Seat -->
+        <div class="branch" data-branch="seat" hidden>
+          <fieldset class="field-group">
+            <legend>What kind of seat?</legend>
+            <div class="tiles tiles-3">
+              {SEAT_TYPES.map((o) => (
+                <label class="tile tile-compact">
+                  <input class="tile-input" type="radio" name="details.seat.type" value={o.id} required aria-describedby={errId('details.seat.type')} />
+                  <span class="tile-body"><span class="tile-title">{o.label}</span></span>
+                </label>
+              ))}
+            </div>
+            <p class="field-error" id={errId('details.seat.type')} data-error-for="details.seat.type" hidden></p>
+          </fieldset>
+
+          <div class="field">
+            <label for="seat-mmy">Make, model, and year</label>
+            <p class="field-hint" id="seat-mmy-hint">Like Polaris RZR 900, 2019. Put “not sure” for anything you don’t know.</p>
+            <input id="seat-mmy" type="text" name="details.seat.makeModelYear" maxlength="120" autocomplete="off" required aria-describedby={`seat-mmy-hint ${errId('details.seat.makeModelYear')}`} />
+            <p class="field-error" id={errId('details.seat.makeModelYear')} data-error-for="details.seat.makeModelYear" hidden></p>
+          </div>
+
+          <fieldset class="field-group">
+            <legend>What are you sending?</legend>
+            <p class="field-hint">This changes the box size, and the box size is most of what shipping costs.</p>
+            <div class="tiles">
+              {SEAT_SENDING.map((o) => (
+                <label class="tile">
+                  <input class="tile-input" type="radio" name="details.seat.sending" value={o.id} required aria-describedby={errId('details.seat.sending')} />
+                  <span class="tile-body">
+                    <span class="tile-title">{o.label}</span>
+                    <span class="tile-hint">{o.hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p class="field-error" id={errId('details.seat.sending')} data-error-for="details.seat.sending" hidden></p>
+          </fieldset>
+
+          <div class="field field-short">
+            <label for="seat-quantity">How many seats</label>
+            <input id="seat-quantity" type="text" inputmode="numeric" name="details.seat.quantity" value="1" maxlength="2" autocomplete="off" required aria-describedby={errId('details.seat.quantity')} />
+            <p class="field-error" id={errId('details.seat.quantity')} data-error-for="details.seat.quantity" hidden></p>
+          </div>
+        </div>
+
+        <!-- Other -->
+        <div class="branch" data-branch="other" hidden>
+          <div class="field">
+            <label for="other-description">What is it?</label>
+            <p class="field-hint" id="other-description-hint">Like a canvas truck tarp, a hunting blind cover, or a duffel.</p>
+            <input id="other-description" type="text" name="details.other.description" maxlength="120" autocomplete="off" required aria-describedby={`other-description-hint ${errId('details.other.description')}`} />
+            <p class="field-error" id={errId('details.other.description')} data-error-for="details.other.description" hidden></p>
+          </div>
+          <div class="field">
+            <label for="other-size">Approximate size</label>
+            <p class="field-hint" id="other-size-hint">Like 6 ft × 4 ft.</p>
+            <input id="other-size" type="text" name="details.other.size" maxlength="60" autocomplete="off" required aria-describedby={`other-size-hint ${errId('details.other.size')}`} />
+            <p class="field-error" id={errId('details.other.size')} data-error-for="details.other.size" hidden></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== STEP 3 — DAMAGE ===================== -->
+      <section class="step" data-step="3" aria-labelledby="step-3-heading" hidden>
+        <h2 class="step-heading" id="step-3-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(3).kicker}</span>
+          <span class="step-title">{stepHeading(3).title}</span>
+        </h2>
+
+        {priceCategories.map((cat) => (
+          <div class="branch" data-branch={cat} hidden>
+            <fieldset class="field-group">
+              <legend>Check everything that needs work</legend>
+              <p class="field-hint">Each range is what that repair usually runs. The estimate below adds them up.</p>
+              <div class="tiles">
+                {PRICE_BANDS[cat].map((band) => (
+                  <label class="tile tile-check">
+                    <input class="tile-input" type="checkbox" name={`damage.${cat}`} value={band.id} aria-describedby={errId(`damage.${cat}`)} />
+                    <span class="tile-body">
+                      <span class="tile-row">
+                        <span class="tile-title">{band.label}</span>
+                        <span class="tile-price">{formatUsdRange(band.low, band.high)}</span>
+                      </span>
+                      {band.hint && <span class="tile-hint">{band.hint}</span>}
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <p class="field-error" id={errId(`damage.${cat}`)} data-error-for={`damage.${cat}`} hidden></p>
+            </fieldset>
+
+            <div class="field">
+              <label for={`notes-${cat}`}>Anything the list missed <span class="optional">(optional)</span></label>
+              <p class="field-hint" id={`notes-${cat}-hint`}>Where the damage is, how big it is, what happened.</p>
+              <textarea id={`notes-${cat}`} name={`damageNotes.${cat}`} rows="4" maxlength="1000" aria-describedby={`notes-${cat}-hint`}></textarea>
+            </div>
+          </div>
+        ))}
+
+        <div class="branch" data-branch="other" hidden>
+          <p class="notice">Other canvas is quoted case by case, so there’s no checklist. Describe the damage and I’ll price it once I see it.</p>
+          <div class="field">
+            <label for="notes-other">Describe the damage</label>
+            <p class="field-hint" id="notes-other-hint">Where it is, how big it is, and what happened.</p>
+            <textarea id="notes-other" name="damageNotes.other" rows="5" maxlength="1000" required aria-describedby={`notes-other-hint ${errId('damageNotes.other')}`}></textarea>
+            <p class="field-error" id={errId('damageNotes.other')} data-error-for="damageNotes.other" hidden></p>
+          </div>
+        </div>
+
+        <div class="estimate">
+          <div class="estimate-kicker">Running estimate</div>
+          <p class="estimate-range" data-out="repair-estimate" aria-live="polite" aria-atomic="true">{minimum}</p>
+          <p class="estimate-label">An estimate, not a quote. The firm price comes with photos after I see it.</p>
+          <p class="estimate-notes" data-out="repair-estimate-notes"></p>
+        </div>
+      </section>
+
+      <!-- ===================== STEP 4 — PHOTOS ===================== -->
+      <section class="step" data-step="4" aria-labelledby="step-4-heading" hidden>
+        <h2 class="step-heading" id="step-4-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(4).kicker}</span>
+          <span class="step-title">{stepHeading(4).title}</span>
+        </h2>
+        <p class="step-intro">Three photos, all required. They stay on your device for now and show up here as previews. For the damage close-up, put a tape measure or a quarter next to it so I can see the scale.</p>
+
+        <div class="photo-grid">
+          {PHOTO_SLOTS.map((slot) => (
+            <div class="photo-slot" data-photo-slot={slot.id}>
+              <input
+                class="file-input"
+                type="file"
+                id={`photo-${slot.id}`}
+                name={`photos.${slot.id}`}
+                accept="image/*,.heic,.heif"
+                required
+                aria-describedby={`photo-${slot.id}-hint ${errId(`photos.${slot.id}`)}`}
+              />
+              <label class="photo-drop" for={`photo-${slot.id}`}>
+                <span class="photo-frame">
+                  <span class="photo-preview" data-photo-preview hidden><img data-photo-img alt="" /></span>
+                  <span class="photo-empty ph" data-photo-empty data-label="No photo yet"></span>
+                </span>
+                <span class="photo-title">{slot.label}</span>
+                <span class="photo-action" data-photo-action>Choose a photo</span>
+              </label>
+              <p class="field-hint" id={`photo-${slot.id}-hint`}>{slot.hint}</p>
+              <p class="photo-name" data-photo-name hidden></p>
+              <button type="button" class="link-button" data-action="remove-photo" data-slot={slot.id} hidden>
+                Remove<span class="visually-hidden"> {slot.label} photo</span>
+              </button>
+              <p class="field-error" id={errId(`photos.${slot.id}`)} data-error-for={`photos.${slot.id}`} hidden></p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <!-- ===================== STEP 5 — TERMS ===================== -->
+      <section class="step" data-step="5" aria-labelledby="step-5-heading" hidden>
+        <h2 class="step-heading" id="step-5-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(5).kicker}</span>
+          <span class="step-title">{stepHeading(5).title}</span>
+        </h2>
+
+        <div class="attest">
+          <label class="attest-label">
+            <input type="checkbox" name="terms.cleanDry" required aria-describedby={`clean-dry-why ${errId('terms.cleanDry')}`} />
+            <span>I’ll ship it clean and completely dry.</span>
+          </label>
+          <p class="attest-why" id="clean-dry-why">Wet canvas sealed in a box for five days arrives moldy. If it shows up wet or dirty, return shipping is on you.</p>
+          <p class="field-error" id={errId('terms.cleanDry')} data-error-for="terms.cleanDry" hidden></p>
+        </div>
+
+        <div class="field">
+          <label for="spend-ceiling">Call me before starting if the quote is over <span class="optional">(optional)</span></label>
+          <p class="field-hint" id="spend-ceiling-hint">Leave it blank if you just want the quote. Anything you enter has to be {minimum} or more.</p>
+          <div class="input-prefix">
+            <span aria-hidden="true">$</span>
+            <input id="spend-ceiling" type="text" inputmode="decimal" name="terms.spendCeiling" maxlength="9" autocomplete="off" aria-describedby={`spend-ceiling-hint ${errId('terms.spendCeiling')}`} />
+          </div>
+          <p class="field-error" id={errId('terms.spendCeiling')} data-error-for="terms.spendCeiling" hidden></p>
+        </div>
+
+        <fieldset class="field-group">
+          <legend>If it can’t be repaired</legend>
+          <div class="tiles tiles-2">
+            {UNREPAIRABLE_CHOICES.map((o) => (
+              <label class="tile">
+                <input class="tile-input" type="radio" name="terms.ifUnrepairable" value={o.id} required aria-describedby={errId('terms.ifUnrepairable')} />
+                <span class="tile-body">
+                  <span class="tile-title">{o.label}</span>
+                  <span class="tile-hint">{o.hint}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p class="field-error" id={errId('terms.ifUnrepairable')} data-error-for="terms.ifUnrepairable" hidden></p>
+        </fieldset>
+
+        <div class="field">
+          <label for="declared-value">Declared value</label>
+          <p class="field-hint" id="declared-value-hint">What it would cost to replace. A shipping label only covers {formatUsd(CARRIER_DEFAULT_COVERAGE_USD)} unless you declare more, so this sets the insurance on your label for the full amount.</p>
+          <div class="input-prefix">
+            <span aria-hidden="true">$</span>
+            <input id="declared-value" type="text" inputmode="decimal" name="terms.declaredValue" maxlength="9" autocomplete="off" required aria-describedby={`declared-value-hint ${errId('terms.declaredValue')}`} />
+          </div>
+          <p class="field-error" id={errId('terms.declaredValue')} data-error-for="terms.declaredValue" hidden></p>
+        </div>
+
+        <!-- TODO(backend): mount the card element here (Stripe SetupIntent — saves the card, charges $0). Display only for now. -->
+        <aside class="card-notice" aria-labelledby="card-notice-title">
+          <div class="card-notice-kicker">Card on file</div>
+          <p class="card-notice-title" id="card-notice-title">$0 charged today</p>
+          <p>The card covers return shipping if you decline the quote, and lets me release items that go unclaimed for {UNCLAIMED_RELEASE_DAYS} days.</p>
+        </aside>
+      </section>
+
+      <!-- ===================== STEP 6 — SHIPPING ===================== -->
+      <section class="step" data-step="6" aria-labelledby="step-6-heading" hidden>
+        <h2 class="step-heading" id="step-6-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(6).kicker}</span>
+          <span class="step-title">{stepHeading(6).title}</span>
+        </h2>
+
+        <div class="field field-short">
+          <label for="ship-zip">Your ZIP code</label>
+          <input id="ship-zip" type="text" inputmode="numeric" name="shipping.zip" maxlength="5" autocomplete="postal-code" required aria-describedby={errId('shipping.zip')} />
+          <p class="field-error" id={errId('shipping.zip')} data-error-for="shipping.zip" hidden></p>
+        </div>
+
+        <fieldset class="field-group">
+          <legend>Is that a home or a business?</legend>
+          <div class="tiles tiles-2">
+            <label class="tile">
+              <input class="tile-input" type="radio" name="shipping.addressType" value="residential" required aria-describedby={errId('shipping.addressType')} />
+              <span class="tile-body"><span class="tile-title">Residential</span><span class="tile-hint">A home. Carriers add a small fee to deliver to a house.</span></span>
+            </label>
+            <label class="tile">
+              <input class="tile-input" type="radio" name="shipping.addressType" value="business" required aria-describedby={errId('shipping.addressType')} />
+              <span class="tile-body"><span class="tile-title">Business</span><span class="tile-hint">A business open regular hours.</span></span>
+            </label>
+          </div>
+          <p class="field-error" id={errId('shipping.addressType')} data-error-for="shipping.addressType" hidden></p>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Box size</legend>
+          <p class="field-hint">Pick the closest one to fill in the numbers, then change anything that doesn’t match your box.</p>
+          <div class="tiles">
+            {(Object.keys(BOX_PRESETS) as (keyof typeof BOX_PRESETS)[]).map((cat) => (
+              <div class="branch branch-contents" data-branch={cat} hidden>
+                {BOX_PRESETS[cat].map((p) => (
+                  <label class="tile">
+                    <input class="tile-input" type="radio" name="shipping.presetId" value={p.id} required aria-describedby={errId('shipping.presetId')} />
+                    <span class="tile-body"><span class="tile-title">{p.label}</span><span class="tile-hint">{p.hint}</span></span>
+                  </label>
+                ))}
+              </div>
+            ))}
+            <label class="tile">
+              <input class="tile-input" type="radio" name="shipping.presetId" value={CUSTOM_BOX_ID} required aria-describedby={errId('shipping.presetId')} />
+              <span class="tile-body"><span class="tile-title">I’ll measure mine</span><span class="tile-hint">Enter your own box size below.</span></span>
+            </label>
+          </div>
+          <p class="field-error" id={errId('shipping.presetId')} data-error-for="shipping.presetId" hidden></p>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Packed box</legend>
+          <p class="field-hint" id="dims-hint">Measure the outside of the packed box and weigh it packed. Round up.</p>
+          <div class="dims">
+            {([
+              ['shipping.length', 'Length', 'in'],
+              ['shipping.width', 'Width', 'in'],
+              ['shipping.height', 'Height', 'in'],
+              ['shipping.weight', 'Weight', 'lb'],
+            ] as const).map(([name, label, unit]) => (
+              <div class="field field-dim">
+                <label for={`dim-${label.toLowerCase()}`}>{label} <span class="optional">({unit})</span></label>
+                <input id={`dim-${label.toLowerCase()}`} type="text" inputmode="decimal" name={name} maxlength="6" autocomplete="off" required aria-describedby={`dims-hint ${errId(name)}`} />
+                <p class="field-error" id={errId(name)} data-error-for={name} hidden></p>
+              </div>
+            ))}
+          </div>
+        </fieldset>
+
+        <div class="package" aria-live="polite">
+          <div class="package-ok" data-out="package" hidden>
+            <p class="package-measured" data-out="package-measured"></p>
+            <p class="package-billable" data-out="package-billable"></p>
+            <p class="notice notice-tip" data-out="package-dim" hidden></p>
+          </div>
+          <div class="notice notice-block" data-out="package-block" hidden>
+            <p class="notice-title" data-out="package-block-title"></p>
+            <ul class="notice-list" data-out="package-reasons"></ul>
+            <p data-out="package-block-why"></p>
+            <div data-out="package-fixes">
+              <p class="notice-subtitle">To fix it:</p>
+              <ol class="notice-list">
+                <li>Compress it harder.</li>
+                <li>Strap it down tight so it can’t spring back open.</li>
+                <li>Vacuum bag the fabric to pull the air out.</li>
+                <li>Measure the packed box again and enter the new size.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <section class="rates" aria-labelledby="rates-heading">
+          <h3 id="rates-heading">Shipping, both ways</h3>
+          <div aria-live="polite">
+            <p class="rates-status" data-rates-state="idle" data-out="rates-idle">Enter your ZIP, address type, and box size to see shipping both ways.</p>
+            <p class="rates-status" data-rates-state="loading" hidden>Getting rates for your address…</p>
+            <div data-rates-state="ready" hidden>
+              <dl class="rate-list">
+                <div><dt>Your ZIP to the shop</dt><dd data-out="rate-to-shop"></dd></div>
+                <div><dt>The shop back to you</dt><dd data-out="rate-to-customer"></dd></div>
+                <div class="rate-total"><dt>Round trip</dt><dd data-out="rate-round-trip"></dd></div>
+              </dl>
+              <p class="rate-note" data-out="rate-note"></p>
+            </div>
+            <div data-rates-state="error" hidden>
+              <p class="rates-status">Couldn’t get shipping rates. Check your ZIP and try again.</p>
+              <button type="button" class="btn btn-secondary btn-small" data-action="retry-rates">Try again</button>
+            </div>
+          </div>
+        </section>
+
+        <fieldset class="field-group weeks">
+          <legend>Intake week</legend>
+          <p class="field-hint">I take {INTAKE_CAPACITY_PER_WEEK} mail-in jobs a week so each one gets the time it needs. Pick the week you want it to arrive, and ship it so it gets here that week.</p>
+          <div class="tiles tiles-2" data-out="weeks-list"></div>
+          <p class="rates-status" data-weeks-state="loading">Loading open weeks…</p>
+          <div data-weeks-state="error" hidden>
+            <p class="rates-status">Couldn’t load intake weeks.</p>
+            <button type="button" class="btn btn-secondary btn-small" data-action="retry-weeks">Try again</button>
+          </div>
+          <p class="field-error" id={errId('shipping.intakeWeekId')} data-error-for="shipping.intakeWeekId" hidden></p>
+        </fieldset>
+      </section>
+
+      <!-- ===================== STEP 7 — REVIEW ===================== -->
+      <section class="step" data-step="7" aria-labelledby="step-7-heading" hidden>
+        <h2 class="step-heading" id="step-7-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(7).kicker}</span>
+          <span class="step-title">{stepHeading(7).title}</span>
+        </h2>
+
+        <div class="review" data-out="review"></div>
+
+        <section class="next-steps" aria-labelledby="next-steps-heading">
+          <h3 id="next-steps-heading">What happens next</h3>
+          <ol>
+            <li>I look over your request and photos.</li>
+            <li>You get a prepaid shipping label and a printable job tag.</li>
+            <li>You tape the job tag to the item, pack it clean and dry, and ship it for your intake week.</li>
+            <li>When it arrives, I photograph it and send a firm quote. Nothing gets repaired until you approve it.</li>
+          </ol>
+        </section>
+
+        <p class="submit-error" data-out="submit-error" role="alert" hidden></p>
+      </section>
+
+      <!-- ===================== ACTIONS ===================== -->
+      <div class="intake-actions">
+        <div class="actions-status">
+          <p class="actions-estimate" data-out="footer-estimate" hidden></p>
+          <p class="actions-hint" id="intake-hint" data-out="hint"></p>
+        </div>
+        <div class="actions-buttons">
+          <button type="button" class="btn btn-secondary" data-action="back" hidden>Back</button>
+          <button type="submit" class="btn btn-primary" data-primary aria-disabled="true" aria-describedby="intake-hint">Continue</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- ===================== CONFIRMATION ===================== -->
+    <section class="intake-done wrap-narrow" data-intake-done hidden aria-labelledby="done-heading">
+      <div class="section-num">§ Request received</div>
+      <h2 id="done-heading" tabindex="-1" data-done-heading>Request received.</h2>
+      <p class="done-ref">Your reference is <strong data-out="done-reference"></strong>. Keep it handy if you call or text.</p>
+
+      <div class="notice notice-key">
+        <p class="notice-title">Tape the job tag to the item itself, not the box.</p>
+        <p>Boxes get cut open and recycled. The tag is what keeps your gear matched to your job once it’s in the shop.</p>
+      </div>
+
+      <h3>What happens next</h3>
+      <ol class="done-steps">
+        <li>I look over your request and photos.</li>
+        <li>You get a prepaid shipping label and a printable job tag. Print both.</li>
+        <li>Tape the job tag to the item. Pack it clean and completely dry.</li>
+        <li>Ship it so it arrives the week of <span data-out="done-week"></span>.</li>
+        <li>When it arrives, I photograph it and send a firm quote. Nothing gets repaired until you approve it.</li>
+      </ol>
+
+      <p class="done-links">
+        <a href={mailIn.path}>Back to mail-in repair</a>
+        <span aria-hidden="true">·</span>
+        <a href={site.phoneHref}>Questions? Call or text {site.phoneDisplay}</a>
+      </p>
+    </section>
+  </div>
+</Layout>
+
+<script>
+  import { initIntakeForm } from '../../lib/mail-in/controller';
+  const root = document.querySelector<HTMLElement>('[data-intake]');
+  if (root) initIntakeForm(root);
+</script>
+
+<style is:global>
+  /* Everything is namespaced under .intake. Global (not scoped) because the
+     controller builds review rows and week tiles at runtime, and Astro's scoped
+     styles don't reach elements created in the browser. */
+
+  .intake [hidden] { display: none !important; }
+
+  .intake .visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+
+  .intake input,
+  .intake select,
+  .intake textarea,
+  .intake button { font: inherit; }
+
+  /* One visible focus style for everything interactive on the page. */
+  .intake :focus-visible {
+    outline: 3px solid var(--rust);
+    outline-offset: 2px;
+  }
+  .intake .step-heading:focus,
+  .intake [data-done-heading]:focus { outline: none; }
+
+  /* ---------- HEAD ---------- */
+  .intake-head {
+    padding: 40px 0 28px;
+    background: var(--canvas-light);
+  }
+  .intake-crumb {
+    display: inline-block;
+    margin-bottom: 22px;
+    font-family: var(--f-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .intake-crumb:hover { color: var(--rust); }
+  .intake-head h1 {
+    font-size: clamp(38px, 6vw, 64px);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    margin-top: 12px;
+  }
+  .intake-lede {
+    margin: 16px 0 0;
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .intake-note {
+    margin: 8px 0 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .progress {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin: 26px 0 0;
+    padding: 0;
+  }
+  .progress-seg {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--canvas-dark);
+    transition: background 0.2s ease;
+  }
+  .progress-seg.is-done { background: var(--river); }
+  .progress-seg.is-current { background: var(--charcoal); }
+
+  /* ---------- STEPS ---------- */
+  .intake-form { padding-bottom: 0; }
+  .intake .step {
+    padding: 36px 0 12px;
+    border-top: 2px solid var(--charcoal);
+    animation: intake-step-in 0.22s ease both;
+  }
+  @keyframes intake-step-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+  .intake .step-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 26px;
+    scroll-margin-top: 110px;
+  }
+  .intake .step-kicker {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .intake .step-title {
+    font-size: clamp(30px, 4.4vw, 44px);
+    line-height: 1.04;
+    letter-spacing: -0.03em;
+  }
+  .intake .step-intro {
+    margin: -8px 0 24px;
+    font-size: 16px;
+    line-height: 1.6;
+    max-width: 62ch;
+  }
+  .intake .branch { display: block; }
+  .intake .branch-contents { display: contents; }
+
+  /* ---------- FIELDS ---------- */
+  .intake .field-group {
+    border: 0;
+    padding: 0;
+    margin: 0 0 30px;
+    min-width: 0;
+  }
+  .intake legend,
+  .intake .field > label {
+    display: block;
+    padding: 0;
+    margin-bottom: 8px;
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    color: var(--charcoal);
+  }
+  .intake .optional {
+    font-family: var(--f-sans);
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .intake .field { margin: 0 0 26px; }
+  .intake .field-short { max-width: 220px; }
+  .intake .field-hint {
+    margin: -2px 0 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 62ch;
+  }
+  .intake input[type='text'],
+  .intake select,
+  .intake textarea {
+    width: 100%;
+    padding: 13px 14px;
+    font-size: 16px; /* 16px stops iOS zooming on focus */
+    line-height: 1.3;
+    color: var(--charcoal);
+    background: #fffdf8;
+    border: 1px solid var(--muted);
+    border-radius: 2px;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .intake textarea { resize: vertical; min-height: 110px; }
+  .intake input[type='text']:hover,
+  .intake select:hover,
+  .intake textarea:hover { border-color: var(--charcoal); }
+  .intake [aria-invalid='true'] {
+    border-color: var(--rust-dark) !important;
+    box-shadow: inset 0 0 0 1px var(--rust-dark);
+  }
+  .intake .input-prefix {
+    position: relative;
+    max-width: 240px;
+  }
+  .intake .input-prefix > span {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .intake .input-prefix input { padding-left: 30px; }
+  .intake .field-error {
+    margin: 8px 0 0;
+    padding-left: 10px;
+    border-left: 3px solid var(--rust-dark);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: var(--rust-dark);
+  }
+
+  /* ---------- TILES (native radios/checkboxes, styled) ---------- */
+  .intake .tiles {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  @media (min-width: 560px) {
+    .intake .tiles-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .intake .tiles-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 760px) {
+    .intake .tiles-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  .intake .tile {
+    position: relative;
+    display: block;
+    cursor: pointer;
+  }
+  .intake .tile-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+  }
+  .intake .tile-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    height: 100%;
+    padding: 16px 16px 16px 48px;
+    background: #fffdf8;
+    border: 1px solid var(--muted);
+    border-radius: 2px;
+    transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+  }
+  .intake .tile-compact .tile-body { padding-top: 13px; padding-bottom: 13px; }
+  /* Indicator: circle for radios, square for checkboxes. Shape + mark, not just color. */
+  .intake .tile-body::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 18px;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--muted);
+    border-radius: 50%;
+    background: #fffdf8;
+  }
+  .intake .tile-compact .tile-body::before { top: 15px; }
+  .intake .tile-check .tile-body::before { border-radius: 2px; }
+  .intake .tile:hover .tile-body { border-color: var(--charcoal); }
+  .intake .tile-input:checked + .tile-body {
+    border-color: var(--charcoal);
+    background: var(--canvas);
+    box-shadow: inset 0 0 0 1px var(--charcoal);
+  }
+  .intake .tile-input:checked + .tile-body::before {
+    border-color: var(--charcoal);
+    background: var(--charcoal);
+    box-shadow: inset 0 0 0 3px #fffdf8;
+  }
+  .intake .tile-check .tile-input:checked + .tile-body::before {
+    box-shadow: none;
+    background:
+      no-repeat center / 12px 12px
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M1.5 6.5l3 3 6-7' fill='none' stroke='%23fffdf8' stroke-width='2'/%3E%3C/svg%3E"),
+      var(--charcoal);
+  }
+  .intake .tile-input:focus-visible + .tile-body {
+    outline: 3px solid var(--rust);
+    outline-offset: 2px;
+  }
+  .intake .tile-input[aria-invalid='true'] + .tile-body { border-color: var(--rust-dark); }
+  .intake .tile-input:disabled + .tile-body {
+    cursor: not-allowed;
+    background: var(--canvas-light);
+    border-style: dashed;
+    color: var(--muted);
+  }
+  .intake .tile-input:disabled + .tile-body .tile-title { color: var(--muted); text-decoration: line-through; }
+  .intake .tile.is-full { cursor: not-allowed; }
+  .intake .tile-title {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--charcoal);
+  }
+  .intake .tile-hint {
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+  .intake .tile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .intake .tile-price {
+    font-family: var(--f-mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--charcoal);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- NOTICES ---------- */
+  .intake .notice {
+    margin: 0 0 26px;
+    padding: 16px 18px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--canvas);
+    border: 1px solid var(--rule-strong);
+    border-left: 3px solid var(--river);
+    border-radius: 2px;
+  }
+  .intake .notice p { margin: 0; }
+  .intake .notice p + p,
+  .intake .notice p + ul,
+  .intake .notice ul + p,
+  .intake .notice p + div { margin-top: 8px; }
+  .intake .notice strong,
+  .intake .notice-title {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--charcoal);
+  }
+  .intake .notice-subtitle { font-weight: 600; color: var(--charcoal); }
+  .intake .notice-warn { border-left-color: var(--rust); }
+  .intake .notice-tip { border-left-color: var(--river); margin-top: 12px; margin-bottom: 0; }
+  .intake .notice-block {
+    border: 2px solid var(--rust-dark);
+    border-left-width: 6px;
+    background: #fbf1e6;
+  }
+  .intake .notice-block .notice-title { color: var(--rust-dark); }
+  .intake .notice-key { border-left: 6px solid var(--charcoal); }
+  .intake .notice-list { margin: 8px 0 0; padding-left: 22px; }
+  .intake .notice-list li { margin: 2px 0; }
+
+  /* ---------- ESTIMATE (step 3) ---------- */
+  .intake .estimate {
+    margin: 8px 0 24px;
+    padding: 22px 22px 20px;
+    background: var(--canvas);
+    border: 1px solid var(--rule-strong);
+    border-top: 3px solid var(--charcoal);
+  }
+  .intake .estimate-kicker {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .intake .estimate-range {
+    margin: 6px 0 4px;
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(32px, 5vw, 44px);
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    color: var(--charcoal);
+    font-variant-numeric: tabular-nums;
+  }
+  .intake .estimate-label { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink); }
+  .intake .estimate-notes { margin: 6px 0 0; font-size: 14px; line-height: 1.5; color: var(--muted); }
+  .intake .estimate-notes:empty { display: none; }
+
+  /* ---------- PHOTOS ---------- */
+  .intake .photo-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 26px;
+    margin-bottom: 20px;
+  }
+  @media (min-width: 640px) {
+    .intake .photo-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+  }
+  .intake .file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    overflow: hidden;
+  }
+  .intake .photo-slot { position: relative; }
+  .intake .photo-drop {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .intake .photo-frame {
+    display: block;
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border: 2px dashed var(--muted);
+    border-radius: 2px;
+    overflow: hidden;
+    background: #fffdf8;
+    transition: border-color 0.12s ease;
+  }
+  .intake .photo-slot.has-file .photo-frame { border-style: solid; border-color: var(--charcoal); }
+  .intake .photo-drop:hover .photo-frame { border-color: var(--charcoal); }
+  .intake .file-input:focus-visible + .photo-drop .photo-frame {
+    outline: 3px solid var(--rust);
+    outline-offset: 2px;
+  }
+  .intake .file-input[aria-invalid='true'] + .photo-drop .photo-frame { border-color: var(--rust-dark); }
+  .intake .photo-preview,
+  .intake .photo-empty {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+  .intake .photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .intake .photo-title {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 1.2;
+    color: var(--charcoal);
+  }
+  .intake .photo-action {
+    align-self: flex-start;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--charcoal);
+    border-bottom: 1px solid var(--charcoal);
+  }
+  .intake .photo-drop:hover .photo-action { color: var(--rust); border-bottom-color: var(--rust); }
+  .intake .photo-slot .field-hint { margin: 8px 0 0; }
+  .intake .photo-name {
+    margin: 6px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .intake .link-button {
+    margin-top: 6px;
+    padding: 4px 0;
+    background: none;
+    border: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--rust-dark);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+  .intake .link-button:hover { color: var(--charcoal); }
+
+  /* ---------- TERMS ---------- */
+  .intake .attest {
+    margin: 0 0 30px;
+    padding: 18px 18px 16px;
+    background: var(--canvas);
+    border: 1px solid var(--muted);
+    border-radius: 2px;
+  }
+  .intake .attest-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 19px;
+    line-height: 1.3;
+    color: var(--charcoal);
+    cursor: pointer;
+  }
+  .intake .attest-label input {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    margin: 2px 0 0;
+    accent-color: var(--charcoal);
+  }
+  .intake .attest-why { margin: 8px 0 0 34px; font-size: 15px; line-height: 1.55; color: var(--ink); }
+  .intake .attest .field-error { margin-left: 34px; }
+  .intake .card-notice {
+    margin: 8px 0 24px;
+    padding: 20px 22px;
+    background: var(--charcoal);
+    color: #d9c9a8;
+    border-radius: 2px;
+  }
+  .intake .card-notice-kicker {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #b0a99f;
+  }
+  .intake .card-notice-title {
+    margin: 6px 0 6px;
+    font-family: var(--f-serif);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--canvas-light);
+  }
+  .intake .card-notice p:last-child { margin: 0; font-size: 15px; line-height: 1.55; }
+
+  /* ---------- SHIPPING ---------- */
+  .intake .dims {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 14px;
+  }
+  @media (min-width: 640px) {
+    .intake .dims { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
+  .intake .field-dim { margin-bottom: 16px; }
+  .intake .field-dim > label { font-size: 17px; }
+  .intake .package { margin: -6px 0 26px; }
+  .intake .package-ok {
+    padding: 14px 16px;
+    background: var(--canvas);
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+  }
+  .intake .package-measured { margin: 0; font-size: 14px; color: var(--muted); }
+  .intake .package-billable {
+    margin: 4px 0 0;
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 20px;
+    color: var(--charcoal);
+  }
+  .intake .rates {
+    margin: 0 0 30px;
+    padding: 20px 22px;
+    background: var(--canvas);
+    border: 1px solid var(--rule-strong);
+    border-top: 3px solid var(--charcoal);
+  }
+  .intake .rates h3 { font-size: 22px; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .intake .rates-status { margin: 0 0 10px; font-size: 15px; color: var(--muted); }
+  .intake .rate-list { margin: 0; }
+  .intake .rate-list > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .intake .rate-list dt { font-size: 15px; color: var(--ink); }
+  .intake .rate-list dd {
+    margin: 0;
+    font-family: var(--f-mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--charcoal);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .intake .rate-total dt,
+  .intake .rate-total dd { font-weight: 700; color: var(--charcoal); }
+  .intake .rate-total { border-top: 2px solid var(--charcoal) !important; }
+  .intake .rate-note { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .intake .btn-small { padding: 10px 16px; font-size: 14px; }
+
+  /* ---------- REVIEW ---------- */
+  .intake .review { display: grid; gap: 0; margin-bottom: 26px; border-top: 1px solid var(--rule-strong); }
+  .intake .review-block { padding: 18px 0; border-bottom: 1px solid var(--rule-strong); }
+  .intake .review-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .intake .review-head h3 { font-size: 20px; letter-spacing: -0.01em; }
+  .intake .review-head .link-button { margin: 0; }
+  .intake .review-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px 18px;
+    margin: 0;
+  }
+  @media (min-width: 560px) {
+    .intake .review-list { grid-template-columns: minmax(140px, 0.9fr) minmax(0, 1.6fr); }
+  }
+  .intake .review-list dt { font-size: 14px; color: var(--muted); padding-top: 6px; }
+  .intake .review-list dd {
+    margin: 0;
+    font-size: 15px;
+    color: var(--charcoal);
+    overflow-wrap: anywhere;
+    padding-bottom: 4px;
+  }
+  @media (min-width: 560px) {
+    .intake .review-list dd { padding-top: 6px; padding-bottom: 0; }
+  }
+  .intake .review-photos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .intake .review-photo { margin: 0; }
+  .intake .review-photo img,
+  .intake .review-photo-empty {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    display: block;
+    border-radius: 2px;
+    background: var(--canvas-dark);
+  }
+  .intake .review-photo-empty {
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    font-size: 12px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+  .intake .review-photo figcaption { margin-top: 4px; font-size: 12px; line-height: 1.3; color: var(--muted); }
+  .intake .review-estimate {
+    margin-top: 22px;
+    padding: 20px 22px;
+    background: var(--canvas);
+    border: 1px solid var(--rule-strong);
+    border-top: 3px solid var(--charcoal);
+  }
+  .intake .review-estimate h3 { font-size: 22px; margin-bottom: 8px; }
+  .intake .review-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 12px 0 0;
+    padding-top: 12px;
+    border-top: 2px solid var(--charcoal);
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+  .intake .review-total strong {
+    font-family: var(--f-serif);
+    font-size: clamp(26px, 4vw, 34px);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .intake .review-estimate-note { margin: 10px 0 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .intake .next-steps { margin: 0 0 20px; }
+  .intake .next-steps h3,
+  .intake-done h3 { font-size: 22px; margin-bottom: 10px; }
+  .intake .next-steps ol,
+  .intake .done-steps { margin: 0; padding-left: 22px; font-size: 16px; line-height: 1.6; }
+  .intake .next-steps li,
+  .intake .done-steps li { margin: 4px 0; }
+  .intake .submit-error {
+    margin: 0 0 12px;
+    padding: 14px 16px;
+    border: 2px solid var(--rust-dark);
+    border-left-width: 6px;
+    background: #fbf1e6;
+    color: var(--rust-dark);
+    font-weight: 600;
+  }
+
+  /* ---------- ACTIONS BAR ---------- */
+  .intake-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    margin: 24px -28px 0;
+    padding: 14px 28px calc(14px + env(safe-area-inset-bottom));
+    background: var(--canvas-light);
+    border-top: 2px solid var(--charcoal);
+    box-shadow: 0 -12px 24px -18px rgba(32, 30, 28, 0.35);
+  }
+  .intake .actions-status { min-width: 0; flex: 1 1 240px; }
+  .intake .actions-estimate {
+    margin: 0;
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: 17px;
+    color: var(--charcoal);
+    font-variant-numeric: tabular-nums;
+  }
+  .intake .actions-hint { margin: 2px 0 0; font-size: 14px; line-height: 1.4; color: var(--muted); }
+  .intake .actions-hint:empty { display: none; }
+  .intake .actions-buttons {
+    display: flex;
+    gap: 10px;
+    margin-left: auto;
+  }
+  .intake .btn { justify-content: center; }
+  .intake .btn[aria-disabled='true'] {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .intake .btn[aria-disabled='true']:hover { background: var(--charcoal); }
+  .intake .btn-secondary:focus-visible,
+  .intake .btn:focus-visible { outline: 3px solid var(--rust); outline-offset: 3px; }
+
+  @media (max-width: 559px) {
+    .intake-actions { margin: 20px -28px 0; }
+    .intake .actions-status { flex-basis: 100%; }
+    .intake .actions-buttons { width: 100%; margin-left: 0; }
+    .intake .actions-buttons .btn { padding: 14px 16px; font-size: 15px; }
+    .intake .actions-buttons .btn-primary { flex: 1; }
+  }
+
+  /* ---------- CONFIRMATION ---------- */
+  .intake-done { padding: 40px 28px 20px; border-top: 2px solid var(--charcoal); }
+  .intake-done h2 {
+    margin: 12px 0 14px;
+    font-size: clamp(36px, 6vw, 60px);
+    letter-spacing: -0.035em;
+  }
+  .intake-done .done-ref { font-size: 18px; margin: 0 0 24px; }
+  .intake-done .done-ref strong { font-family: var(--f-mono); font-size: 18px; letter-spacing: 0.06em; }
+  .intake-done .notice-key { margin: 0 0 30px; }
+  .intake-done .done-links {
+    margin: 30px 0 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-weight: 600;
+  }
+  .intake-done .done-links a { color: var(--charcoal); }
+
+  /* After submit the header's form-only notes no longer apply. */
+  .intake.is-done .intake-lede,
+  .intake.is-done .intake-note,
+  .intake.is-done .progress { display: none; }
+
+  /* ---------- PHONES ---------- */
+  /* Tighter header so step 1's choices show above the sticky action bar. */
+  @media (max-width: 559px) {
+    .intake-head { padding: 20px 0 16px; }
+    .intake-crumb { margin-bottom: 12px; }
+    .intake-head h1 { font-size: 34px; margin-top: 8px; }
+    .intake-lede { font-size: 17px; margin-top: 10px; }
+    .intake-note { font-size: 13px; }
+    .progress { margin-top: 16px; }
+    .intake .step { padding-top: 22px; }
+    .intake .step-heading { margin-bottom: 18px; gap: 6px; }
+    .intake .step-title { font-size: 28px; }
+    .intake .tile-body { padding: 14px 14px 14px 46px; }
+    .intake .tile-body::before { top: 16px; }
+    /* Price always under the name, instead of wrapping only on long names. */
+    .intake .tile-row { flex-direction: column; align-items: flex-start; gap: 2px; }
+  }
+
+  /* ---------- REDUCED MOTION ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    .intake *,
+    .intake *::before {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>

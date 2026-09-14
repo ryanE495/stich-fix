@@ -19,7 +19,9 @@ export default defineConfig({
     sitemap({
       changefreq: 'weekly',
       priority: 0.8,
-      filter: (page) => !page.includes('/admin/') && !page.includes('/404'),
+      // Transactional pages stay out of the sitemap (they're also noindex).
+      filter: (page) =>
+        !page.includes('/admin/') && !page.includes('/404') && !page.includes('/mail-in-repair/start'),
     }),
   ],
 });

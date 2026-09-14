@@ -33,6 +33,8 @@ interface Props {
    * in search results instead of a bare URL.
    */
   breadcrumbs?: Crumb[];
+  /** Keep transactional pages (forms, confirmations) out of search results. */
+  noindex?: boolean;
 }
 
 const {
@@ -46,6 +48,7 @@ const {
   jsonLd,
   active,
   breadcrumbs,
+  noindex = false,
 } = Astro.props;
 
 const canonical = new URL(canonicalPath ?? Astro.url.pathname, site.url).toString();
@@ -79,7 +82,7 @@ if (breadcrumbs?.length) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+    <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
 
     <!-- Preconnect to third parties used on every page -->
     <link rel="preconnect" href="https://c.clarity.ms" crossorigin />

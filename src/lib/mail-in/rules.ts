@@ -221,18 +221,19 @@ export function assessPackage(shipping: IntakeState['shipping']): PackageAssessm
   return measurePackage(toNumber(shipping.length), toNumber(shipping.width), toNumber(shipping.height), toNumber(shipping.weight));
 }
 
-/** The body for POST /api/shipping-estimate, or null until ZIP and box are valid. */
+/** The body for POST /api/shipping-estimate, or null until ZIP, address type, and box are valid. */
 export function buildEstimateRequest(state: IntakeState): ShippingEstimateRequest | null {
   const { shipping } = state;
   const pkg = assessPackage(shipping);
   const weight = toNumber(shipping.weight);
-  if (!isValidZip(shipping.zip) || !pkg.complete || pkg.blocked || weight === null) return null;
+  if (!isValidZip(shipping.zip) || !shipping.addressType || !pkg.complete || pkg.blocked || weight === null) return null;
   return {
     zip: shipping.zip.trim(),
     length: pkg.dimsIn[0],
     width: pkg.dimsIn[1],
     height: pkg.dimsIn[2],
     weight,
+    residential: shipping.addressType === 'residential',
   };
 }
 

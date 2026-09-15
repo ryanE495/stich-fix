@@ -134,6 +134,15 @@ export const MAX_SEAT_QUANTITY = 10;
 // Step 4 — photos
 // ---------------------------------------------------------------------------
 
+/**
+ * Photos are resized and re-encoded in the browser at submit, before they go
+ * anywhere. Phone photos run 3–8 MB each; this brings them to a few hundred KB.
+ */
+export const PHOTO_COMPRESSION = {
+  maxEdgePx: 1600,
+  jpegQuality: 0.82,
+} as const;
+
 export const PHOTO_SLOTS: (Option<PhotoSlotId> & { hint: string })[] = [
   { id: 'overall', label: 'The whole item, laid out', hint: 'Spread it flat or set it up so the whole thing is in the frame.' },
   { id: 'damage', label: 'Close-up of the damage', hint: 'Put a tape measure or a quarter next to the damage so I can see the scale.' },
@@ -214,8 +223,10 @@ export const SHIPPING_ESTIMATE = {
   endpoint: '/api/shipping-estimate',
   /** High end of the range = round trip × (1 + padding). */
   highEndPadding: 0.15,
-  /** Server: how long a live rate is reused for the same (zone, box). */
+  /** Server: how long a live rate is reused for the same (ZIP prefix, residential, box). */
   cacheHours: 24,
+  /** Server: EasyPost lookups allowed per client IP per hour. Over it, the "roughly" estimate is returned. */
+  rateLimitPerHour: 20,
   /** Server: give up on EasyPost after this long and use the zone table. */
   carrierTimeoutMs: 5_000,
   /** Browser: give up on the endpoint after this long and use the zone table. */

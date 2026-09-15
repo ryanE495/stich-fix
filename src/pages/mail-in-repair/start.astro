@@ -472,8 +472,9 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
 
         <section class="rates" aria-labelledby="estimate-heading">
           <h3 id="estimate-heading">Shipping estimate, round trip</h3>
+          <p class="rate-who"><strong>You pay shipping both ways:</strong> to the shop, and back to you.</p>
           <div aria-live="polite">
-            <p class="rates-status" data-estimate-state="idle" data-out="estimate-idle">Enter your ZIP and box size to see a round-trip shipping estimate.</p>
+            <p class="rates-status" data-estimate-state="idle" data-out="estimate-idle">Enter your ZIP, pick home or business, and add your box size to see a round-trip shipping estimate.</p>
             <p class="rates-status" data-estimate-state="loading" hidden>Checking ground rates for your ZIP…</p>
             <div data-estimate-state="ready" hidden>
               <p class="estimate-ship" data-out="estimate-range"></p>
@@ -1180,6 +1181,12 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
   .intake .rate-total dd { font-weight: 700; color: var(--charcoal); }
   .intake .rate-total { border-top: 2px solid var(--charcoal) !important; }
   .intake .rate-note { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .intake .rate-who {
+    margin: -4px 0 14px;
+    font-size: 16px;
+    line-height: 1.45;
+    color: var(--charcoal);
+  }
   .intake .estimate-ship {
     margin: 0;
     font-family: var(--f-serif);

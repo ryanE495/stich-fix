@@ -110,7 +110,7 @@ const faqs: { q: string; a: string[]; steps?: string[] }[] = [
   {
     q: 'What if the quote is more than I want to spend?',
     a: [
-      'Say no. I’ll ship it back and you pay return shipping, nothing else.',
+      'Say no. Most of the time we sort out whether the price works on the call, before you ship anything. If it only comes up once it’s here, I’ll ship it back. You pay shipping both ways, since it made the trip, and nothing else. No repair charge.',
       'If there’s a smaller repair that fixes the part you care about most, I’ll tell you, and you can decide from there.',
     ],
   },
@@ -272,7 +272,7 @@ const faqJsonLd = {
       <div class="sec-head">
         <div class="section-num">§ 03 — What It Costs</div>
         <h2>What it costs, <em>shipping included.</em></h2>
-        <p class="sec-intro">Shipping is a real part of what a mail-in repair costs, so here it is up front, before you’ve spent a dollar.</p>
+        <p class="sec-intro"><strong>You pay shipping both ways: to the shop, and back to you.</strong> It’s a real part of what a mail-in repair costs, so here it is up front, before you’ve spent a dollar.</p>
       </div>
       <ul class="price-list">
         {costRows.map((row) => (
@@ -565,6 +565,7 @@ const faqJsonLd = {
     line-height: 1.6;
     color: var(--ink);
   }
+  .sec-intro strong { color: var(--charcoal); font-weight: 700; }
 
   /* ---------- 01 WHAT I REPAIR ---------- */
   .repairs { padding: 88px 0; background: var(--canvas); }

@@ -97,9 +97,11 @@ If the site moves off Netlify later, swap the form handler to Formspree, Basin, 
 3. Redeploy.
 4. When ready to launch, swap in the production key (`EZAK…`) and redeploy.
 
-**What it does:** rates the customer's box from 81425 to their ZIP (ZIP and country only), takes the cheapest ground service, doubles it for round trip, pads the high end 15%, and returns a range. Live results are cached per (zone, box) for 24 hours in function memory.
+**What it does:** rates the customer's box from 81425 to their ZIP (ZIP and country only, plus whether it's a residential address so the carrier's residential surcharge is included), takes the cheapest ground service, doubles it for round trip, pads the high end 15%, and returns a range. Live results are cached for 24 hours in function memory, keyed by the first 3 digits of the destination ZIP, residential or business, and the box.
 
-**Failure is safe:** with no key, a carrier error, or a 5-second timeout, it returns a "roughly" estimate from the static zone table (`src/lib/mail-in/shipping-zones.ts`). The browser does the same if the endpoint itself can't be reached. A shipping problem never blocks a request.
+**Rate limit:** 20 EasyPost lookups per client IP per hour (cache hits don't count). Over the limit the endpoint returns the "roughly" estimate instead of an error. The counter lives in function memory, so it's a per-instance cap, not a global one. Change the number in `SHIPPING_ESTIMATE.rateLimitPerHour`.
+
+**Failure is safe:** with no key, a carrier error, a 5-second timeout, or the rate limit hit, it returns a "roughly" estimate from the static zone table (`src/lib/mail-in/shipping-zones.ts`). The browser does the same if the endpoint itself can't be reached. A shipping problem never blocks a request.
 
 **Local development:** plain `npm run dev` doesn't run Netlify Functions, so the form always shows "roughly" estimates locally. To exercise live rates, run the site with `netlify dev` (Netlify CLI) with `EASYPOST_KEY` in your local `.env`.
 

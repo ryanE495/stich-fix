@@ -93,6 +93,8 @@ export interface ShippingEstimateRequest {
   height: number;
   /** Actual packed weight in pounds — NOT billable weight; carriers apply dim weight themselves. */
   weight: number;
+  /** Delivery to a home. Carriers add a residential surcharge (~$6.50 per package). */
+  residential: boolean;
 }
 
 /**

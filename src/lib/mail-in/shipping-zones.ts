@@ -3,9 +3,9 @@
  *
  * Shared by the server (netlify/functions/shipping-estimate.ts) and the
  * browser (shipping-estimate.ts). It's the fallback whenever live EasyPost
- * rates aren't available: no API key, carrier error, timeout, or the endpoint
- * itself is unreachable (e.g. local `astro dev`, which doesn't run functions).
- * Its zone guess is also the cache key's zone on the server.
+ * rates aren't available: no API key, carrier error, timeout, rate limit, or
+ * the endpoint itself is unreachable (e.g. local `astro dev`, which doesn't
+ * run functions).
  *
  * Ground rates approximated from the shop in Olathe, CO (81425) by 3-digit
  * ZIP prefix. Only meant to land in a believable range; the real rate is
@@ -19,6 +19,8 @@ import type { ShippingEstimate, ShippingEstimateRequest } from './types';
 const ZONE_BASE_USD: Record<number, number> = { 2: 12, 3: 14, 4: 16, 5: 18, 6: 20, 7: 22, 8: 25 };
 const ZONE_PER_LB_USD: Record<number, number> = { 2: 0.55, 3: 0.75, 4: 0.95, 5: 1.15, 6: 1.35, 7: 1.55, 8: 1.75 };
 const REMOTE_MULTIPLIER = 1.5;
+/** Carrier residential delivery surcharge, per package. */
+const RESIDENTIAL_SURCHARGE_USD = 6.5;
 
 /** Very rough ground zone from 81425 by 3-digit ZIP prefix. */
 export function approximateZone(zip: string): { zone: number; remote: boolean } {
@@ -41,10 +43,15 @@ export function toEstimateRange(roundTripUsd: number, source: ShippingEstimate['
   };
 }
 
-/** Zone-table estimate for a request. Always succeeds; always labeled "roughly". */
+/**
+ * Zone-table estimate for a request. Always succeeds; always labeled "roughly".
+ * Round trip is 2 × one way, matching how live rates are doubled — including
+ * the residential surcharge on each leg.
+ */
 export function roughShippingEstimate(req: ShippingEstimateRequest): ShippingEstimate {
   const { zone, remote } = approximateZone(req.zip);
   const pkg = measurePackage(req.length, req.width, req.height, req.weight);
-  const oneWay = (ZONE_BASE_USD[zone] + ZONE_PER_LB_USD[zone] * pkg.billableWeightLb) * (remote ? REMOTE_MULTIPLIER : 1);
+  const base = (ZONE_BASE_USD[zone] + ZONE_PER_LB_USD[zone] * pkg.billableWeightLb) * (remote ? REMOTE_MULTIPLIER : 1);
+  const oneWay = base + (req.residential ? RESIDENTIAL_SURCHARGE_USD : 0);
   return toEstimateRange(oneWay * 2, 'roughly');
 }

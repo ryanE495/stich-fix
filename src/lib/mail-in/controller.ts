@@ -51,6 +51,7 @@ import {
   toNumber,
   validateStep,
 } from './rules';
+import { compressPhotos } from './compress-photo';
 import { getSendWeekOptions } from './send-weeks';
 import { getShippingEstimate } from './shipping-estimate';
 import { roughShippingEstimate } from './shipping-zones';
@@ -407,11 +408,7 @@ export function initIntakeForm(root: HTMLElement): void {
       return;
     }
     const shipping = currentShipping();
-    let payload: IntakePayload;
-    try {
-      if (!shipping) throw new Error('No shipping estimate');
-      payload = buildPayload(state, shipping, sendWeeks);
-    } catch {
+    if (!shipping) {
       submitError = 'Something in the form is still incomplete. Check each step and try again.';
       render();
       return;
@@ -419,6 +416,19 @@ export function initIntakeForm(root: HTMLElement): void {
     submitting = true;
     submitError = '';
     render();
+
+    let payload: IntakePayload;
+    try {
+      // Resize and re-encode photos before they go anywhere. Silent: the button
+      // already reads "Sending…", and compression never throws.
+      const photos = await compressPhotos(state.photos as Record<PhotoSlotId, File>);
+      payload = buildPayload({ ...state, photos }, shipping, sendWeeks);
+    } catch {
+      submitError = 'Something in the form is still incomplete. Check each step and try again.';
+      submitting = false;
+      render();
+      return;
+    }
     try {
       const result = await submitIntake(payload);
       showDone(result, payload);
@@ -640,7 +650,7 @@ export function initIntakeForm(root: HTMLElement): void {
         'estimate-idle',
         assessPackage(state.shipping).blocked
           ? 'Fix the box above to see a shipping estimate.'
-          : 'Enter your ZIP and box size to see a round-trip shipping estimate.',
+          : 'Enter your ZIP, pick home or business, and add your box size to see a round-trip shipping estimate.',
       );
     }
     if (status === 'ready' && estimate.state === 'ready') {

@@ -70,7 +70,7 @@ export const STEP_COUNT = STEP_TITLES.length;
 // ---------------------------------------------------------------------------
 
 export const CATEGORIES: Option<CategoryId>[] = [
-  { id: 'tent', label: 'Tent or tipi', hint: 'Wall tents, tipis, bell tents, ice shelters, canopy tops.' },
+  { id: 'tent', label: 'Tent or tipi', hint: 'Wall tents, tipis, bell tents, canopy tops.' },
   { id: 'shade', label: 'Sun shade or awning', hint: 'RV awning fabric, shade sails, patio canopies, biminis.' },
   { id: 'seat', label: 'Seat or upholstery', hint: 'ATV, UTV, boat, and snowmobile seats.' },
   { id: 'other', label: 'Other canvas', hint: 'Tarps, covers, bags, banners, and anything else canvas.' },
@@ -84,7 +84,6 @@ export const TENT_TYPES: Option[] = [
   { id: 'wall', label: 'Wall tent' },
   { id: 'tipi', label: 'Tipi' },
   { id: 'bell', label: 'Bell tent' },
-  { id: 'ice-shelter', label: 'Ice shelter' },
   { id: 'canopy-top', label: 'Canopy top' },
   { id: 'not-sure', label: 'Not sure' },
 ];

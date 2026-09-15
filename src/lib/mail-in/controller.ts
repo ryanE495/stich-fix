@@ -1,18 +1,23 @@
 /**
- * Browser controller for the mail-in intake form.
+ * Browser controller for the mail-in repair request form.
  *
- * Owns form state (in memory only — it resets on refresh by design), wires
- * DOM events to state, and re-renders from state. Every business rule is a
- * call into rules.ts; network-shaped work goes through the three swap points:
- *   - rates.ts         getShippingRates()  → EasyPost/Shippo via the server
- *   - intake-weeks.ts  getIntakeWeeks()    → booked counts from the backend
- *   - submit.ts        submitIntake()      → the real submit handler
+ * This is a request form, not a checkout: nothing is charged and nothing ships
+ * until there's been a phone call. The controller owns form state (in memory
+ * only — it resets on refresh by design), wires DOM events to state, and
+ * re-renders from state. Every business rule is a call into rules.ts.
+ *
+ * Network-shaped work:
+ *   - shipping-estimate.ts  getShippingEstimate() → /api/shipping-estimate (EasyPost), never throws
+ *   - submit.ts             submitIntake()        → the real submit handler (still a stub)
  */
 
 import {
+  BEST_TIMES,
   CARRIER_LIMITS,
   CATEGORIES,
+  CONTACT_METHODS,
   CUSTOM_BOX_ID,
+  FOUND_VIA,
   MINIMUM_USD,
   PHOTO_SLOTS,
   SEAT_SENDING,
@@ -25,42 +30,45 @@ import {
   UNREPAIRABLE_CHOICES,
   optionLabel,
 } from '../../config/mail-in-intake';
-import { getIntakeWeeks } from './intake-weeks';
-import { getShippingRates } from './rates';
 import {
   assessPackage,
+  buildEstimateRequest,
   buildPayload,
-  buildRateRequest,
   canPreviewImage,
   combinedEstimateRange,
   createInitialState,
   estimateRepair,
+  estimateRequestKey,
   firstInvalidStep,
+  formatPhone,
+  formatShippingEstimate,
   formatUsd,
   formatUsdRange,
   isCategory,
   isImageFile,
+  normalizePhone,
   presetFor,
-  rateRequestKey,
   toNumber,
   validateStep,
 } from './rules';
+import { getSendWeekOptions } from './send-weeks';
+import { getShippingEstimate } from './shipping-estimate';
+import { roughShippingEstimate } from './shipping-zones';
 import { submitIntake } from './submit';
 import type {
+  EstimateStatus,
   IntakePayload,
   PhotoSlotId,
-  RateStatus,
-  RuleContext,
+  ShippingEstimate,
   StepNumber,
   StepValidation,
   SubmitResult,
-  WeeksStatus,
 } from './types';
 
-const RATE_DEBOUNCE_MS = 350;
+const ESTIMATE_DEBOUNCE_MS = 400;
+const SHIPPING_STEP: StepNumber = 6;
+const REVIEW_STEP = STEP_COUNT as StepNumber;
 const DIM_FIELDS = ['shipping.length', 'shipping.width', 'shipping.height', 'shipping.weight'];
-/** Keys with their own status panels instead of an inline field error. */
-const PANEL_KEYS = new Set(['package', 'rates']);
 
 export function initIntakeForm(root: HTMLElement): void {
   const formEl = root.querySelector<HTMLFormElement>('[data-intake-form]');
@@ -74,10 +82,9 @@ export function initIntakeForm(root: HTMLElement): void {
 
   // ---- state ---------------------------------------------------------------
   const state = createInitialState();
+  const sendWeeks = getSendWeekOptions();
   let step: StepNumber = 1;
-  let rates: RateStatus = { state: 'idle' };
-  let weeks: WeeksStatus = { state: 'loading' };
-  let renderedWeeks: WeeksStatus | null = null;
+  let estimate: EstimateStatus = { state: 'idle' };
   const touched = new Set<string>();
   const attempted = new Set<StepNumber>();
   const photoErrors: Partial<Record<PhotoSlotId, string>> = {};
@@ -85,10 +92,9 @@ export function initIntakeForm(root: HTMLElement): void {
   let returnToReview = false;
   let submitting = false;
   let submitError = '';
-  let rateTimer: number | undefined;
-  let rateSeq = 0;
+  let estimateTimer: number | undefined;
+  let estimateSeq = 0;
 
-  const ctx = (): RuleContext => ({ rates, weeks });
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // ---- DOM helpers ---------------------------------------------------------
@@ -182,17 +188,25 @@ export function initIntakeForm(root: HTMLElement): void {
       if (DIM_FIELDS.includes(name)) detachPresetIfEdited();
     }
 
-    scheduleRates();
+    scheduleEstimate();
     render();
   }
 
   function onFocusOut(e: FocusEvent) {
     const el = e.target;
-    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement) {
-      if (el.name && el.type !== 'file' && !touched.has(el.name)) {
-        touched.add(el.name);
-        render();
+    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement)) return;
+    if (!el.name || el.type === 'file') return;
+    // Tidy a valid phone number into (970) 555-0123 once they leave the field.
+    if (el.name === 'contact.phone') {
+      const digits = normalizePhone(el.value);
+      if (digits) {
+        el.value = formatPhone(digits);
+        setField('contact.phone', el.value);
       }
+    }
+    if (!touched.has(el.name)) {
+      touched.add(el.name);
+      render();
     }
   }
 
@@ -205,7 +219,7 @@ export function initIntakeForm(root: HTMLElement): void {
         break;
       case 'edit': {
         const n = Number(target.dataset.editStep);
-        if (n >= 1 && n <= 6) {
+        if (n >= 1 && n < REVIEW_STEP) {
           returnToReview = true;
           goTo(n as StepNumber);
         }
@@ -216,20 +230,12 @@ export function initIntakeForm(root: HTMLElement): void {
         if (slot) removePhoto(slot);
         break;
       }
-      case 'retry-rates':
-        rates = { state: 'idle' };
-        scheduleRates();
-        render();
-        break;
-      case 'retry-weeks':
-        void loadWeeks();
-        break;
     }
   }
 
   function onSubmit(e: SubmitEvent) {
     e.preventDefault();
-    if (step < STEP_COUNT) goContinue();
+    if (step < REVIEW_STEP) goContinue();
     else void submit();
   }
 
@@ -302,47 +308,42 @@ export function initIntakeForm(root: HTMLElement): void {
     input?.focus();
   }
 
-  // ---- async data ------------------------------------------------------------
-  function scheduleRates() {
-    const req = buildRateRequest(state);
+  // ---- shipping estimate -----------------------------------------------------
+  function scheduleEstimate() {
+    const req = buildEstimateRequest(state);
     if (!req) {
-      window.clearTimeout(rateTimer);
-      rateSeq++;
-      rates = { state: 'idle' };
+      window.clearTimeout(estimateTimer);
+      estimateSeq++;
+      estimate = { state: 'idle' };
       return;
     }
-    const key = rateRequestKey(req);
-    if ((rates.state === 'ready' || rates.state === 'loading') && rates.key === key) return;
-    rates = { state: 'loading', key };
-    window.clearTimeout(rateTimer);
-    const seq = ++rateSeq;
-    rateTimer = window.setTimeout(async () => {
-      try {
-        const quote = await getShippingRates(req);
-        if (seq !== rateSeq) return;
-        rates = { state: 'ready', key, quote };
-      } catch {
-        if (seq !== rateSeq) return;
-        rates = { state: 'error', key };
-      }
+    const key = estimateRequestKey(req);
+    if (estimate.state !== 'idle' && estimate.key === key) return;
+    estimate = { state: 'loading', key };
+    window.clearTimeout(estimateTimer);
+    const seq = ++estimateSeq;
+    estimateTimer = window.setTimeout(async () => {
+      const result = await getShippingEstimate(req); // never throws
+      if (seq !== estimateSeq) return;
+      estimate = { state: 'ready', key, estimate: result };
       render();
-    }, RATE_DEBOUNCE_MS);
+    }, ESTIMATE_DEBOUNCE_MS);
   }
 
-  async function loadWeeks() {
-    weeks = { state: 'loading' };
-    render();
-    try {
-      weeks = { state: 'ready', weeks: await getIntakeWeeks() };
-    } catch {
-      weeks = { state: 'error' };
-    }
-    render();
+  /**
+   * The estimate to show or submit: the fetched one if it matches the current
+   * box, otherwise the zone-table "roughly" number. Never blocks anything.
+   */
+  function currentShipping(): ShippingEstimate | null {
+    const req = buildEstimateRequest(state);
+    if (!req) return null;
+    if (estimate.state === 'ready' && estimate.key === estimateRequestKey(req)) return estimate.estimate;
+    return roughShippingEstimate(req);
   }
 
   // ---- navigation ------------------------------------------------------------
   function goContinue() {
-    const v = validateStep(step, state, ctx());
+    const v = validateStep(step, state);
     if (!v.valid) {
       attempted.add(step);
       render();
@@ -350,16 +351,16 @@ export function initIntakeForm(root: HTMLElement): void {
       return;
     }
     const next: StepNumber = returnToReview
-      ? firstInvalidStep(state, ctx(), step) ?? 7
+      ? firstInvalidStep(state, step) ?? REVIEW_STEP
       : ((step + 1) as StepNumber);
-    if (next === 7) returnToReview = false;
+    if (next === REVIEW_STEP) returnToReview = false;
     goTo(next);
   }
 
   function goTo(n: StepNumber) {
     step = n;
-    if (n === 6) onEnterShipping();
-    if (n === 7) renderReview();
+    if (n === SHIPPING_STEP) onEnterShipping();
+    if (n === REVIEW_STEP) renderReview();
     render();
     moveFocusTo(q<HTMLElement>('[data-step-heading]', section(n)));
   }
@@ -374,7 +375,7 @@ export function initIntakeForm(root: HTMLElement): void {
         applyPreset(id);
       }
     }
-    scheduleRates();
+    scheduleEstimate();
   }
 
   function moveFocusTo(el: HTMLElement | null) {
@@ -391,7 +392,6 @@ export function initIntakeForm(root: HTMLElement): void {
         const dim = q<HTMLInputElement>('input[name="shipping.length"]', scope);
         if (dim) return dim.focus();
       }
-      if (PANEL_KEYS.has(key)) continue;
       const fields = qa<HTMLInputElement>(`[name="${key}"]`, scope).filter((f) => !f.disabled && f.closest('[hidden]') === null);
       const target = fields.find((f) => f.checked) ?? fields[0];
       if (target) return target.focus();
@@ -400,15 +400,17 @@ export function initIntakeForm(root: HTMLElement): void {
 
   async function submit() {
     if (submitting) return;
-    const bad = firstInvalidStep(state, ctx());
+    const bad = firstInvalidStep(state);
     if (bad !== null) {
       attempted.add(bad);
       goTo(bad);
       return;
     }
+    const shipping = currentShipping();
     let payload: IntakePayload;
     try {
-      payload = buildPayload(state, ctx());
+      if (!shipping) throw new Error('No shipping estimate');
+      payload = buildPayload(state, shipping, sendWeeks);
     } catch {
       submitError = 'Something in the form is still incomplete. Check each step and try again.';
       render();
@@ -421,7 +423,7 @@ export function initIntakeForm(root: HTMLElement): void {
       const result = await submitIntake(payload);
       showDone(result, payload);
     } catch {
-      submitError = `Your request didn’t go through, and nothing was charged. Try again, or call or text ${phone}.`;
+      submitError = `Your request didn’t go through. Nothing was sent or charged. Try again, or call or text ${phone}.`;
       submitting = false;
       render();
     }
@@ -429,8 +431,15 @@ export function initIntakeForm(root: HTMLElement): void {
 
   function showDone(result: SubmitResult, payload: IntakePayload) {
     for (const url of Object.values(photoUrls)) if (url) URL.revokeObjectURL(url);
+    const firstName = payload.contact.name.split(/\s+/)[0];
+    setText('done-heading', `Thanks, ${firstName}. I’ve got your request.`);
     setText('done-reference', result.reference);
-    setText('done-week', payload.intakeWeek.label);
+    setText(
+      'done-contact',
+      payload.contact.method === 'phone'
+        ? `I’ll call you at ${payload.contact.phone} within one business day.`
+        : `I’ll email you at ${payload.contact.email} within one business day to set up a quick call.`,
+    );
     form.hidden = true;
     root.classList.add('is-done');
     done.hidden = false;
@@ -439,7 +448,7 @@ export function initIntakeForm(root: HTMLElement): void {
 
   // ---- rendering -------------------------------------------------------------
   function render() {
-    const v = validateStep(step, state, ctx());
+    const v = validateStep(step, state);
 
     for (const s of qa('section[data-step]', form)) s.hidden = Number(s.dataset.step) !== step;
     for (const b of qa('[data-branch]', form)) b.hidden = b.dataset.branch !== state.category;
@@ -452,7 +461,7 @@ export function initIntakeForm(root: HTMLElement): void {
 
     if (step === 3) renderRepairEstimate();
     if (step === 4) renderPhotos();
-    if (step === 6) renderShipping();
+    if (step === SHIPPING_STEP) renderShipping();
     renderErrors(v);
     renderActions(v);
   }
@@ -463,9 +472,7 @@ export function initIntakeForm(root: HTMLElement): void {
       const key = el.dataset.errorFor!;
       const slot = key.startsWith('photos.') ? (key.slice('photos.'.length) as PhotoSlotId) : null;
       const photoError = slot ? photoErrors[slot] : undefined;
-      let message: string | undefined = photoError ?? v.errors[key];
-      // Week list shows its own loading/error panel until weeks are loaded.
-      if (key === 'shipping.intakeWeekId' && weeks.state !== 'ready') message = undefined;
+      const message: string | undefined = photoError ?? v.errors[key];
       const show = !!message && (!!photoError || touched.has(key) || attempted.has(step));
       el.textContent = show && message ? message : '';
       el.hidden = !show;
@@ -484,10 +491,10 @@ export function initIntakeForm(root: HTMLElement): void {
       const blocked = !v.valid || submitting;
       primary.setAttribute('aria-disabled', String(blocked));
       primary.toggleAttribute('aria-busy', submitting);
-      primary.textContent = step < STEP_COUNT ? 'Continue' : submitting ? 'Submitting…' : 'Submit repair request';
+      primary.textContent = step < REVIEW_STEP ? 'Continue' : submitting ? 'Sending…' : 'Send my request';
     }
 
-    setText('hint', v.valid ? (step === STEP_COUNT ? 'Everything’s filled in.' : '') : v.firstError ?? '');
+    setText('hint', v.valid ? (step === REVIEW_STEP ? 'Everything’s filled in.' : '') : v.firstError ?? '');
 
     const footerEstimate = out('footer-estimate');
     if (footerEstimate) {
@@ -502,17 +509,13 @@ export function initIntakeForm(root: HTMLElement): void {
     }
   }
 
-  function currentQuote() {
-    const req = buildRateRequest(state);
-    return req && rates.state === 'ready' && rates.key === rateRequestKey(req) ? rates.quote : null;
-  }
-
   function footerEstimateText(): string {
     const est = estimateRepair(state);
-    const quote = step >= 6 ? currentQuote() : null;
-    if (quote) {
-      const total = combinedEstimateRange(est.low, est.high, quote.roundTripUsd);
-      return `Estimate with shipping: ${formatUsdRange(total.low, total.high)}`;
+    const shipping = step >= SHIPPING_STEP ? currentShipping() : null;
+    if (shipping) {
+      const total = combinedEstimateRange(est.low, est.high, shipping);
+      const range = formatUsdRange(total.low, total.high);
+      return `Estimate with shipping: ${shipping.source === 'roughly' ? `roughly ${range}` : range}`;
     }
     if (est.caseByCase) return `Repair: ${formatUsd(MINIMUM_USD)} minimum, quoted case by case`;
     return `Repair estimate: ${formatUsdRange(est.low, est.high)}`;
@@ -570,8 +573,7 @@ export function initIntakeForm(root: HTMLElement): void {
 
   function renderShipping() {
     renderPackage();
-    renderRates();
-    renderWeeks();
+    renderEstimatePanel();
   }
 
   function renderPackage() {
@@ -608,8 +610,7 @@ export function initIntakeForm(root: HTMLElement): void {
     if (pkg.overVolume) {
       reasons.push(`The box is ${pkg.volumeCubicIn.toLocaleString('en-US')} cubic inches. The limit is ${CARRIER_LIMITS.maxVolumeCubicIn.toLocaleString('en-US')}.`);
     }
-    const list = out('package-reasons');
-    list?.replaceChildren(...reasons.map((r) => h('li', {}, r)));
+    out('package-reasons')?.replaceChildren(...reasons.map((r) => h('li', {}, r)));
 
     const sizeProblem = pkg.overLengthPlusGirth || pkg.overVolume;
     setText(
@@ -626,59 +627,48 @@ export function initIntakeForm(root: HTMLElement): void {
     if (fixes) fixes.hidden = !sizeProblem;
   }
 
-  function renderRates() {
-    const req = buildRateRequest(state);
-    const key = req ? rateRequestKey(req) : null;
-    const status: 'idle' | 'loading' | 'ready' | 'error' =
-      !key || rates.state === 'idle' || !('key' in rates) || rates.key !== key ? (key ? 'loading' : 'idle') : rates.state;
+  function renderEstimatePanel() {
+    const req = buildEstimateRequest(state);
+    const key = req ? estimateRequestKey(req) : null;
+    const status: 'idle' | 'loading' | 'ready' =
+      !key || estimate.state === 'idle' ? (key ? 'loading' : 'idle') : estimate.key !== key ? 'loading' : estimate.state;
 
-    for (const el of qa('[data-rates-state]', form)) el.hidden = el.dataset.ratesState !== status;
+    for (const el of qa('[data-estimate-state]', form)) el.hidden = el.dataset.estimateState !== status;
 
     if (status === 'idle') {
-      const pkg = assessPackage(state.shipping);
       setText(
-        'rates-idle',
-        toNumber(state.terms.declaredValue) === null
-          ? 'Go back to step 5 and enter a declared value. Shipping insurance depends on it.'
-          : pkg.blocked
-            ? 'Fix the box above to see shipping.'
-            : 'Enter your ZIP, address type, and box size to see shipping both ways.',
+        'estimate-idle',
+        assessPackage(state.shipping).blocked
+          ? 'Fix the box above to see a shipping estimate.'
+          : 'Enter your ZIP and box size to see a round-trip shipping estimate.',
       );
     }
-    if (status === 'ready' && rates.state === 'ready') {
-      const { toShop, toCustomer, roundTripUsd, note } = rates.quote;
-      setText('rate-to-shop', formatUsd(toShop.amountUsd));
-      setText('rate-to-customer', formatUsd(toCustomer.amountUsd));
-      setText('rate-round-trip', formatUsd(roundTripUsd));
-      const insurance = toShop.insuranceUsd + toCustomer.insuranceUsd;
+    if (status === 'ready' && estimate.state === 'ready') {
+      const est = estimate.estimate;
+      setText('estimate-range', formatShippingEstimate(est));
       setText(
-        'rate-note',
-        insurance > 0 ? `${note} Includes ${formatUsd(insurance)} for declared-value coverage, both ways.` : note,
+        'estimate-source',
+        est.source === 'live'
+          ? 'Based on current ground rates for your ZIP, both directions.'
+          : 'Roughly, based on distance from the shop. Live carrier rates weren’t available just now.',
       );
     }
   }
 
-  function renderWeeks() {
-    for (const el of qa('[data-weeks-state]', form)) el.hidden = el.dataset.weeksState !== weeks.state;
-    if (renderedWeeks === weeks) return;
-    renderedWeeks = weeks;
-    const list = out('weeks-list');
-    if (!list || weeks.state !== 'ready') return;
-
+  function renderSendWeeks() {
+    const list = out('send-weeks');
+    if (!list) return;
     list.replaceChildren(
-      ...weeks.weeks.map((wk) => {
-        const full = wk.remaining <= 0;
-        const input = h('input', { type: 'radio', name: 'shipping.intakeWeekId', value: wk.id, class: 'tile-input', 'aria-describedby': 'err-shipping-intakeWeekId' });
+      ...sendWeeks.map((wk) => {
+        const input = h('input', {
+          type: 'radio',
+          name: 'shipping.sendWeekId',
+          value: wk.id,
+          class: 'tile-input',
+          'aria-describedby': 'err-shipping-sendWeekId',
+        });
         input.required = true;
-        input.disabled = full;
-        input.checked = state.shipping.intakeWeekId === wk.id;
-        const meta = full ? 'Full' : `${wk.remaining} of ${wk.capacity} spots open`;
-        return h(
-          'label',
-          { class: `tile tile-week${full ? ' is-full' : ''}` },
-          input,
-          h('span', { class: 'tile-body' }, h('span', { class: 'tile-title' }, `Week of ${wk.label}`), h('span', { class: 'tile-hint' }, meta)),
-        );
+        return h('label', { class: 'tile tile-compact' }, input, h('span', { class: 'tile-body' }, h('span', { class: 'tile-title' }, wk.label)));
       }),
     );
   }
@@ -690,8 +680,7 @@ export function initIntakeForm(root: HTMLElement): void {
     if (!cat) return;
     const est = estimateRepair(state);
     const pkg = assessPackage(state.shipping);
-    const quote = currentQuote();
-    const week = weeks.state === 'ready' ? weeks.weeks.find((w) => w.id === state.shipping.intakeWeekId) : undefined;
+    const shipping = currentShipping();
     const orNone = (v: string) => (v.trim() ? v.trim() : 'Not given');
 
     const detailRows: [string, string][] = (() => {
@@ -719,15 +708,30 @@ export function initIntakeForm(root: HTMLElement): void {
       ['Clean and dry', 'Confirmed'],
       ['Call before starting if the quote is over', ceiling !== null ? formatUsd(ceiling) : 'No limit set'],
       ['If it can’t be repaired', optionLabel(UNREPAIRABLE_CHOICES, state.terms.ifUnrepairable)],
-      ['Declared value', formatUsd(toNumber(state.terms.declaredValue) ?? 0)],
+      ['Rough replacement cost', formatUsd(toNumber(state.terms.replacementValue) ?? 0)],
     ];
 
+    const week = sendWeeks.find((w) => w.id === state.shipping.sendWeekId);
     const shippingRows: [string, string][] = [
       ['Ships from', `${state.shipping.zip.trim()} (${state.shipping.addressType})`],
       ['Box', `${pkg.dimsIn[0]} × ${pkg.dimsIn[1]} × ${pkg.dimsIn[2]} in`],
       ['Weight', pkg.dimensionalApplies ? `${pkg.actualWeightLb} lb, billed at ${pkg.billableWeightLb} lb` : `${pkg.billableWeightLb} lb`],
-      ['Intake week', week ? `Week of ${week.label}` : 'Not chosen'],
+      ['Hoping to send', week ? week.label : 'Not chosen'],
     ];
+
+    const { contact } = state;
+    const phoneDigits = normalizePhone(contact.phone);
+    const contactRows: [string, string][] = [
+      ['Name', contact.name.trim()],
+      ['Phone', phoneDigits ? formatPhone(phoneDigits) : contact.phone.trim()],
+      ['Email', contact.email.trim()],
+      ['Best way to reach you', optionLabel(CONTACT_METHODS, contact.method)],
+      ['Best time', optionLabel(BEST_TIMES, contact.bestTime)],
+    ];
+    if (contact.foundVia) {
+      const detail = contact.foundViaDetail.trim();
+      contactRows.push(['Found me through', detail ? `${optionLabel(FOUND_VIA, contact.foundVia)}: ${detail}` : optionLabel(FOUND_VIA, contact.foundVia)]);
+    }
 
     const photoFigures = PHOTO_SLOTS.map((slot) => {
       const file = state.photos[slot.id];
@@ -754,38 +758,39 @@ export function initIntakeForm(root: HTMLElement): void {
         extra,
       );
 
-    const categoryLabel = optionLabel(CATEGORIES, cat);
-    const { low: totalLow, high: totalHigh } = quote
-      ? combinedEstimateRange(est.low, est.high, quote.roundTripUsd)
-      : { low: est.low, high: est.high };
-
+    const total = shipping ? combinedEstimateRange(est.low, est.high, shipping) : { low: est.low, high: est.high };
     const estimateRows: [string, string][] = [
       ['Repair', est.caseByCase ? `${formatUsd(MINIMUM_USD)} minimum, quoted case by case` : formatUsdRange(est.low, est.high)],
     ];
-    if (quote) {
-      estimateRows.push(['Shipping to the shop', formatUsd(quote.toShop.amountUsd)]);
-      estimateRows.push(['Shipping back to you', formatUsd(quote.toCustomer.amountUsd)]);
+    if (shipping) estimateRows.push(['Shipping, round trip', formatShippingEstimate(shipping)]);
+
+    const estimateNotes: string[] = [
+      'This is an estimate, not a quote. On the call I confirm the repair and the real shipping cost, and the firm price comes with photos after I see it.',
+    ];
+    if (ceiling !== null && total.high > ceiling) {
+      estimateNotes.push(`The high end is over your ${formatUsd(ceiling)} limit. We’ll talk about that on the call, before you ship anything.`);
     }
 
-    const estimateNotes: string[] = ['This is an estimate, not a quote. The firm price comes with photos after I see it.'];
-    if (quote) estimateNotes.push(quote.note);
-    if (ceiling !== null && totalHigh > ceiling) {
-      estimateNotes.push(`The high end is over your ${formatUsd(ceiling)} limit. If the firm quote is over it, I’ll call before starting.`);
-    }
-
+    const totalText = formatUsdRange(total.low, total.high);
     container.replaceChildren(
-      sectionEl('What you’re sending', 1, [['Category', categoryLabel]]),
+      sectionEl('How to reach you', 7, contactRows),
+      sectionEl('What you’re sending', 1, [['Category', optionLabel(CATEGORIES, cat)]]),
       sectionEl('Item details', 2, detailRows),
       sectionEl('Damage', 3, damageRows),
       sectionEl('Photos', 4, [], h('div', { class: 'review-photos' }, ...photoFigures)),
       sectionEl('Terms', 5, termsRows),
-      sectionEl('Shipping and intake week', 6, shippingRows),
+      sectionEl('Shipping and timing', SHIPPING_STEP, shippingRows),
       h(
         'section',
         { class: 'review-estimate' },
         h('h3', {}, 'Combined estimate'),
         h('dl', { class: 'review-list' }, ...estimateRows.flatMap(([k, v]) => [h('dt', {}, k), h('dd', {}, v)])),
-        h('p', { class: 'review-total' }, h('span', {}, 'Total estimate'), h('strong', {}, formatUsdRange(totalLow, totalHigh))),
+        h(
+          'p',
+          { class: 'review-total' },
+          h('span', {}, 'Total estimate'),
+          h('strong', {}, shipping?.source === 'roughly' ? `Roughly ${totalText}` : totalText),
+        ),
         h('p', { class: 'review-estimate-note' }, estimateNotes.join(' ')),
       ),
     );
@@ -798,7 +803,7 @@ export function initIntakeForm(root: HTMLElement): void {
   form.addEventListener('submit', onSubmit);
   root.addEventListener('click', onClick);
 
+  renderSendWeeks();
   root.classList.add('is-ready');
   render();
-  void loadWeeks();
 }

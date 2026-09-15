@@ -3,11 +3,12 @@ import Layout from '../../layouts/Layout.astro';
 import { site } from '../../config/site';
 import { mailIn } from '../../config/mail-in';
 import {
+  BEST_TIMES,
   BOX_PRESETS,
-  CARRIER_DEFAULT_COVERAGE_USD,
   CATEGORIES,
+  CONTACT_METHODS,
   CUSTOM_BOX_ID,
-  INTAKE_CAPACITY_PER_WEEK,
+  FOUND_VIA,
   MAX_SEAT_QUANTITY,
   MINIMUM_USD,
   PHOTO_SLOTS,
@@ -19,7 +20,6 @@ import {
   STEP_TITLES,
   TENT_AGES,
   TENT_TYPES,
-  UNCLAIMED_RELEASE_DAYS,
   UNREPAIRABLE_CHOICES,
 } from '../../config/mail-in-intake';
 import { formatUsd, formatUsdRange } from '../../lib/mail-in/rules';
@@ -48,7 +48,7 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
         <a class="intake-crumb" href={mailIn.path}>&larr; Mail-in repair</a>
         <div class="section-num">§ Mail-In Repair Request</div>
         <h1>Start my repair request</h1>
-        <p class="intake-lede">Seven steps. Have three photos and a tape measure ready. Nothing is charged today.</p>
+        <p class="intake-lede">Eight steps. Have three photos and a tape measure ready. Nothing ships and nothing is charged until we’ve talked.</p>
         <p class="intake-note">This form doesn’t save your progress. If you refresh or leave the page, you’ll start over.</p>
         <ol class="progress" data-progress aria-hidden="true">
           {STEP_TITLES.map((_, i) => (
@@ -89,7 +89,7 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
           <p class="field-error" id={errId('category')} data-error-for="category" hidden></p>
         </fieldset>
 
-        <p class="notice"><strong>{minimum} minimum on every mail-in job.</strong> Shipping is separate. You’ll see it for your ZIP on step 6.</p>
+        <p class="notice"><strong>{minimum} minimum on every mail-in job.</strong> Shipping is separate. You’ll see an estimate for your ZIP on step 6, and I confirm the real cost when I call.</p>
       </section>
 
       <!-- ===================== STEP 2 — ITEM DETAILS ===================== -->
@@ -369,21 +369,14 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
         </fieldset>
 
         <div class="field">
-          <label for="declared-value">Declared value</label>
-          <p class="field-hint" id="declared-value-hint">What it would cost to replace. A shipping label only covers {formatUsd(CARRIER_DEFAULT_COVERAGE_USD)} unless you declare more, so this sets the insurance on your label for the full amount.</p>
+          <label for="replacement-value">Roughly what would it cost to replace?</label>
+          <p class="field-hint" id="replacement-value-hint">A ballpark is fine. It helps me tell you on the call whether a repair is worth doing.</p>
           <div class="input-prefix">
             <span aria-hidden="true">$</span>
-            <input id="declared-value" type="text" inputmode="decimal" name="terms.declaredValue" maxlength="9" autocomplete="off" required aria-describedby={`declared-value-hint ${errId('terms.declaredValue')}`} />
+            <input id="replacement-value" type="text" inputmode="decimal" name="terms.replacementValue" maxlength="9" autocomplete="off" required aria-describedby={`replacement-value-hint ${errId('terms.replacementValue')}`} />
           </div>
-          <p class="field-error" id={errId('terms.declaredValue')} data-error-for="terms.declaredValue" hidden></p>
+          <p class="field-error" id={errId('terms.replacementValue')} data-error-for="terms.replacementValue" hidden></p>
         </div>
-
-        <!-- TODO(backend): mount the card element here (Stripe SetupIntent — saves the card, charges $0). Display only for now. -->
-        <aside class="card-notice" aria-labelledby="card-notice-title">
-          <div class="card-notice-kicker">Card on file</div>
-          <p class="card-notice-title" id="card-notice-title">$0 charged today</p>
-          <p>The card covers return shipping if you decline the quote, and lets me release items that go unclaimed for {UNCLAIMED_RELEASE_DAYS} days.</p>
-        </aside>
       </section>
 
       <!-- ===================== STEP 6 — SHIPPING ===================== -->
@@ -477,44 +470,100 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
           </div>
         </div>
 
-        <section class="rates" aria-labelledby="rates-heading">
-          <h3 id="rates-heading">Shipping, both ways</h3>
+        <section class="rates" aria-labelledby="estimate-heading">
+          <h3 id="estimate-heading">Shipping estimate, round trip</h3>
           <div aria-live="polite">
-            <p class="rates-status" data-rates-state="idle" data-out="rates-idle">Enter your ZIP, address type, and box size to see shipping both ways.</p>
-            <p class="rates-status" data-rates-state="loading" hidden>Getting rates for your address…</p>
-            <div data-rates-state="ready" hidden>
-              <dl class="rate-list">
-                <div><dt>Your ZIP to the shop</dt><dd data-out="rate-to-shop"></dd></div>
-                <div><dt>The shop back to you</dt><dd data-out="rate-to-customer"></dd></div>
-                <div class="rate-total"><dt>Round trip</dt><dd data-out="rate-round-trip"></dd></div>
-              </dl>
-              <p class="rate-note" data-out="rate-note"></p>
-            </div>
-            <div data-rates-state="error" hidden>
-              <p class="rates-status">Couldn’t get shipping rates. Check your ZIP and try again.</p>
-              <button type="button" class="btn btn-secondary btn-small" data-action="retry-rates">Try again</button>
+            <p class="rates-status" data-estimate-state="idle" data-out="estimate-idle">Enter your ZIP and box size to see a round-trip shipping estimate.</p>
+            <p class="rates-status" data-estimate-state="loading" hidden>Checking ground rates for your ZIP…</p>
+            <div data-estimate-state="ready" hidden>
+              <p class="estimate-ship" data-out="estimate-range"></p>
+              <p class="rate-note" data-out="estimate-source"></p>
             </div>
           </div>
+          <p class="rate-confirm">It’s a range on purpose. I confirm the real shipping cost with you on the phone before anything ships.</p>
         </section>
 
-        <fieldset class="field-group weeks">
-          <legend>Intake week</legend>
-          <p class="field-hint">I take {INTAKE_CAPACITY_PER_WEEK} mail-in jobs a week so each one gets the time it needs. Pick the week you want it to arrive, and ship it so it gets here that week.</p>
-          <div class="tiles tiles-2" data-out="weeks-list"></div>
-          <p class="rates-status" data-weeks-state="loading">Loading open weeks…</p>
-          <div data-weeks-state="error" hidden>
-            <p class="rates-status">Couldn’t load intake weeks.</p>
-            <button type="button" class="btn btn-secondary btn-small" data-action="retry-weeks">Try again</button>
-          </div>
-          <p class="field-error" id={errId('shipping.intakeWeekId')} data-error-for="shipping.intakeWeekId" hidden></p>
+        <fieldset class="field-group">
+          <legend>When are you hoping to send it?</legend>
+          <p class="field-hint">Pick what works for you. I’ll confirm timing when I call.</p>
+          <div class="tiles tiles-2" data-out="send-weeks"></div>
+          <p class="field-error" id={errId('shipping.sendWeekId')} data-error-for="shipping.sendWeekId" hidden></p>
         </fieldset>
       </section>
 
-      <!-- ===================== STEP 7 — REVIEW ===================== -->
+      <!-- ===================== STEP 7 — CONTACT ===================== -->
       <section class="step" data-step="7" aria-labelledby="step-7-heading" hidden>
         <h2 class="step-heading" id="step-7-heading" tabindex="-1" data-step-heading>
           <span class="step-kicker">{stepHeading(7).kicker}</span>
           <span class="step-title">{stepHeading(7).title}</span>
+        </h2>
+        <p class="step-intro">I call every customer before anything ships, so this is the part that matters most. Double-check your number.</p>
+
+        <div class="field">
+          <label for="contact-name">Name</label>
+          <input id="contact-name" type="text" name="contact.name" maxlength="100" autocomplete="name" required aria-describedby={errId('contact.name')} />
+          <p class="field-error" id={errId('contact.name')} data-error-for="contact.name" hidden></p>
+        </div>
+
+        <div class="contact-pair">
+          <div class="field">
+            <label for="contact-phone">Phone</label>
+            <input id="contact-phone" type="tel" name="contact.phone" maxlength="20" autocomplete="tel" inputmode="tel" required aria-describedby={errId('contact.phone')} />
+            <p class="field-error" id={errId('contact.phone')} data-error-for="contact.phone" hidden></p>
+          </div>
+          <div class="field">
+            <label for="contact-email">Email</label>
+            <input id="contact-email" type="email" name="contact.email" maxlength="254" autocomplete="email" required aria-describedby={errId('contact.email')} />
+            <p class="field-error" id={errId('contact.email')} data-error-for="contact.email" hidden></p>
+          </div>
+        </div>
+
+        <fieldset class="field-group">
+          <legend>Best way to reach you</legend>
+          <div class="tiles tiles-2">
+            {CONTACT_METHODS.map((o) => (
+              <label class="tile">
+                <input class="tile-input" type="radio" name="contact.method" value={o.id} required aria-describedby={errId('contact.method')} />
+                <span class="tile-body"><span class="tile-title">{o.label}</span><span class="tile-hint">{o.hint}</span></span>
+              </label>
+            ))}
+          </div>
+          <p class="field-error" id={errId('contact.method')} data-error-for="contact.method" hidden></p>
+        </fieldset>
+
+        <fieldset class="field-group">
+          <legend>Best time to reach you</legend>
+          <p class="field-hint">Your local time.</p>
+          <div class="tiles tiles-2">
+            {BEST_TIMES.map((o) => (
+              <label class="tile tile-compact">
+                <input class="tile-input" type="radio" name="contact.bestTime" value={o.id} required aria-describedby={errId('contact.bestTime')} />
+                <span class="tile-body"><span class="tile-title">{o.label}</span></span>
+              </label>
+            ))}
+          </div>
+          <p class="field-error" id={errId('contact.bestTime')} data-error-for="contact.bestTime" hidden></p>
+        </fieldset>
+
+        <div class="field">
+          <label for="found-via">How did you find me? <span class="optional">(optional)</span></label>
+          <select id="found-via" name="contact.foundVia">
+            <option value="">Choose one</option>
+            {FOUND_VIA.map((o) => <option value={o.id}>{o.label}</option>)}
+          </select>
+        </div>
+        <div class="field">
+          <label for="found-via-detail">Anything to add? <span class="optional">(optional)</span></label>
+          <p class="field-hint" id="found-via-detail-hint">Like who referred you, or which group.</p>
+          <input id="found-via-detail" type="text" name="contact.foundViaDetail" maxlength="160" autocomplete="off" aria-describedby="found-via-detail-hint" />
+        </div>
+      </section>
+
+      <!-- ===================== STEP 8 — REVIEW ===================== -->
+      <section class="step" data-step="8" aria-labelledby="step-8-heading" hidden>
+        <h2 class="step-heading" id="step-8-heading" tabindex="-1" data-step-heading>
+          <span class="step-kicker">{stepHeading(8).kicker}</span>
+          <span class="step-title">{stepHeading(8).title}</span>
         </h2>
 
         <div class="review" data-out="review"></div>
@@ -522,10 +571,9 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
         <section class="next-steps" aria-labelledby="next-steps-heading">
           <h3 id="next-steps-heading">What happens next</h3>
           <ol>
-            <li>I look over your request and photos.</li>
-            <li>You get a prepaid shipping label and a printable job tag.</li>
-            <li>You tape the job tag to the item, pack it clean and dry, and ship it for your intake week.</li>
-            <li>When it arrives, I photograph it and send a firm quote. Nothing gets repaired until you approve it.</li>
+            <li>I look over your request and photos, then reach out within one business day.</li>
+            <li>On the call we confirm the repair, I give you the real shipping cost, and I walk you through packing it.</li>
+            <li>If it makes sense to send, the shipping label comes after that call. Don’t ship anything before we talk.</li>
           </ol>
         </section>
 
@@ -548,21 +596,20 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
     <!-- ===================== CONFIRMATION ===================== -->
     <section class="intake-done wrap-narrow" data-intake-done hidden aria-labelledby="done-heading">
       <div class="section-num">§ Request received</div>
-      <h2 id="done-heading" tabindex="-1" data-done-heading>Request received.</h2>
+      <h2 id="done-heading" tabindex="-1" data-done-heading data-out="done-heading">I’ve got your request.</h2>
+      <p class="done-lead" data-out="done-contact"></p>
       <p class="done-ref">Your reference is <strong data-out="done-reference"></strong>. Keep it handy if you call or text.</p>
 
       <div class="notice notice-key">
-        <p class="notice-title">Tape the job tag to the item itself, not the box.</p>
-        <p>Boxes get cut open and recycled. The tag is what keeps your gear matched to your job once it’s in the shop.</p>
+        <p class="notice-title">Don’t ship anything yet.</p>
+        <p>The shipping label and packing instructions come after we talk.</p>
       </div>
 
-      <h3>What happens next</h3>
+      <h3>What the call covers</h3>
       <ol class="done-steps">
-        <li>I look over your request and photos.</li>
-        <li>You get a prepaid shipping label and a printable job tag. Print both.</li>
-        <li>Tape the job tag to the item. Pack it clean and completely dry.</li>
-        <li>Ship it so it arrives the week of <span data-out="done-week"></span>.</li>
-        <li>When it arrives, I photograph it and send a firm quote. Nothing gets repaired until you approve it.</li>
+        <li><strong>The repair.</strong> I go over your photos with you and confirm what it needs. If it isn’t worth the shipping, you’ll hear that now, before you pay to send it.</li>
+        <li><strong>The real shipping cost.</strong> The number on the form was an estimate. I’ll give you the actual rate for your box.</li>
+        <li><strong>Packing instructions.</strong> How to fold it, box it, and label it so it gets here in one piece.</li>
       </ol>
 
       <p class="done-links">
@@ -644,7 +691,8 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
   .progress {
     list-style: none;
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
     gap: 6px;
     margin: 26px 0 0;
     padding: 0;
@@ -732,6 +780,8 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
     max-width: 62ch;
   }
   .intake input[type='text'],
+  .intake input[type='tel'],
+  .intake input[type='email'],
   .intake select,
   .intake textarea {
     width: 100%;
@@ -746,6 +796,8 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
   }
   .intake textarea { resize: vertical; min-height: 110px; }
   .intake input[type='text']:hover,
+  .intake input[type='tel']:hover,
+  .intake input[type='email']:hover,
   .intake select:hover,
   .intake textarea:hover { border-color: var(--charcoal); }
   .intake [aria-invalid='true'] {
@@ -1070,29 +1122,6 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
   }
   .intake .attest-why { margin: 8px 0 0 34px; font-size: 15px; line-height: 1.55; color: var(--ink); }
   .intake .attest .field-error { margin-left: 34px; }
-  .intake .card-notice {
-    margin: 8px 0 24px;
-    padding: 20px 22px;
-    background: var(--charcoal);
-    color: #d9c9a8;
-    border-radius: 2px;
-  }
-  .intake .card-notice-kicker {
-    font-family: var(--f-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: #b0a99f;
-  }
-  .intake .card-notice-title {
-    margin: 6px 0 6px;
-    font-family: var(--f-serif);
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--canvas-light);
-  }
-  .intake .card-notice p:last-child { margin: 0; font-size: 15px; line-height: 1.55; }
 
   /* ---------- SHIPPING ---------- */
   .intake .dims {
@@ -1151,6 +1180,28 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
   .intake .rate-total dd { font-weight: 700; color: var(--charcoal); }
   .intake .rate-total { border-top: 2px solid var(--charcoal) !important; }
   .intake .rate-note { margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .intake .estimate-ship {
+    margin: 0;
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(26px, 4vw, 34px);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--charcoal);
+    font-variant-numeric: tabular-nums;
+  }
+  .intake .rate-confirm {
+    margin: 12px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule-strong);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .intake .contact-pair { display: grid; grid-template-columns: 1fr; gap: 0 18px; }
+  @media (min-width: 640px) {
+    .intake .contact-pair { grid-template-columns: 1fr 1fr; }
+  }
   .intake .btn-small { padding: 10px 16px; font-size: 14px; }
 
   /* ---------- REVIEW ---------- */
@@ -1310,7 +1361,8 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
     font-size: clamp(36px, 6vw, 60px);
     letter-spacing: -0.035em;
   }
-  .intake-done .done-ref { font-size: 18px; margin: 0 0 24px; }
+  .intake-done .done-lead { font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 22px; line-height: 1.4; margin: 0 0 12px; color: var(--ink); }
+  .intake-done .done-ref { font-size: 16px; margin: 0 0 24px; color: var(--muted); }
   .intake-done .done-ref strong { font-family: var(--f-mono); font-size: 18px; letter-spacing: 0.06em; }
   .intake-done .notice-key { margin: 0 0 30px; }
   .intake-done .done-links {

@@ -1,15 +1,17 @@
 /**
- * Types for the mail-in repair intake form (/mail-in-repair/start).
+ * Types for the mail-in repair request form (/mail-in-repair/start).
  *
- * Form state holds raw input strings; parsing and every business rule live in
- * rules.ts. The payload is what a future submit handler sends to the backend.
+ * This is a request form, not a checkout: every customer gets a call before a
+ * label goes out. Form state holds raw input strings; parsing and every
+ * business rule live in rules.ts.
  */
 
 export type CategoryId = 'tent' | 'shade' | 'seat' | 'other';
 export type PhotoSlotId = 'overall' | 'damage' | 'tag';
 export type AddressType = 'residential' | 'business';
 export type UnrepairableChoice = 'return' | 'dispose';
-export type StepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type ContactMethod = 'phone' | 'email';
+export type StepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export interface Option<T extends string = string> {
   id: T;
@@ -54,7 +56,8 @@ export interface IntakeState {
     cleanDry: boolean;
     spendCeiling: string;
     ifUnrepairable: UnrepairableChoice | '';
-    declaredValue: string;
+    /** Rough replacement cost. Qualification for the call, not insurance. */
+    replacementValue: string;
   };
   shipping: {
     zip: string;
@@ -64,59 +67,52 @@ export interface IntakeState {
     width: string;
     height: string;
     weight: string;
-    intakeWeekId: string;
+    /** Monday of the preferred week (YYYY-MM-DD), or FLEXIBLE_WEEK_ID. A preference, not a booking. */
+    sendWeekId: string;
+  };
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+    method: ContactMethod | '';
+    bestTime: string;
+    foundVia: string;
+    foundViaDetail: string;
   };
 }
 
 // ---------------------------------------------------------------------------
-// Async data the form depends on (rates, intake weeks)
+// Shipping estimate
 // ---------------------------------------------------------------------------
 
-export interface RateRequest {
-  originZip: string;
-  destinationZip: string;
-  residential: boolean;
-  box: { lengthIn: number; widthIn: number; heightIn: number };
-  billableWeightLb: number;
-  declaredValueUsd: number;
+/** Body of POST /api/shipping-estimate. Inches and pounds (the server converts to ounces). */
+export interface ShippingEstimateRequest {
+  zip: string;
+  length: number;
+  width: number;
+  height: number;
+  /** Actual packed weight in pounds — NOT billable weight; carriers apply dim weight themselves. */
+  weight: number;
 }
 
-export interface RateLeg {
-  amountUsd: number;
-  insuranceUsd: number;
-  description: string;
+/**
+ * Round-trip shipping as a range. `live` = from EasyPost ground rates;
+ * `roughly` = from the static zone table (no key, API error, or timeout).
+ */
+export interface ShippingEstimate {
+  lowUsd: number;
+  highUsd: number;
+  source: 'live' | 'roughly';
 }
 
-export interface RateQuote {
-  toShop: RateLeg;
-  toCustomer: RateLeg;
-  roundTripUsd: number;
-  /** Customer-facing note about where the numbers come from. */
-  note: string;
-}
-
-export type RateStatus =
+export type EstimateStatus =
   | { state: 'idle' }
   | { state: 'loading'; key: string }
-  | { state: 'ready'; key: string; quote: RateQuote }
-  | { state: 'error'; key: string };
+  | { state: 'ready'; key: string; estimate: ShippingEstimate };
 
-export interface IntakeWeek {
-  /** Monday of the week, YYYY-MM-DD. */
+export interface SendWeekOption {
   id: string;
   label: string;
-  capacity: number;
-  remaining: number;
-}
-
-export type WeeksStatus =
-  | { state: 'loading' }
-  | { state: 'ready'; weeks: IntakeWeek[] }
-  | { state: 'error' };
-
-export interface RuleContext {
-  rates: RateStatus;
-  weeks: WeeksStatus;
 }
 
 // ---------------------------------------------------------------------------
@@ -175,10 +171,9 @@ export interface IntakePayload {
     cleanAndDryAttested: true;
     spendCeilingUsd: number | null;
     ifUnrepairable: UnrepairableChoice;
-    declaredValueUsd: number;
+    replacementValueUsd: number;
   };
   shipping: {
-    originZip: string;
     destinationZip: string;
     addressType: AddressType;
     boxPresetId: string;
@@ -186,13 +181,24 @@ export interface IntakePayload {
     actualWeightLb: number;
     dimensionalWeightLb: number;
     billableWeightLb: number;
-    rates: RateQuote;
+    estimate: ShippingEstimate;
+    /** Preferred send week — confirmed on the call. */
+    sendWeek: SendWeekOption;
   };
-  intakeWeek: IntakeWeek;
+  contact: {
+    name: string;
+    phone: string;
+    email: string;
+    method: ContactMethod;
+    bestTime: string;
+    foundVia: string | null;
+    foundViaDetail: string | null;
+  };
   estimate: {
     repairLowUsd: number;
     repairHighUsd: number;
-    shippingRoundTripUsd: number;
+    shippingLowUsd: number;
+    shippingHighUsd: number;
     totalLowUsd: number;
     totalHighUsd: number;
   };

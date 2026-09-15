@@ -1,5 +1,6 @@
 import type { BoxPreset, CategoryId, Option, PhotoSlotId, PriceBand, UnrepairableChoice } from '../lib/mail-in/types';
 import { mailIn } from './mail-in';
+import { site } from './site';
 
 /**
  * ===========================================================================
@@ -56,8 +57,9 @@ export const STEP_TITLES = [
   'What’s wrong with it',
   'Photos',
   'Terms',
-  'Shipping and intake week',
-  'Review and submit',
+  'Shipping and timing',
+  'How to reach you',
+  'Review and send',
 ] as const;
 
 export const STEP_COUNT = STEP_TITLES.length;
@@ -147,12 +149,6 @@ export const UNREPAIRABLE_CHOICES: Option<UnrepairableChoice>[] = [
   { id: 'dispose', label: 'Dispose of it', hint: 'No return shipping.' },
 ];
 
-/** Carrier coverage included on a label before declared value is added. */
-export const CARRIER_DEFAULT_COVERAGE_USD = 100;
-
-/** Card on file (display only for now). */
-export const UNCLAIMED_RELEASE_DAYS = 60;
-
 // ---------------------------------------------------------------------------
 // Step 6 — shipping
 // ---------------------------------------------------------------------------
@@ -209,12 +205,56 @@ export const SEAT_SENDING_PRESET: Record<string, string> = {
   'whole-seat': 'seat-whole',
 };
 
+/**
+ * Shipping estimate (step 6). The estimate is a range, never a single number —
+ * the real rate is confirmed on the phone before a label goes out.
+ */
+export const SHIPPING_ESTIMATE = {
+  /** Browser-side endpoint (a Netlify Function; see netlify/functions/shipping-estimate.ts). */
+  endpoint: '/api/shipping-estimate',
+  /** High end of the range = round trip × (1 + padding). */
+  highEndPadding: 0.15,
+  /** Server: how long a live rate is reused for the same (zone, box). */
+  cacheHours: 24,
+  /** Server: give up on EasyPost after this long and use the zone table. */
+  carrierTimeoutMs: 5_000,
+  /** Browser: give up on the endpoint after this long and use the zone table. */
+  clientTimeoutMs: 8_000,
+} as const;
+
 // ---------------------------------------------------------------------------
-// Intake weeks
+// Step 6 — when they hope to send it (a preference, confirmed on the call)
 // ---------------------------------------------------------------------------
 
-export const INTAKE_CAPACITY_PER_WEEK = 5;
-export const INTAKE_WEEKS_SHOWN = 5;
+export const SEND_WEEKS_SHOWN = 5;
+export const FLEXIBLE_WEEK_ID = 'flexible';
+
+// ---------------------------------------------------------------------------
+// Step 7 — contact
+// ---------------------------------------------------------------------------
+
+export const CONTACT_METHODS: Option<'phone' | 'email'>[] = [
+  { id: 'phone', label: 'Phone call', hint: `I call from ${site.phoneDisplay}.` },
+  { id: 'email', label: 'Email', hint: 'I’ll email to set up a quick call.' },
+];
+
+export const BEST_TIMES: Option[] = [
+  { id: 'mornings', label: 'Mornings' },
+  { id: 'afternoons', label: 'Afternoons' },
+  { id: 'evenings', label: 'Evenings' },
+  { id: 'any', label: 'Any time' },
+];
+
+export const FOUND_VIA: Option[] = [
+  { id: 'google', label: 'Google search' },
+  { id: 'facebook', label: 'Facebook' },
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'referral', label: 'A friend or referral' },
+  { id: 'outfitter', label: 'An outfitter or guide' },
+  { id: 'forum', label: 'A forum or online group' },
+  { id: 'other', label: 'Something else' },
+];
 
 // ---------------------------------------------------------------------------
 // Shared lookups

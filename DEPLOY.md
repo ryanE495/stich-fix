@@ -87,6 +87,22 @@ The contact form (`src/pages/contact.astro`) is wired to **Netlify Forms**:
 
 If the site moves off Netlify later, swap the form handler to Formspree, Basin, or a custom `/api/contact` endpoint and remove the `data-netlify-*` attributes.
 
+## Mail-in shipping estimate — Netlify Function
+
+`/api/shipping-estimate` is a Netlify Function (`netlify/functions/shipping-estimate.ts`). It's the only server code on the site; everything else stays statically built, so there's no Astro adapter. Netlify finds and bundles the function automatically on deploy.
+
+**Setup:**
+1. Get an EasyPost API key. Start with the **test** key (begins with `EZTK`).
+2. Netlify dashboard → **Site configuration → Environment variables** → add `EASYPOST_KEY`. Scope it to Functions. Do not name it `VITE_…` — that would put it in the browser bundle.
+3. Redeploy.
+4. When ready to launch, swap in the production key (`EZAK…`) and redeploy.
+
+**What it does:** rates the customer's box from 81425 to their ZIP (ZIP and country only), takes the cheapest ground service, doubles it for round trip, pads the high end 15%, and returns a range. Live results are cached per (zone, box) for 24 hours in function memory.
+
+**Failure is safe:** with no key, a carrier error, or a 5-second timeout, it returns a "roughly" estimate from the static zone table (`src/lib/mail-in/shipping-zones.ts`). The browser does the same if the endpoint itself can't be reached. A shipping problem never blocks a request.
+
+**Local development:** plain `npm run dev` doesn't run Netlify Functions, so the form always shows "roughly" estimates locally. To exercise live rates, run the site with `netlify dev` (Netlify CLI) with `EASYPOST_KEY` in your local `.env`.
+
 ## Notes on what's in the code vs. the SEO spec
 
 - **Email** is omitted from JSON-LD and `humans.txt` by your earlier instruction — add back into `LocalBusiness` in `src/pages/index.astro` when you have one.

@@ -13,7 +13,7 @@
 
 export const mailIn = {
   path: '/mail-in-repair/',
-  /** Intake form. Not built yet — links here 404 until it is. */
+  /** The request form. A request, not a checkout: every customer gets a call before anything ships. */
   startHref: '/mail-in-repair/start/',
   /** Every primary CTA uses exactly this wording. */
   ctaLabel: 'Start my repair request',
@@ -24,7 +24,11 @@ export const mailIn = {
   // and reference it in the "Booked by intake week" section.
 } as const;
 
-/** Rough round-trip shipping ranges. The intake form quotes real carrier rates. */
+/**
+ * Rough round-trip shipping ranges for the overview page. The request form
+ * estimates shipping for the customer's ZIP (/api/shipping-estimate), and the
+ * real rate is confirmed on the call.
+ */
 export const mailInShipping = [
   { name: 'Wall tents, round trip', price: '$150 – $300' },
   { name: 'Sun shades and seats, round trip', price: '$40 – $80' },

@@ -1,31 +1,35 @@
 /**
- * Business rules for the mail-in intake form.
+ * Business rules for the mail-in repair request form.
  *
  * Pure functions only — no DOM, no network. The controller calls these; the
  * markup never encodes a rule. Estimate math, carrier packaging math,
- * validation, and the payload shape all live here.
+ * validation, and the payload shape all live here. Also imported by the
+ * shipping-estimate Netlify Function, so keep it free of browser APIs.
  */
 
 import {
   BOX_PRESETS,
   CARRIER_LIMITS,
   CATEGORIES,
+  CONTACT_METHODS,
   CUSTOM_BOX_ID,
+  FLEXIBLE_WEEK_ID,
   MAX_SEAT_QUANTITY,
   MINIMUM_USD,
-  ORIGIN_ZIP,
   PHOTO_SLOTS,
   PRICE_BANDS,
 } from '../../config/mail-in-intake';
 import type {
   CategoryId,
+  ContactMethod,
   IntakePayload,
   IntakeState,
   PackageAssessment,
   PhotoSlotId,
-  RateRequest,
   RepairEstimate,
-  RuleContext,
+  SendWeekOption,
+  ShippingEstimate,
+  ShippingEstimateRequest,
   StepNumber,
   StepValidation,
 } from './types';
@@ -46,7 +50,7 @@ export function createInitialState(): IntakeState {
     damage: { tent: [], shade: [], seat: [], other: [] },
     damageNotes: { tent: '', shade: '', seat: '', other: '' },
     photos: { overall: null, damage: null, tag: null },
-    terms: { cleanDry: false, spendCeiling: '', ifUnrepairable: '', declaredValue: '' },
+    terms: { cleanDry: false, spendCeiling: '', ifUnrepairable: '', replacementValue: '' },
     shipping: {
       zip: '',
       addressType: '',
@@ -55,8 +59,9 @@ export function createInitialState(): IntakeState {
       width: '',
       height: '',
       weight: '',
-      intakeWeekId: '',
+      sendWeekId: '',
     },
+    contact: { name: '', phone: '', email: '', method: '', bestTime: '', foundVia: '', foundViaDetail: '' },
   };
 }
 
@@ -90,20 +95,30 @@ export function formatUsdRange(low: number, high: number): string {
   return low === high ? formatUsd(low) : `${formatUsd(low)} – ${formatUsd(high)}`;
 }
 
-/**
- * Repair estimate plus round-trip shipping, widened outward to whole dollars
- * for display (low rounds down, high rounds up) so it never understates.
- * The payload keeps the exact figures.
- */
-export function combinedEstimateRange(repairLow: number, repairHigh: number, shippingRoundTrip: number): { low: number; high: number } {
-  return {
-    low: Math.floor(repairLow + shippingRoundTrip),
-    high: Math.ceil(repairHigh + shippingRoundTrip),
-  };
+/** Shipping range as shown to the customer; fallback estimates are labeled "roughly". */
+export function formatShippingEstimate(est: ShippingEstimate): string {
+  const range = formatUsdRange(est.lowUsd, est.highUsd);
+  return est.source === 'roughly' ? `Roughly ${range}` : range;
 }
 
 export function isValidZip(zip: string): boolean {
   return /^\d{5}$/.test(zip.trim());
+}
+
+/** US phone: 10 digits, or 11 starting with 1. Returns the 10 digits or null. */
+export function normalizePhone(raw: string): string | null {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) return digits;
+  if (digits.length === 11 && digits.startsWith('1')) return digits.slice(1);
+  return null;
+}
+
+export function formatPhone(digits: string): string {
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
+export function isValidEmail(raw: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(raw.trim());
 }
 
 /** Accepts anything the browser calls an image, plus HEIC/HEIF (often typed as "" on Windows). */
@@ -151,18 +166,26 @@ export function estimateRepair(state: IntakeState): RepairEstimate {
   };
 }
 
+/** Repair range + shipping range, widened outward to whole dollars so it never understates. */
+export function combinedEstimateRange(repairLow: number, repairHigh: number, shipping: ShippingEstimate): { low: number; high: number } {
+  return {
+    low: Math.floor(repairLow + shipping.lowUsd),
+    high: Math.ceil(repairHigh + shipping.highUsd),
+  };
+}
+
 // ---------------------------------------------------------------------------
-// Packaging math (step 6) — real carrier rules, not stubs
+// Packaging math (step 6) — real carrier rules
 // ---------------------------------------------------------------------------
 
 /**
  * Carriers measure the longest side as length and the other two as girth:
  * length + 2 × (width + height). Dimensions round up to the next whole inch
- * and weights round up to the next pound before billing.
+ * and weights round up to the next pound before billing. Invalid or missing
+ * numbers pass as null/0 and mark the result incomplete.
  */
-export function assessPackage(shipping: IntakeState['shipping']): PackageAssessment {
-  const raw = [toNumber(shipping.length), toNumber(shipping.width), toNumber(shipping.height)];
-  const weight = toNumber(shipping.weight);
+export function measurePackage(length: number | null, width: number | null, height: number | null, weight: number | null): PackageAssessment {
+  const raw = [length, width, height];
   const complete = raw.every((n) => n !== null && n > 0) && weight !== null && weight > 0;
 
   const dims = raw.map((n) => (n !== null && n > 0 ? Math.ceil(n) : 0)).sort((a, b) => b - a) as [number, number, number];
@@ -193,31 +216,46 @@ export function assessPackage(shipping: IntakeState['shipping']): PackageAssessm
   };
 }
 
-/** Everything the rate lookup needs, or null until those inputs are valid. */
-export function buildRateRequest(state: IntakeState): RateRequest | null {
+/** Same as measurePackage, from the form's raw strings. */
+export function assessPackage(shipping: IntakeState['shipping']): PackageAssessment {
+  return measurePackage(toNumber(shipping.length), toNumber(shipping.width), toNumber(shipping.height), toNumber(shipping.weight));
+}
+
+/** The body for POST /api/shipping-estimate, or null until ZIP and box are valid. */
+export function buildEstimateRequest(state: IntakeState): ShippingEstimateRequest | null {
   const { shipping } = state;
-  const declared = toNumber(state.terms.declaredValue);
   const pkg = assessPackage(shipping);
-  if (!isValidZip(shipping.zip) || !shipping.addressType || !pkg.complete || pkg.blocked) return null;
-  if (declared === null || declared <= 0) return null;
+  const weight = toNumber(shipping.weight);
+  if (!isValidZip(shipping.zip) || !pkg.complete || pkg.blocked || weight === null) return null;
   return {
-    originZip: ORIGIN_ZIP,
-    destinationZip: shipping.zip.trim(),
-    residential: shipping.addressType === 'residential',
-    box: { lengthIn: pkg.dimsIn[0], widthIn: pkg.dimsIn[1], heightIn: pkg.dimsIn[2] },
-    billableWeightLb: pkg.billableWeightLb,
-    declaredValueUsd: declared,
+    zip: shipping.zip.trim(),
+    length: pkg.dimsIn[0],
+    width: pkg.dimsIn[1],
+    height: pkg.dimsIn[2],
+    weight,
   };
 }
 
-/** Stable key for a rate request, so stale results can be detected. */
-export function rateRequestKey(req: RateRequest): string {
+/** Stable key for an estimate request, so stale results can be detected. */
+export function estimateRequestKey(req: ShippingEstimateRequest): string {
   return JSON.stringify(req);
 }
 
 export function presetFor(category: CategoryId | '', presetId: string) {
   if (!category) return undefined;
   return BOX_PRESETS[category].find((p) => p.id === presetId);
+}
+
+/** Which preset a set of numbers matches exactly (any category), for cache keys. */
+export function matchPresetId(req: ShippingEstimateRequest): string | null {
+  const dims = [req.length, req.width, req.height].sort((a, b) => b - a).join('x');
+  for (const presets of Object.values(BOX_PRESETS)) {
+    for (const p of presets) {
+      const pDims = [p.lengthIn, p.widthIn, p.heightIn].sort((a, b) => b - a).join('x');
+      if (pDims === dims && Math.ceil(req.weight) === p.weightLb) return p.id;
+    }
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------
@@ -315,17 +353,21 @@ function validateTerms(state: IntakeState, errors: Errors) {
 
   if (!terms.ifUnrepairable) errors['terms.ifUnrepairable'] = 'Choose what happens if it can’t be repaired.';
 
-  const declared = toNumber(terms.declaredValue);
-  if (terms.declaredValue.trim() === '') {
-    errors['terms.declaredValue'] = 'Enter what it would cost to replace. This sets the insurance on the shipping label.';
-  } else if (declared === null || declared <= 0) {
-    errors['terms.declaredValue'] = 'Enter a dollar amount greater than zero, like 2000.';
+  const value = toNumber(terms.replacementValue);
+  if (terms.replacementValue.trim() === '') {
+    errors['terms.replacementValue'] = 'Enter a rough replacement cost. A ballpark is fine.';
+  } else if (value === null || value <= 0) {
+    errors['terms.replacementValue'] = 'Enter a dollar amount greater than zero, like 2000.';
   }
 }
 
 const DIM_LABELS = { length: 'length', width: 'width', height: 'height' } as const;
 
-function validateShipping(state: IntakeState, ctx: RuleContext, errors: Errors) {
+/**
+ * Shipping never waits on rates: a missing or slow estimate can't block
+ * Continue. The only hard stops are bad measurements and the carrier limits.
+ */
+function validateShipping(state: IntakeState, errors: Errors) {
   const { shipping } = state;
 
   if (shipping.zip.trim() === '') errors['shipping.zip'] = 'Enter your ZIP code.';
@@ -353,27 +395,29 @@ function validateShipping(state: IntakeState, ctx: RuleContext, errors: Errors) 
     errors.package = 'This box is over the carrier’s size limit. Make it smaller and measure again.';
   }
 
-  if (toNumber(state.terms.declaredValue) === null) {
-    errors.rates = 'Go back to step 5 and enter a declared value. Shipping insurance depends on it.';
-  } else if (!errors.package && buildRateRequest(state)) {
-    const key = rateRequestKey(buildRateRequest(state)!);
-    const r = ctx.rates;
-    if (r.state === 'error' && r.key === key) errors.rates = 'Couldn’t get shipping rates. Check your ZIP and try again.';
-    else if (r.state !== 'ready' || r.key !== key) errors.rates = 'Getting shipping rates for your address.';
-  }
-
-  if (ctx.weeks.state === 'loading') {
-    errors['shipping.intakeWeekId'] = 'Loading open intake weeks.';
-  } else if (ctx.weeks.state === 'error') {
-    errors['shipping.intakeWeekId'] = 'Couldn’t load intake weeks. Try again.';
-  } else {
-    const week = ctx.weeks.weeks.find((wk) => wk.id === shipping.intakeWeekId);
-    if (!week) errors['shipping.intakeWeekId'] = 'Pick an intake week.';
-    else if (week.remaining <= 0) errors['shipping.intakeWeekId'] = 'That week is full. Pick another one.';
+  const week = shipping.sendWeekId;
+  if (!week || (week !== FLEXIBLE_WEEK_ID && !/^\d{4}-\d{2}-\d{2}$/.test(week))) {
+    errors['shipping.sendWeekId'] = 'Pick when you’re hoping to send it, or choose “I’m flexible.”';
   }
 }
 
-export function validateStep(step: StepNumber, state: IntakeState, ctx: RuleContext): StepValidation {
+function validateContact(state: IntakeState, errors: Errors) {
+  const { contact } = state;
+  requireText(errors, 'contact.name', contact.name, 'Enter your name.');
+
+  if (contact.phone.trim() === '') errors['contact.phone'] = 'Enter a phone number. I call every customer before anything ships.';
+  else if (!normalizePhone(contact.phone)) errors['contact.phone'] = 'Enter a 10-digit phone number with the area code, like (970) 555-0123.';
+
+  if (contact.email.trim() === '') errors['contact.email'] = 'Enter your email address.';
+  else if (!isValidEmail(contact.email)) errors['contact.email'] = 'That email looks incomplete. Check for a missing @ or dot, like name@example.com.';
+
+  if (!CONTACT_METHODS.some((m) => m.id === contact.method)) errors['contact.method'] = 'Choose how you’d like me to reach you.';
+  if (!contact.bestTime) errors['contact.bestTime'] = 'Choose the best time to reach you.';
+}
+
+const LAST_INPUT_STEP = 7;
+
+export function validateStep(step: StepNumber, state: IntakeState): StepValidation {
   const errors: Errors = {};
   switch (step) {
     case 1: validateCategory(state, errors); break;
@@ -381,10 +425,11 @@ export function validateStep(step: StepNumber, state: IntakeState, ctx: RuleCont
     case 3: validateDamage(state, errors); break;
     case 4: validatePhotos(state, errors); break;
     case 5: validateTerms(state, errors); break;
-    case 6: validateShipping(state, ctx, errors); break;
-    case 7:
-      for (const s of [1, 2, 3, 4, 5, 6] as const) {
-        if (!validateStep(s, state, ctx).valid) errors[`step${s}`] = `Step ${s} still needs attention.`;
+    case 6: validateShipping(state, errors); break;
+    case 7: validateContact(state, errors); break;
+    case 8:
+      for (let s = 1; s <= LAST_INPUT_STEP; s++) {
+        if (!validateStep(s as StepNumber, state).valid) errors[`step${s}`] = `Step ${s} still needs attention.`;
       }
       break;
   }
@@ -392,10 +437,10 @@ export function validateStep(step: StepNumber, state: IntakeState, ctx: RuleCont
   return { valid: messages.length === 0, errors, firstError: messages[0] ?? null };
 }
 
-/** First step (1–6) that doesn't validate, or null if all do. */
-export function firstInvalidStep(state: IntakeState, ctx: RuleContext, after = 0): StepNumber | null {
-  for (const s of [1, 2, 3, 4, 5, 6] as const) {
-    if (s > after && !validateStep(s, state, ctx).valid) return s;
+/** First input step (1–7) after `after` that doesn't validate, or null if all do. */
+export function firstInvalidStep(state: IntakeState, after = 0): StepNumber | null {
+  for (let s = after + 1; s <= LAST_INPUT_STEP; s++) {
+    if (!validateStep(s as StepNumber, state).valid) return s as StepNumber;
   }
   return null;
 }
@@ -404,22 +449,26 @@ export function firstInvalidStep(state: IntakeState, ctx: RuleContext, after = 0
 // Payload
 // ---------------------------------------------------------------------------
 
-/** Build the submission payload. Throws if the form isn't complete. */
-export function buildPayload(state: IntakeState, ctx: RuleContext): IntakePayload {
-  const invalid = firstInvalidStep(state, ctx);
-  if (invalid !== null) throw new Error(`Intake form incomplete at step ${invalid}`);
-  if (ctx.rates.state !== 'ready' || ctx.weeks.state !== 'ready') throw new Error('Rates or intake weeks not loaded');
+/**
+ * Build the submission payload. Throws if the form isn't complete.
+ * `shipping` is whatever estimate is current (live or roughly) — never null,
+ * because a missing rate must not block submission.
+ */
+export function buildPayload(state: IntakeState, shipping: ShippingEstimate, sendWeeks: SendWeekOption[]): IntakePayload {
+  const invalid = firstInvalidStep(state);
+  if (invalid !== null) throw new Error(`Request form incomplete at step ${invalid}`);
 
   const category = state.category as CategoryId;
   const estimate = estimateRepair(state);
   const pkg = assessPackage(state.shipping);
-  const quote = ctx.rates.quote;
-  const week = ctx.weeks.weeks.find((w) => w.id === state.shipping.intakeWeekId)!;
   const ceiling = toNumber(state.terms.spendCeiling);
+  const total = combinedEstimateRange(estimate.low, estimate.high, shipping);
+  const week = sendWeeks.find((w) => w.id === state.shipping.sendWeekId) ?? { id: state.shipping.sendWeekId, label: state.shipping.sendWeekId };
 
   const item: Record<string, string | number> = { ...state.details[category] };
   if (category === 'seat') item.quantity = seatQuantity(state);
 
+  const { contact } = state;
   return {
     submittedAt: new Date().toISOString(),
     category,
@@ -430,10 +479,9 @@ export function buildPayload(state: IntakeState, ctx: RuleContext): IntakePayloa
       cleanAndDryAttested: true,
       spendCeilingUsd: ceiling,
       ifUnrepairable: state.terms.ifUnrepairable as 'return' | 'dispose',
-      declaredValueUsd: toNumber(state.terms.declaredValue)!,
+      replacementValueUsd: toNumber(state.terms.replacementValue)!,
     },
     shipping: {
-      originZip: ORIGIN_ZIP,
       destinationZip: state.shipping.zip.trim(),
       addressType: state.shipping.addressType as 'residential' | 'business',
       boxPresetId: state.shipping.presetId,
@@ -441,15 +489,25 @@ export function buildPayload(state: IntakeState, ctx: RuleContext): IntakePayloa
       actualWeightLb: pkg.actualWeightLb,
       dimensionalWeightLb: pkg.dimensionalWeightLb,
       billableWeightLb: pkg.billableWeightLb,
-      rates: quote,
+      estimate: shipping,
+      sendWeek: week,
     },
-    intakeWeek: week,
+    contact: {
+      name: contact.name.trim(),
+      phone: formatPhone(normalizePhone(contact.phone)!),
+      email: contact.email.trim(),
+      method: contact.method as ContactMethod,
+      bestTime: contact.bestTime,
+      foundVia: contact.foundVia || null,
+      foundViaDetail: contact.foundViaDetail.trim() || null,
+    },
     estimate: {
       repairLowUsd: estimate.low,
       repairHighUsd: estimate.high,
-      shippingRoundTripUsd: quote.roundTripUsd,
-      totalLowUsd: estimate.low + quote.roundTripUsd,
-      totalHighUsd: estimate.high + quote.roundTripUsd,
+      shippingLowUsd: shipping.lowUsd,
+      shippingHighUsd: shipping.highUsd,
+      totalLowUsd: total.low,
+      totalHighUsd: total.high,
     },
   };
 }

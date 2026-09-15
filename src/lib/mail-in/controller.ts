@@ -8,7 +8,7 @@
  *
  * Network-shaped work:
  *   - shipping-estimate.ts  getShippingEstimate() → /api/shipping-estimate (EasyPost), never throws
- *   - submit.ts             submitIntake()        → the real submit handler (still a stub)
+ *   - submit.ts             submitRepairRequest() → Supabase RPC + photo uploads (anon key only)
  */
 
 import {
@@ -20,11 +20,13 @@ import {
   FOUND_VIA,
   MINIMUM_USD,
   PHOTO_SLOTS,
+  REQUEST_SUBMIT,
   SEAT_SENDING,
   SEAT_SENDING_PRESET,
   SEAT_TYPES,
   SHADE_TYPES,
   STEP_COUNT,
+  STEP_TITLES,
   TENT_AGES,
   TENT_TYPES,
   UNREPAIRABLE_CHOICES,
@@ -55,7 +57,8 @@ import { compressPhotos } from './compress-photo';
 import { getSendWeekOptions } from './send-weeks';
 import { getShippingEstimate } from './shipping-estimate';
 import { roughShippingEstimate } from './shipping-zones';
-import { submitIntake } from './submit';
+import { buildRepairRequestPayload, spokenRequestNumber } from './repair-request-payload';
+import { SubmitError, submitRepairRequest } from './submit';
 import type {
   EstimateStatus,
   IntakePayload,
@@ -63,6 +66,7 @@ import type {
   ShippingEstimate,
   StepNumber,
   StepValidation,
+  SubmitFailure,
   SubmitResult,
 } from './types';
 
@@ -80,9 +84,16 @@ export function initIntakeForm(root: HTMLElement): void {
   const done: HTMLElement = doneEl;
 
   const phone = root.dataset.phone ?? '';
+  const supabaseTarget =
+    root.dataset.supabaseUrl && root.dataset.supabaseAnonKey
+      ? { url: root.dataset.supabaseUrl, anonKey: root.dataset.supabaseAnonKey }
+      : null;
 
   // ---- state ---------------------------------------------------------------
   const state = createInitialState();
+  const startedAt = performance.now();
+  /** One per page load. A retry reuses it, so a lost response or a double send can't make two requests. */
+  const clientSubmissionId = newUuid();
   const sendWeeks = getSendWeekOptions();
   let step: StepNumber = 1;
   let estimate: EstimateStatus = { state: 'idle' };
@@ -93,6 +104,8 @@ export function initIntakeForm(root: HTMLElement): void {
   let returnToReview = false;
   let submitting = false;
   let submitError = '';
+  /** Step the customer can go back to after the database rejects a field. */
+  let submitErrorStep: StepNumber | null = null;
   let estimateTimer: number | undefined;
   let estimateSeq = 0;
 
@@ -214,9 +227,20 @@ export function initIntakeForm(root: HTMLElement): void {
   function onClick(e: MouseEvent) {
     const target = (e.target as Element).closest<HTMLElement>('[data-action]');
     if (!target || !root.contains(target)) return;
+    if (submitting) return;
     switch (target.dataset.action) {
       case 'back':
         if (step > 1) goTo((step - 1) as StepNumber);
+        break;
+      case 'go-step':
+        if (submitErrorStep !== null) {
+          const n = submitErrorStep;
+          submitError = '';
+          submitErrorStep = null;
+          attempted.add(n);
+          returnToReview = true;
+          goTo(n);
+        }
         break;
       case 'edit': {
         const n = Number(target.dataset.editStep);
@@ -409,33 +433,75 @@ export function initIntakeForm(root: HTMLElement): void {
     }
     const shipping = currentShipping();
     if (!shipping) {
-      submitError = 'Something in the form is still incomplete. Check each step and try again.';
-      render();
+      failSubmit('Something in the form is still incomplete. Check each step and try again.');
       return;
     }
+    // Spam checks. Deliberately vague about why.
+    const honeypot = q<HTMLInputElement>('input[name="website"]', form)?.value ?? '';
+    if (honeypot) {
+      failSubmit(`Your request didn’t go through. Call or text ${phone} and I’ll take it over the phone.`);
+      return;
+    }
+    const elapsedMs = performance.now() - startedAt;
+    if (elapsedMs < REQUEST_SUBMIT.minFillMs) {
+      failSubmit('Take a moment to look over your answers, then press Send my request again.');
+      return;
+    }
+
+    // Set before the first await so a double click or a second Enter can't send twice.
     submitting = true;
     submitError = '';
+    submitErrorStep = null;
     render();
 
     let payload: IntakePayload;
+    let photos: Record<PhotoSlotId, File>;
     try {
       // Resize and re-encode photos before they go anywhere. Silent: the button
       // already reads "Sending…", and compression never throws.
-      const photos = await compressPhotos(state.photos as Record<PhotoSlotId, File>);
+      photos = await compressPhotos(state.photos as Record<PhotoSlotId, File>);
       payload = buildPayload({ ...state, photos }, shipping, sendWeeks);
     } catch {
-      submitError = 'Something in the form is still incomplete. Check each step and try again.';
-      submitting = false;
-      render();
+      failSubmit('Something in the form is still incomplete. Check each step and try again.');
       return;
     }
+
     try {
-      const result = await submitIntake(payload);
+      const body = buildRepairRequestPayload(payload, { ...state, photos }, {
+        clientSubmissionId,
+        formElapsedMs: elapsedMs,
+        honeypot,
+      });
+      const result = await submitRepairRequest(supabaseTarget, body, photos);
       showDone(result, payload);
-    } catch {
-      submitError = `Your request didn’t go through. Nothing was sent or charged. Try again, or call or text ${phone}.`;
-      submitting = false;
-      render();
+    } catch (err) {
+      const failure: SubmitFailure = err instanceof SubmitError ? err.failure : { kind: 'unavailable' };
+      // Every answer stays in state; nothing is reset.
+      failSubmit(submitFailureMessage(failure), failure.kind === 'rejected' ? failure.step : null);
+    }
+  }
+
+  function failSubmit(message: string, backToStep: StepNumber | null = null) {
+    submitting = false;
+    submitError = message;
+    submitErrorStep = backToStep;
+    render();
+    const focusTarget = backToStep !== null ? out('submit-error-step') : q<HTMLElement>('[data-primary]', form);
+    focusTarget?.focus();
+  }
+
+  function submitFailureMessage(failure: SubmitFailure): string {
+    switch (failure.kind) {
+      case 'network':
+        return `I couldn’t reach the server, so your request hasn’t gone through yet. Your answers are all still here. Check your connection and press Send my request again, or call or text ${phone}.`;
+      case 'rejected':
+        return failure.step !== null
+          ? `${failure.message} That’s on step ${failure.step} (${STEP_TITLES[failure.step - 1]}). Your other answers are still here.`
+          : `${failure.message} If it keeps happening, call or text ${phone}.`;
+      case 'spam':
+        return `Your request didn’t go through. Call or text ${phone} and I’ll take it over the phone.`;
+      case 'unavailable':
+        return `Your request didn’t go through on my end. Nothing was sent or charged, and your answers are still here. Try again in a minute, or call or text ${phone}.`;
     }
   }
 
@@ -443,7 +509,23 @@ export function initIntakeForm(root: HTMLElement): void {
     for (const url of Object.values(photoUrls)) if (url) URL.revokeObjectURL(url);
     const firstName = payload.contact.name.split(/\s+/)[0];
     setText('done-heading', `Thanks, ${firstName}. I’ve got your request.`);
-    setText('done-reference', result.reference);
+    setText('done-reference', result.requestNumber);
+    setText('done-reference-spoken', spokenRequestNumber(result.requestNumber));
+    const photoNote = out('done-photos');
+    if (photoNote) {
+      const n = result.photoFailures.length;
+      photoNote.hidden = n === 0;
+      setText(
+        'done-photos-text',
+        n === 0
+          ? ''
+          : n === PHOTO_SLOTS.length
+            ? 'Your photos didn’t upload, but your request is saved. I may ask you to send them again when I reach out.'
+            : `${n === 1 ? 'One of your photos' : 'Some of your photos'} didn’t upload (${result.photoFailures
+                .map((s) => PHOTO_SLOTS.find((p) => p.id === s)?.label.toLowerCase() ?? s)
+                .join(', ')}), but your request is saved. I may ask you to send ${n === 1 ? 'it' : 'them'} again when I reach out.`,
+      );
+    }
     setText(
       'done-contact',
       payload.contact.method === 'phone'
@@ -496,10 +578,14 @@ export function initIntakeForm(root: HTMLElement): void {
   function renderActions(v: StepValidation) {
     const back = q<HTMLButtonElement>('[data-action="back"]', form);
     const primary = q<HTMLButtonElement>('[data-primary]', form);
-    if (back) back.hidden = step === 1;
+    if (back) {
+      back.hidden = step === 1;
+      back.disabled = submitting;
+    }
     if (primary) {
       const blocked = !v.valid || submitting;
       primary.setAttribute('aria-disabled', String(blocked));
+      primary.disabled = submitting;
       primary.toggleAttribute('aria-busy', submitting);
       primary.textContent = step < REVIEW_STEP ? 'Continue' : submitting ? 'Sending…' : 'Send my request';
     }
@@ -515,8 +601,14 @@ export function initIntakeForm(root: HTMLElement): void {
     const err = out('submit-error');
     if (err) {
       err.hidden = !submitError;
-      err.textContent = submitError;
+      setText('submit-error-text', submitError);
+      const goStep = out('submit-error-step');
+      if (goStep) {
+        goStep.hidden = submitErrorStep === null;
+        goStep.textContent = submitErrorStep === null ? '' : `Go to step ${submitErrorStep}`;
+      }
     }
+    for (const edit of qa<HTMLButtonElement>('[data-action="edit"]', form)) edit.disabled = submitting;
   }
 
   function footerEstimateText(): string {
@@ -804,6 +896,16 @@ export function initIntakeForm(root: HTMLElement): void {
         h('p', { class: 'review-estimate-note' }, estimateNotes.join(' ')),
       ),
     );
+  }
+
+  function newUuid(): string {
+    if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+    // Non-secure contexts (plain-http previews) lack randomUUID.
+    const b = crypto.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const hex = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
   }
 
   // ---- boot ----------------------------------------------------------------

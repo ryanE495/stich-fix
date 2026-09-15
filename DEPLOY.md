@@ -105,6 +105,26 @@ If the site moves off Netlify later, swap the form handler to Formspree, Basin, 
 
 **Local development:** plain `npm run dev` doesn't run Netlify Functions, so the form always shows "roughly" estimates locally. To exercise live rates, run the site with `netlify dev` (Netlify CLI) with `EASYPOST_KEY` in your local `.env`.
 
+## Mail-in repair requests — Supabase
+
+Requests from `/mail-in-repair/start` are saved to the shared Supabase project, in `repair_requests` and `repair_photos` plus a private `repair-photos` storage bucket. The schema, security rules, and bucket all come from one migration: `supabase/migrations/20260914120000_repair_requests.sql`.
+
+**Setup (once, before launch):**
+1. **Turn off public sign-ups.** Supabase dashboard → **Authentication → Sign In / Providers** → disable "Allow new users to sign up". Any signed-in user gets full read access to these tables for the admin UI. With sign-ups open, anyone could make an account and read customer names, phones, and emails.
+2. **Apply the migration.** Either paste the file into **SQL Editor** and run it, or `supabase link` then `supabase db push`. It's safe to re-run.
+3. **Check it:** **Table Editor** should show RLS enabled on both tables, and **Storage** should show `repair-photos` as a private bucket.
+4. No new environment variables. The form uses the same `SUPABASE_URL` / `SUPABASE_ANON_KEY` as the portfolio, baked into the page at build time. Redeploy after applying the migration.
+
+**Keys:** only the anon key is ever used, and it's public by design. The build fails if `SUPABASE_ANON_KEY` holds a service-role or secret key, so one can't reach the browser by mistake. The service-role key is not used anywhere on this site. Never add it to Netlify env vars, and never with a `VITE_` or `PUBLIC_` prefix.
+
+**What anon can do:**
+- **Nothing on the tables directly.** No select, insert, update, or delete, and no RLS policies for anon at all.
+- **Call `submit_repair_request(payload)`.** It validates every field, ignores any `status` / `internal_notes` / `request_number` / `id` in the payload, and returns only the new id and `WSS-####` number. It rejects a filled honeypot or a form finished in under 10 seconds. A retry with the same `client_submission_id` returns the same request instead of creating a second one.
+- **Upload into `repair-photos/{request_id}/{full|damage|tag}.jpg`,** for a request created in the last 15 minutes. Anon has no read access, so photos are viewed through signed URLs from the admin UI.
+- **Call `attach_repair_photo(...)`.** It works only in the same 15-minute window, only for that exact path, and only once the file is really in storage.
+
+**On submit** the browser saves the request first, then uploads the three photos, then attaches each one that uploaded. A photo failure never fails the request. The confirmation shows the request number and says I may ask for photos again. Estimates are stored exactly as the customer saw them, and nothing recomputes them later.
+
 ## Notes on what's in the code vs. the SEO spec
 
 - **Email** is omitted from JSON-LD and `humans.txt` by your earlier instruction — add back into `LocalBusiness` in `src/pages/index.astro` when you have one.

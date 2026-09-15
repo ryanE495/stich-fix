@@ -206,6 +206,60 @@ export interface IntakePayload {
   };
 }
 
+/** What a successful submit returns. The lead is saved even if photos fail. */
 export interface SubmitResult {
-  reference: string;
+  requestId: string;
+  /** e.g. WSS-0042 — read over the phone. */
+  requestNumber: string;
+  /** Photo slots that didn't upload or attach. Empty when all three made it. */
+  photoFailures: PhotoSlotId[];
+}
+
+/** Why a submit didn't save. The form keeps every answer in all cases. */
+export type SubmitFailure =
+  /** Couldn't reach Supabase (offline, timeout). Safe to retry as-is. */
+  | { kind: 'network' }
+  /** The database rejected a field. `step` is where the customer can fix it. */
+  | { kind: 'rejected'; field: string; step: StepNumber | null; message: string }
+  /** Tripped the spam checks. */
+  | { kind: 'spam' }
+  /** Server-side problem or missing config; not the customer's fault. */
+  | { kind: 'unavailable' };
+
+/** Body of the submit_repair_request RPC. Column names match public.repair_requests. */
+export interface RepairRequestRpcPayload {
+  category: CategoryId;
+  item_details: Record<string, string | number>;
+  damage_types: string[];
+  damage_notes: string | null;
+  repair_estimate_low: number;
+  repair_estimate_high: number;
+  clean_dry_confirmed: true;
+  spend_ceiling: number | null;
+  if_unrepairable: UnrepairableChoice;
+  replacement_value: number;
+  ship_zip: string;
+  ship_residential: boolean;
+  box_length: number;
+  box_width: number;
+  box_height: number;
+  box_weight: number;
+  billable_weight: number;
+  shipping_estimate_low: number;
+  shipping_estimate_high: number;
+  estimate_source: 'table' | 'easypost';
+  timing_preference: string;
+  contact_name: string;
+  contact_phone: string;
+  contact_email: string;
+  contact_method: ContactMethod;
+  contact_best_time: string;
+  referral_source: string | null;
+  referral_detail: string | null;
+  /** The form state, with photo Files replaced by name/type/size (Files can't be serialized). */
+  raw_payload: Record<string, unknown>;
+  // Anti-abuse & idempotency (not stored as columns, except client_submission_id)
+  client_submission_id: string;
+  form_elapsed_ms: number;
+  website: string;
 }

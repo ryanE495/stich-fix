@@ -233,6 +233,20 @@ export const SHIPPING_ESTIMATE = {
   clientTimeoutMs: 8_000,
 } as const;
 
+/**
+ * Sending the request (step 8) to Supabase. See supabase/migrations/…_repair_requests.sql.
+ * The database enforces the same minimum fill time; keep them equal.
+ */
+export const REQUEST_SUBMIT = {
+  storageBucket: 'repair-photos',
+  /** Submissions finished faster than this are treated as bots. */
+  minFillMs: 10_000,
+  /** Give up on the save RPC after this long (the form keeps everything; retrying is safe). */
+  rpcTimeoutMs: 20_000,
+  /** Give up on a single photo upload after this long. */
+  photoTimeoutMs: 60_000,
+} as const;
+
 // ---------------------------------------------------------------------------
 // Step 6 — when they hope to send it (a preference, confirmed on the call)
 // ---------------------------------------------------------------------------

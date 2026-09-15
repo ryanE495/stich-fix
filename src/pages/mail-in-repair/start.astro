@@ -23,6 +23,7 @@ import {
   UNREPAIRABLE_CHOICES,
 } from '../../config/mail-in-intake';
 import { formatUsd, formatUsdRange } from '../../lib/mail-in/rules';
+import { getPublicSupabaseConfig } from '../../lib/supabase-public-config';
 
 // Markup only. Options, prices, presets, and limits all come from
 // config/mail-in-intake.ts; behavior and rules live in lib/mail-in/.
@@ -32,6 +33,8 @@ const errId = (name: string) => `err-${name.replace(/[^a-zA-Z0-9]+/g, '-')}`;
 const minimum = formatUsd(MINIMUM_USD);
 const stepHeading = (n: number) => ({ kicker: `Step ${n} of ${STEP_COUNT}`, title: STEP_TITLES[n - 1] });
 const priceCategories = (['tent', 'shade', 'seat'] as const);
+// Public anon key only (checked at build time). Missing config → submit shows the call-or-text message.
+const supabase = getPublicSupabaseConfig();
 ---
 
 <Layout
@@ -41,7 +44,13 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
   canonicalPath="/mail-in-repair/start/"
   noindex
 >
-  <div class="intake" data-intake data-phone={site.phoneDisplay}>
+  <div
+    class="intake"
+    data-intake
+    data-phone={site.phoneDisplay}
+    data-supabase-url={supabase?.url}
+    data-supabase-anon-key={supabase?.anonKey}
+  >
     <!-- HEAD -->
     <section class="intake-head">
       <div class="wrap-narrow">
@@ -65,6 +74,11 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
     </noscript>
 
     <form class="intake-form wrap-narrow" data-intake-form novalidate>
+      <!-- Spam trap. People never see or reach this; bots that fill every field do. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="intake-website">Website</label>
+        <input id="intake-website" type="text" name="website" tabindex="-1" autocomplete="off" />
+      </div>
 
       <!-- ===================== STEP 1 — CATEGORY ===================== -->
       <section class="step" data-step="1" aria-labelledby="step-1-heading">
@@ -578,7 +592,10 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
           </ol>
         </section>
 
-        <p class="submit-error" data-out="submit-error" role="alert" hidden></p>
+        <div class="submit-error" data-out="submit-error" hidden>
+          <p role="alert" data-out="submit-error-text"></p>
+          <button type="button" class="btn btn-secondary" data-action="go-step" data-out="submit-error-step" hidden></button>
+        </div>
       </section>
 
       <!-- ===================== ACTIONS ===================== -->
@@ -599,7 +616,16 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
       <div class="section-num">§ Request received</div>
       <h2 id="done-heading" tabindex="-1" data-done-heading data-out="done-heading">I’ve got your request.</h2>
       <p class="done-lead" data-out="done-contact"></p>
-      <p class="done-ref">Your reference is <strong data-out="done-reference"></strong>. Keep it handy if you call or text.</p>
+
+      <div class="done-number">
+        <p class="done-number-label">Your request number</p>
+        <p class="done-number-value" data-out="done-reference"></p>
+        <p class="done-number-note">Say “<span data-out="done-reference-spoken"></span>” if you call or text, and I’ll pull it right up.</p>
+      </div>
+
+      <div class="notice notice-block done-photos" data-out="done-photos" hidden>
+        <p data-out="done-photos-text"></p>
+      </div>
 
       <div class="notice notice-key">
         <p class="notice-title">Don’t ship anything yet.</p>
@@ -1310,6 +1336,12 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
     color: var(--rust-dark);
     font-weight: 600;
   }
+  .intake .submit-error p { margin: 0; }
+  .intake .submit-error .btn { margin-top: 12px; }
+  .intake .hp-field {
+    position: absolute; left: -10000px; top: auto;
+    width: 1px; height: 1px; overflow: hidden;
+  }
 
   /* ---------- ACTIONS BAR ---------- */
   .intake-actions {
@@ -1369,8 +1401,33 @@ const priceCategories = (['tent', 'shade', 'seat'] as const);
     letter-spacing: -0.035em;
   }
   .intake-done .done-lead { font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 22px; line-height: 1.4; margin: 0 0 12px; color: var(--ink); }
-  .intake-done .done-ref { font-size: 16px; margin: 0 0 24px; color: var(--muted); }
-  .intake-done .done-ref strong { font-family: var(--f-mono); font-size: 18px; letter-spacing: 0.06em; }
+  .intake-done .done-number {
+    margin: 20px 0 24px;
+    padding: 18px 20px;
+    border: 2px solid var(--charcoal);
+    background: var(--canvas-light);
+  }
+  .intake-done .done-number-label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .intake-done .done-number-value {
+    margin: 4px 0 6px;
+    font-family: var(--f-mono);
+    font-size: clamp(34px, 8vw, 48px);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    line-height: 1.1;
+    color: var(--charcoal);
+    user-select: all;
+  }
+  .intake-done .done-number-note { margin: 0; font-size: 15px; color: var(--ink); }
+  .intake-done .done-photos { margin: 0 0 24px; }
+  .intake-done .done-photos p { margin: 0; }
   .intake-done .notice-key { margin: 0 0 30px; }
   .intake-done .done-links {
     margin: 30px 0 0;

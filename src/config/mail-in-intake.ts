@@ -24,9 +24,6 @@ export const PRICE_BANDS: Record<CategoryId, PriceBand[]> = {
     { id: 'stove-jack', label: 'Stove jack', low: 100, high: 175, hint: 'The heat-proof opening the stovepipe runs through.' },
     { id: 'sod-cloth', label: 'Sod cloth', low: 200, high: 400, hint: 'The strip along the bottom edge that lies on the ground.' },
     { id: 'ridge-reinforcement', label: 'Ridge reinforcement', low: 125, high: 250, hint: 'The peak seam that carries the ridge pole.' },
-    { id: 're-waterproofing', label: 'Re-waterproofing', low: 150, high: 350 },
-    { id: 'mold-treatment', label: 'Mold treatment', low: 75, high: 200 },
-    { id: 'full-re-panel', label: 'Full re-panel', low: 500, high: 1200, hint: 'Replacing an entire wall or roof panel.' },
   ],
   shade: [
     { id: 'tear-patch', label: 'Tear patch', low: 75, high: 150 },

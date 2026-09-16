@@ -1,7 +1,39 @@
 ---
+import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { mailIn, mailInShipping } from '../config/mail-in';
+import { fetchPublishedPortfolio, withSlugs } from '../lib/portfolio';
+
+// Same shop photo the home page uses, so the two pages tell one story.
+const personalImage = 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-ryan-sewing.webp';
+
+// Real before/after work, pulled from the portfolio at build time rather than
+// hardcoded, so re-uploading a photo in the CMS updates this page too. Any
+// entry that goes missing or loses an image simply drops out — the section
+// renders whatever survives, and the whole block hides if nothing does.
+const portfolioItems = withSlugs(await fetchPublishedPortfolio());
+const beforeAfterPairs = [
+  {
+    slug: 'wall-tent-restoration-window-flap-stove-pipe-ridge-pole-sleeves',
+    plate: 'Plate 01',
+    label: 'Wall tent, before & after',
+  },
+  {
+    slug: 'snowmobile-2-seater-seat-full-rebuild-with-multi-panel-pattern-work',
+    plate: 'Plate 02',
+    label: 'Snowmobile seat, before & after',
+  },
+]
+  .map((entry) => ({ ...entry, item: portfolioItems.find((i) => i.slug === entry.slug) }))
+  .filter((entry) => entry.item?.before_image_url && entry.item?.after_image_url);
+
+if (beforeAfterPairs.length < 2) {
+  console.warn(
+    `[mail-in] before/after showcase: ${beforeAfterPairs.length} of 2 portfolio items resolved. ` +
+      'Check the titles still slugify to the expected URLs.'
+  );
+}
 
 // Mail-in repair targets NATIONAL ship-in intent ("mail in tent repair",
 // "ship canvas tent for repair", "wall tent repair service", "tipi repair",
@@ -319,37 +351,78 @@ const faqJsonLd = {
         <h2>Who does <em>the work.</em></h2>
       </div>
 
-      <div class="ba-pairs">
-        <!-- TODO(Ryan): replace these placeholders with real before/after repair photos.
-             Swap each <div class="ph ..."> for an <Image> (import from 'astro:assets'),
-             keep the 4:3 frame, and write alt text that describes the actual repair. -->
-        <figure class="ba-pair">
-          <div class="ba-row">
-            <div class="ba-frame ph" data-label="TODO: Before photo — wall tent"></div>
-            <div class="ba-frame ph" data-label="TODO: After photo — wall tent"></div>
-          </div>
-          <figcaption class="plate"><span>Plate 01 / Wall tent, before &amp; after</span><span>Olathe, CO</span></figcaption>
-        </figure>
-        <figure class="ba-pair">
-          <div class="ba-row">
-            <div class="ba-frame ph" data-label="TODO: Before photo — seat or sun shade"></div>
-            <div class="ba-frame ph" data-label="TODO: After photo — seat or sun shade"></div>
-          </div>
-          <figcaption class="plate"><span>Plate 02 / Seat or shade, before &amp; after</span><span>Olathe, CO</span></figcaption>
-        </figure>
-      </div>
+      {beforeAfterPairs.length > 0 && (
+        <div class="ba-pairs">
+          {beforeAfterPairs.map(({ plate, label, slug, item }) => (
+            <figure class="ba-pair">
+              <div class="ba-row">
+                <div class="ba-frame">
+                  <Image
+                    class="ba-img"
+                    src={item!.before_image_url!}
+                    width={640}
+                    height={480}
+                    widths={[320, 480, 640]}
+                    sizes="(max-width: 760px) 45vw, 22vw"
+                    format="webp"
+                    quality={80}
+                    alt={`Before the repair: ${item!.title}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span class="ba-tag">Before</span>
+                </div>
+                <div class="ba-frame">
+                  <Image
+                    class="ba-img"
+                    src={item!.after_image_url!}
+                    width={640}
+                    height={480}
+                    widths={[320, 480, 640]}
+                    sizes="(max-width: 760px) 45vw, 22vw"
+                    format="webp"
+                    quality={80}
+                    alt={`After the repair: ${item!.title}`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span class="ba-tag">After</span>
+                </div>
+              </div>
+              <figcaption class="plate">
+                <span><a href={`/portfolio/${slug}/`}>{plate} / {label}</a></span>
+                <span>Olathe, CO</span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
 
       <div class="bio">
         <div class="bio-photo">
-          <!-- TODO(Ryan): replace with a real photo of you in the shop. -->
-          <div class="bio-frame ph" data-label="TODO: Photo of Ryan in the shop"></div>
+          <div class="bio-frame">
+            <Image
+              class="bio-photo-img"
+              src={personalImage}
+              width={640}
+              height={800}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 760px) 320px, 320px"
+              format="webp"
+              quality={82}
+              alt="Ryan, the owner of Western Slope Stitchworks"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
           <div class="plate"><span>Plate 03 / The shop</span><span>Olathe, CO</span></div>
         </div>
         <div class="bio-text">
-          <h3>I’m Ryan.</h3>
-          <p>I taught myself to sew. My industrial sewing background comes from Colorado Yurt Company, which builds canvas yurts and tipis.</p>
-          <p>The shop is in {mailIn.shopLocation}. It’s a one-person shop. Nobody else touches your gear, and I’m the one who answers when you call.</p>
-          <p>Before you send me anything, look at the work. <a href="/portfolio/">See before-and-after repairs in the portfolio &rarr;</a></p>
+          <h3>I’m Ryan. I run the shop. <em>Every stitch comes through me.</em></h3>
+          <p>I run Western Slope Stitchworks out of Montrose. I’ve been sewing for years, working on everything from outfitter canvas to hunting packs to shop upholstery.</p>
+          <p>I’m a fisherman, a hunter, and a jiu-jitsu guy, so I know what gear gets beat up and how it needs to come back. Fast turnaround, honest pricing, no upsell.</p>
+          <div class="signature">Ryan</div>
+          <div class="signature-line">&mdash; Proprietor &middot; One-person shop</div>
         </div>
       </div>
     </div>
@@ -802,11 +875,41 @@ const faqJsonLd = {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
   }
+  /* Frame owns the 4:3 crop; the image fills it. Keep aspect-ratio off the
+     <img> itself — its width/height attributes would win and it renders tall. */
   .ba-frame {
+    position: relative;
     width: 100%;
     aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
     border-radius: 2px;
   }
+  .ba-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+  .ba-tag {
+    position: absolute;
+    left: 8px;
+    bottom: 8px;
+    padding: 3px 8px;
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--canvas);
+    background: rgba(28, 28, 26, 0.78);
+    border-radius: 2px;
+  }
+  .plate a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .plate a:hover { color: var(--rust); border-bottom-color: var(--rust); }
   .plate {
     margin-top: 12px;
     display: flex;
@@ -827,17 +930,44 @@ const faqJsonLd = {
     gap: 32px;
     align-items: start;
   }
+  /* The frame owns the crop; the image fills it. Putting aspect-ratio on the
+     <img> instead lets its own width/height attributes win, and it runs tall. */
   .bio-frame {
     width: 100%;
     max-width: 320px;
     aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--canvas-dark);
     border-radius: 2px;
+  }
+  .bio-photo-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
   }
   .bio-photo .plate { max-width: 320px; }
   .bio-text h3 {
     font-size: clamp(30px, 3.6vw, 44px);
     letter-spacing: -0.03em;
     margin-bottom: 18px;
+  }
+  .bio-text h3 em { font-style: italic; font-weight: 400; color: var(--river); }
+  .signature {
+    margin-top: 36px;
+    font-family: var(--f-serif);
+    font-style: italic;
+    font-size: 34px;
+    color: var(--charcoal);
+    letter-spacing: -0.02em;
+  }
+  .signature-line {
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
   }
   .bio-text p {
     margin: 0 0 14px;

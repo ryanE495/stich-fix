@@ -1,5 +1,6 @@
 ---
-import { Image } from 'astro:assets';
+import PortfolioPhoto from '../../components/PortfolioPhoto.astro';
+import HeroPicture from '../../components/HeroPicture.astro';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { serviceAreas, HERO } from '../../data/service-areas';
@@ -22,8 +23,14 @@ const heroImageAlt = heroPortfolioItem
   ? `${heroPortfolioItem.title} — canvas tent repair by Western Slope Stitchworks`
   : 'Industrial sewing machine stitching heavy canvas in the Western Slope Stitchworks shop';
 
-// Deep-link the zipper-repair line item to the real zipper job in the portfolio, if published.
-const zipperJob = tentWork.find((p) => p.title.toLowerCase().includes('zipper'));
+// Deep-link repair line items to real jobs in the portfolio, when one is
+// published. Matched on title so a renamed or unpublished job just drops the
+// link instead of pointing somewhere wrong.
+const findJob = (needle: string) => tentWork.find((p) => p.title.toLowerCase().includes(needle));
+const jobHref = (needle: string) => {
+  const job = findJob(needle);
+  return job ? `/portfolio/${job.slug}/` : undefined;
+};
 
 // Real published price, pulled from the single source of truth so this page
 // never drifts from what's on Services & Pricing.
@@ -32,13 +39,33 @@ const tentPatchPrice =
 
 const whatGetsFixed = [
   {
-    name: 'Wall Panel Tears, Rips & Blowouts',
-    body: 'Patched clean or replaced panel-by-panel, depending on how far the damage runs.',
+    name: 'Tears, Rips & Blowouts',
+    body: 'Patched with matched canvas, or replaced panel-by-panel when the damage runs too far for a patch to hold.',
+    href: jobHref('four-tear'),
   },
   {
     name: 'Tent Zipper Repair',
     body: 'Door zippers, window zippers, screen zippers — one of the most common jobs that comes through the shop.',
-    href: zipperJob ? `/portfolio/${zipperJob.slug}/` : undefined,
+    href: jobHref('zipper'),
+  },
+  {
+    name: 'Stove Jack Installs & Replacements',
+    body: 'New stove jacks cut into a tent that never had one, and burned or cracked jacks and outlet flaps replaced.',
+    href: jobHref('stove pipe outlet'),
+  },
+  {
+    name: 'Window Flaps',
+    body: 'Torn window flaps rebuilt and the closures that hold them shut repaired or replaced.',
+    href: jobHref('window flap'),
+  },
+  {
+    name: 'Ridge Pole & Beam Sleeves',
+    body: 'Worn or torn sleeves along the ridge and beams rebuilt so the frame sits right and the canvas pulls tight again.',
+  },
+  {
+    name: 'Tipis & Tipi Liners',
+    body: 'Tipi covers and liners — tears, smoke flaps, and door covers, sewn on the same machine as the wall tents.',
+    href: jobHref('tipi'),
   },
   {
     name: 'Tent Pole Repair',
@@ -54,6 +81,12 @@ const whatGetsFixed = [
   },
 ];
 
+// City name → its service-area page, for the "where the work comes from"
+// paragraph. A city that loses its page renders as plain text, not a 404.
+const cityHref: Record<string, string> = Object.fromEntries(
+  serviceAreas.map((a) => [a.cityName, `/service-areas/${a.slug}/`]),
+);
+
 const pricing = [
   { name: 'Tipi & wall tent patches', price: tentPatchPrice },
   { name: 'Tent pole repair', price: 'Quote by job' },
@@ -61,32 +94,32 @@ const pricing = [
 ];
 
 const howItWorks = [
-  { title: 'Send a Photo', body: 'Text a photo of the damage — a tear, a busted zipper, a bent pole, whatever it is.' },
-  { title: 'Real Quote in 24 Hours', body: 'I’ll come back with an honest number and a turnaround date. No estimate fee.' },
-  { title: 'Drop Off or Ship It In', body: 'Bring it to Montrose, or box it up and send it — jobs come in from across CO and UT.' },
-  { title: 'Pickup or Return', body: 'Free local pickup in Montrose, Olathe & Delta. Western Slope routes and shipping cover the rest.' },
+  { title: 'Text a Photo', body: 'Send a photo of the damage — a tear, a busted zipper, a burned stove jack, whatever it is.' },
+  { title: 'Quote in 24 Hours', body: 'I’ll come back with an honest number and a turnaround date. No estimate fee.' },
+  { title: '3–7 Day Turnaround', body: 'Most tent jobs are done in 3–7 days. Big outfitter tents can run longer, and you’ll get the real date with the quote.' },
+  { title: 'Free Local Pickup', body: 'Free pickup and return in Montrose, Olathe & Delta. Western Slope routes for a small fee, or ship it in from anywhere.' },
 ];
 
 const faqs = [
   {
-    q: 'Canvas vs. poly tent repair — do you work on both?',
-    a: 'Mostly canvas — that’s the shop’s specialty and where the industrial walking-foot machine really earns its keep. Lighter poly and nylon tent fabric is usually fine too. If you’re not sure what yours is, send a photo and I’ll tell you.',
+    q: 'How much does wall tent or tipi repair cost?',
+    a: `Most canvas patches run ${tentPatchPrice}, depending on the size of the damage and where it is on the tent. Zippers, stove jacks, window flaps, and sleeves are quoted by the job, since every tent is built a little differently. Text a photo and you’ll have a real number within 24 hours. There’s no estimate fee.`,
   },
   {
-    q: 'Can a torn panel be patched, or does it need full replacement?',
-    a: 'Depends on where the tear is and how the canvas around it is holding up. Most tears patch clean. If a whole panel’s rotted or the fabric’s too far gone to hold a stitch, I’ll tell you straight rather than sew something that won’t last.',
-  },
-  {
-    q: 'Do you repair tent poles, or just fabric?',
-    a: 'Both. Bent, cracked, or snapped poles get splinted or replaced, and I’ll fix the webbing or grommets around the pole sleeve at the same time if that’s part of the problem.',
-  },
-  {
-    q: 'How long does a typical tent repair take?',
+    q: 'How long does a tent repair take?',
     a: '3–7 days on most jobs, same as everything else in the shop. Bigger outfitter-size tents or multi-panel jobs can run longer — I’ll give you a real date with the quote, not a guess.',
   },
   {
-    q: 'Do I need to ship the tent, or can I drop it off in Montrose?',
-    a: 'Drop it off if you’re anywhere on the Western Slope — free local pickup in Montrose, Olathe, and Delta, and pickup routes run through the rest of the region for a small fee. Shipping works fine too if you’re farther out; just box it up and send it in.',
+    q: 'Can my tent be fixed, or is it too far gone?',
+    a: 'Most tears patch clean, and most tents are worth saving. It depends on where the damage is and how the canvas around it is holding up. If a panel has rotted or the fabric is too weak to hold a stitch, I’ll tell you straight rather than sew something that won’t last.',
+  },
+  {
+    q: 'Do you match the canvas on patches?',
+    a: 'Yes. Patches are cut from canvas matched to your tent’s weight and color as closely as I can get it. Older canvas that has faded in the sun won’t be a perfect color match with new fabric, and I’ll tell you up front how close it will look.',
+  },
+  {
+    q: 'What areas do you pick up from?',
+    a: 'Pickup and return are free in Montrose, Olathe, and Delta. Ridgway, Ouray, Telluride, Grand Junction, Gunnison, and the rest of the Western Slope are covered by pickup routes for a small fee — text to schedule. Farther out than that, you can ship the tent in.',
   },
 ];
 
@@ -96,7 +129,7 @@ const serviceJsonLd = {
   name: 'Canvas Tent Repair',
   serviceType: 'Canvas Tent, Wall Tent & Tipi Repair',
   description:
-    'Canvas tent repair for wall tents, tipis, and bell tents. Wall panel patches, tent zipper repair, tent pole repair, seam and stitching failure, mildew and rot damage assessment.',
+    'Wall tent and tipi repair: matched canvas patches, zipper repair, stove jack installs, window flaps, ridge pole and beam sleeves, tipi liners, tent pole repair, and seam work.',
   url: `${site.url}${canonicalPath}`,
   provider: {
     '@type': 'LocalBusiness',
@@ -142,8 +175,8 @@ const faqJsonLd = {
 
 <Layout
   active="services"
-  title="Canvas Tent Repair — Wall Tents & Tipis | Western Slope Stitchworks"
-  description="Canvas tent repair for wall tents, tipis, and bell tents. Panel patches, tent zipper repair, tent pole repair, seam work. Montrose, CO — real quote in 24 hours."
+  title="Canvas Wall Tent & Tipi Repair – Western Slope, CO | Stitchworks"
+  description="Wall tent and tipi repair: matched canvas patches, zippers, stove jacks, windows, and beam sleeves. Quote in 24 hrs, 3–7 day turnaround, free local pickup."
   canonicalPath={canonicalPath}
   jsonLd={[serviceJsonLd, faqJsonLd]}
   breadcrumbs={[{ name: 'Services & Pricing', path: '/services/' }]}
@@ -164,18 +197,14 @@ const faqJsonLd = {
         </div>
         <div class="page-head-media">
           <div class="page-head-image-frame">
-            <Image
+            <HeroPicture
               class="page-head-image"
               src={heroImage}
               width={1280}
               height={960}
               widths={[480, 768, 1280]}
               sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-              format="webp"
-              quality={82}
               alt={heroImageAlt}
-              loading="eager"
-              decoding="async"
               fetchpriority="high"
             />
           </div>
@@ -293,7 +322,7 @@ const faqJsonLd = {
                 <a href={`/portfolio/${item.slug}/`}>
                   <div class="card-media">
                     {thumb ? (
-                      <img src={thumb} alt={`${item.title} — ${categoryLabel(item.category)}`} loading="lazy" decoding="async" />
+                      <PortfolioPhoto src={thumb} alt={`${item.title} — ${categoryLabel(item.category)}`} sizes="(max-width: 719px) 100vw, (max-width: 1180px) 50vw, 566px" />
                     ) : (
                       <div class="card-media-empty" aria-hidden="true"></div>
                     )}
@@ -333,7 +362,19 @@ const faqJsonLd = {
     </div>
   </section>
 
-  <MailInCallout />
+  <!-- SERVICE AREA -->
+  <section class="area">
+    <div class="wrap">
+      <div class="section-num">§ Where Tents Come From</div>
+      <h2>Wall tent repair across <em>the Western Slope.</em></h2>
+      <div class="area-body">
+        <p>The shop is in <a href={cityHref['Montrose']}>Montrose</a>, and pickup and return are free here and in <a href={cityHref['Olathe']}>Olathe</a> and <a href={cityHref['Delta']}>Delta</a>. Tents come in from all over the rest of the Western Slope too: <a href={cityHref['Ridgway']}>Ridgway</a>, <a href={cityHref['Ouray']}>Ouray</a>, and <a href={cityHref['Telluride']}>Telluride</a> to the south, <a href={cityHref['Gunnison']}>Gunnison</a> to the east, and <a href={cityHref['Grand Junction']}>Grand Junction</a> to the northwest. Those areas are covered by pickup routes for a small fee, or you can drop the tent at the shop on your way through.</p>
+        <p>If you’re farther out than that, the tent can ship in. <a href="/mail-in-repair/">Mail-in repair</a> works from anywhere in the country, and I call before anything ships.</p>
+      </div>
+    </div>
+  </section>
+
+  <MailInCallout kicker="Not on the Western Slope? Ship it to us." />
 
   <!-- CTA -->
   <section class="city-cta">
@@ -755,6 +796,35 @@ const faqJsonLd = {
     line-height: 1.6;
     color: var(--ink);
   }
+
+  /* ---------- SERVICE AREA (type scale matches the FAQ section) ---------- */
+  .area {
+    padding: 88px 0;
+    background: var(--canvas-light);
+    border-top: 2px solid var(--charcoal);
+  }
+  .area h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    max-width: 22ch;
+    text-wrap: balance;
+  }
+  .area h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .area-body { margin-top: 28px; max-width: 64ch; }
+  .area-body p {
+    margin: 0 0 16px;
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .area-body p:last-child { margin-bottom: 0; }
+  .area-body a {
+    color: var(--charcoal);
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .area-body a:hover { color: var(--rust); border-bottom-color: var(--rust); }
 
   /* ---------- CTA (exact reuse of service-areas city-cta component) ---------- */
   .city-cta {

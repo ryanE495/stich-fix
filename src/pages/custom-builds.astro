@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import HeroPicture from '../components/HeroPicture.astro';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { serviceAreas, HERO } from '../data/service-areas';
@@ -105,18 +105,14 @@ const jsonLd = {
         </div>
         <div class="page-head-media">
           <div class="page-head-image-frame">
-            <Image
+            <HeroPicture
               class="page-head-image"
               src={heroImage}
               width={1280}
               height={960}
               widths={[480, 768, 1280]}
               sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-              format="webp"
-              quality={82}
               alt="Industrial walking-foot sewing machine working a custom canvas modification at the Western Slope Stitchworks shop"
-              loading="eager"
-              decoding="async"
               fetchpriority="high"
             />
           </div>

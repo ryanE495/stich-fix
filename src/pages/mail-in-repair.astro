@@ -48,7 +48,7 @@ const cta = mailIn.ctaLabel;
 const repairs = [
   {
     name: 'Tents and tipis',
-    body: 'Wall tent and tipi repair: torn panels, blown seams, broken zippers, stove pipe openings, ridge pole sleeves, and grommets that pulled out. Bell tents and hot tents too.',
+    body: 'Wall tent repair and tipi repair by mail: torn panels, blown seams, broken zippers, stove pipe openings, ridge pole sleeves, and grommets that pulled out. Bell tents and hot tents too.',
   },
   {
     name: 'Sun shades and awnings',
@@ -66,11 +66,11 @@ const repairs = [
 
 const steps = [
   {
-    title: 'Fill out the repair request',
-    body: 'Tell me what it is, what’s wrong with it, and where you are, with a few photos. The form gives you a rough repair and shipping estimate for your ZIP. It takes a few minutes and doesn’t commit you to anything.',
+    title: 'Send photos for an estimate',
+    body: 'If you’ve never sent a tent off to be repaired, start here. Tell me what it is, what’s wrong with it, and where you are, with a few photos. The form gives you a rough repair and shipping estimate for your ZIP. It takes a few minutes and doesn’t commit you to anything.',
   },
   {
-    title: 'I call you before anything ships',
+    title: 'Approve it on a call, before anything ships',
     body: 'Within one business day, I reach out. We go over your photos and confirm the repair, I give you the real shipping cost, and I walk you through packing it. A lot of the time that call saves you money. Sometimes a repair just isn’t worth the shipping, and you should hear that before you pay to send it, not after.',
   },
   {
@@ -82,11 +82,11 @@ const steps = [
     body: 'Pack it clean and completely dry, tape the label on, and drop it off with the carrier.',
   },
   {
-    title: 'Get a firm quote, with photos',
+    title: 'Firm quote with photos, then the repair',
     body: 'When it arrives I unpack it, photograph the damage, and send you a firm price and a ship-back date. No work starts until you approve it. If you say no, you pay return shipping and that’s it.',
   },
   {
-    title: 'Get it back',
+    title: 'Shipped back to you',
     body: 'I repair it, photograph the finished work, and ship it back to you. The repair and return shipping are billed once you’ve approved the quote.',
   },
 ];
@@ -100,16 +100,43 @@ const costRows = [
 // text and the FAQPage schema text are generated from the same source.
 const faqs: { q: string; a: string[]; steps?: string[] }[] = [
   {
-    q: 'Does it have to be clean and dry?',
+    q: 'How much does shipping cost?',
     a: [
-      'Yes. This is a hard requirement. Canvas packed damp will mildew in the box, and dirt gets ground into the fabric and the seams.',
-      'Set it up or hang it until it’s dry all the way through on both sides, then shake out the dirt and needles before you pack it. If it arrives wet or dirty, I’ll contact you before doing anything else, and return shipping is on you.',
+      `Round-trip shipping usually runs ${mailInShipping[0].price} for a wall tent and ${mailInShipping[1].price} for a sun shade or seat. It depends on the size and weight of the box and how far you are from Colorado.`,
+      `The request form estimates it for your ZIP, and I confirm the real cost on the phone before anything ships, so you know it before you pay to send it. Shipping is on top of the repair, which has a $${mailIn.minimum} minimum for mail-in jobs.`,
+    ],
+  },
+  {
+    q: 'How long does a mail-in repair take?',
+    a: [
+      'Mail-in jobs are booked by intake week, and we agree on the week on the call before you ship. Once it arrives, most repairs take 3–7 days in the shop. Add ground shipping each way, which within the lower 48 is usually under a week.',
+      'You get an actual ship-back date with the firm quote. Wall tents for elk season book out first in August and September, so send those requests early.',
+    ],
+  },
+  {
+    q: 'How do I pack a wall tent?',
+    a: ['Here’s what works:'],
+    steps: [
+      'Make sure it’s completely dry.',
+      'Shake out dirt, needles, and anything else caught in the folds.',
+      'Leave out the poles, frame, and stove.',
+      'Fold it into a flat bundle, then roll it tight.',
+      'Put it in a heavy contractor bag to keep weather out.',
+      'Use a sturdy box close to the size of the bundle so it can’t shift around.',
+      'Tape the label flat on the largest side.',
     ],
   },
   {
     q: 'What if it can’t be repaired?',
     a: [
       'Most of the time we catch that on the phone, before you ship anything. If it only shows up once it’s here, I’ll tell you with photos showing why. Your request says whether to ship it back as-is, at your cost, or dispose of it. Either way there’s no repair charge and no minimum.',
+    ],
+  },
+  {
+    q: 'Does it have to be clean and dry?',
+    a: [
+      'Yes. This is a hard requirement. Canvas packed damp will mildew in the box, and dirt gets ground into the fabric and the seams.',
+      'Set it up or hang it until it’s dry all the way through on both sides, then shake out the dirt and needles before you pack it. If it arrives wet or dirty, I’ll contact you before doing anything else, and return shipping is on you.',
     ],
   },
   {
@@ -127,19 +154,6 @@ const faqs: { q: string; a: string[]; steps?: string[] }[] = [
     ],
   },
   {
-    q: 'How do I pack a wall tent?',
-    a: ['Here’s what works:'],
-    steps: [
-      'Make sure it’s completely dry.',
-      'Shake out dirt, needles, and anything else caught in the folds.',
-      'Leave out the poles, frame, and stove.',
-      'Fold it into a flat bundle, then roll it tight.',
-      'Put it in a heavy contractor bag to keep weather out.',
-      'Use a sturdy box close to the size of the bundle so it can’t shift around.',
-      'Tape the label flat on the largest side.',
-    ],
-  },
-  {
     q: 'What if the quote is more than I want to spend?',
     a: [
       'Say no. Most of the time we sort out whether the price works on the call, before you ship anything. If it only comes up once it’s here, I’ll ship it back. You pay shipping both ways, since it made the trip, and nothing else. No repair charge.',
@@ -154,14 +168,16 @@ const faqs: { q: string; a: string[]; steps?: string[] }[] = [
   },
 ];
 
-const title = 'Mail-In Tent & Canvas Repair | Western Slope Stitchworks';
+const title = 'Mail-In Tent & Gear Repair – Ship Us Your Canvas | Stitchworks';
+// "Estimate", not "quote": the form gives an estimate, and the firm quote
+// comes with photos after the item arrives (steps 1 and 5 below).
 const description =
-  'Ship your wall tent, tipi, sun shade, or UTV seat in for repair from anywhere in the US. Firm quote with photos before any repair is charged.';
+  'Ship your wall tent, tipi, or gear for professional repair. Photo estimate first, then mail it in. Industrial canvas repair from Colorado.';
 
 const serviceJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Service',
-  name: 'Mail-In Tent & Canvas Repair',
+  name: 'Mail-In Tent & Gear Repair',
   serviceType: 'Mail-in canvas tent, tipi, awning, and seat upholstery repair',
   description:
     'Nationwide mail-in repair for wall tents, tipis, sun shades, awnings, and UTV and snowmobile seats. Customers send a request, get a phone call to confirm the repair and the real shipping cost before anything ships, receive a firm quote with photos once the item arrives, and are not charged for the repair until they approve it.',
@@ -223,7 +239,7 @@ const faqJsonLd = {
             <a href={start} class="btn">{cta} <span class="btn-arrow" aria-hidden="true">&rarr;</span></a>
           </div>
           <p class="cta-note">I call before you ship anything. The repair isn’t charged until you approve a firm quote.</p>
-          <p class="page-body">You don’t have to live near Colorado to get your canvas fixed here. Ship your tent in for repair, get photos and a firm price, and decide from there. Questions first? Call or text <a href={site.phoneHref}>{site.phoneDisplay}</a>.</p>
+          <p class="page-body">You don’t have to live near Colorado to get your canvas fixed here. Mail-in tent repair works a lot like dropping it off: send photos, talk it through on the phone, then ship your tent in. You get photos and a firm price before any repair is charged. Questions first? Call or text <a href={site.phoneHref}>{site.phoneDisplay}</a>.</p>
         </div>
 
         <div class="math" aria-labelledby="math-lead">
@@ -262,7 +278,7 @@ const faqJsonLd = {
       <div class="sec-head">
         <div class="section-num">§ 01 — What I Repair</div>
         <h2>What you can ship in <em>for repair.</em></h2>
-        <p class="sec-intro">If you’ve been looking for a wall tent repair service you can mail to, this is it. Here’s what comes through by mail.</p>
+        <p class="sec-intro">If you’ve been looking for wall tent repair by mail, this is it. Fabric ships well. Frames, poles, and stoves stay home. Here’s what comes through by mail.</p>
       </div>
       <ul class="repair-list">
         {repairs.map((r) => (

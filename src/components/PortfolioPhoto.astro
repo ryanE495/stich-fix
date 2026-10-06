@@ -1,0 +1,40 @@
+---
+/**
+ * A portfolio photo, resized to WebP at build time.
+ *
+ * Portfolio originals in Supabase run 150–750 KB (most over 200 KB) and were
+ * linked raw, so a phone downloaded the full camera file for a 360px-wide card.
+ * Every place that shows one sits in a 4:3 frame with overflow: hidden and an
+ * object-fit: cover <img>, so the resized image drops in without moving layout.
+ *
+ * Scoped-style attributes from the calling page arrive in ...attrs and land on
+ * the <img>, so page rules like `.card-media img` keep applying.
+ */
+import { Image } from 'astro:assets';
+
+interface Props {
+  src: string;
+  alt: string;
+  /** How wide the frame renders, for the browser to pick a file. */
+  sizes: string;
+  /** Lazy unless the photo can be above the fold. */
+  loading?: 'lazy' | 'eager';
+  [attr: `data-${string}`]: unknown;
+}
+
+const { src, alt, sizes, loading = 'lazy', ...attrs } = Astro.props;
+---
+
+<Image
+  {...attrs}
+  src={src}
+  alt={alt}
+  width={960}
+  height={720}
+  widths={[480, 720, 960]}
+  sizes={sizes}
+  format="webp"
+  quality={78}
+  loading={loading}
+  decoding="async"
+/>

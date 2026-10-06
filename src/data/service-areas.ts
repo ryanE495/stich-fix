@@ -12,6 +12,18 @@ export const HERO = {
   shop: 'https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-sewing-hero.webp',
 } as const;
 
+/** One repair line in a city's own service groups. */
+export interface CityServiceItem {
+  name: string;
+  body: string;
+  href?: string;
+}
+
+export interface CityServiceGroup {
+  heading: string;
+  items: CityServiceItem[];
+}
+
 export interface ServiceArea {
   slug: string;
   cityName: string;
@@ -25,6 +37,31 @@ export interface ServiceArea {
   heroImageAlt: string;
   metaTitle: string;
   metaDescription: string;
+  /*
+   * Optional per-city overrides. A city that sets none of these renders the
+   * shared template exactly as before. They exist for towns whose search
+   * intent differs enough from the template to need their own framing —
+   * Telluride, where most impressions are ski-related.
+   */
+  /** Replaces "Gear & Canvas Repair in <em>City, Colorado</em>". */
+  h1?: { lead: string; em: string };
+  /** Replaces the italic tagline under the H1. */
+  tagline?: string;
+  /** Replaces the universal service list with grouped, described repairs. */
+  serviceGroups?: CityServiceGroup[];
+  /** One plain sentence on what the shop doesn't do, shown under the service groups. */
+  notOffered?: string;
+  /** Replaces the four logistics cards with numbered how-it-works steps. */
+  howItWorks?: { title: string; body: string }[];
+  /** Replaces the closing CTA paragraph. */
+  ctaBody?: string;
+  /**
+   * Towns this page covers. Listed in the LocalBusiness areaServed schema, and
+   * portfolio jobs whose Location is one of these show as local work.
+   */
+  servedTowns?: string[];
+  /** Page-specific questions, rendered with FAQPage schema. */
+  faqs?: { q: string; a: string }[];
 }
 
 export const universalServices = [
@@ -62,18 +99,91 @@ export const serviceAreas: ServiceArea[] = [
     slug: 'delta-co',
     cityName: 'Delta',
     state: 'CO',
-    region: 'North Fork country',
+    region: 'Delta County',
     localContext:
-      "Delta sits at the confluence of the Uncompahgre and Gunnison Rivers — the working agricultural heart of the Western Slope. It's ranching country and orchard country: long days on a tractor, irrigation gear that gets dragged through everything, and a hunting culture that runs deep through the North Fork and into the West Elks. Locals here know what it costs to keep gear running on a working budget. Replacing a torn tarp or a blown-out seat isn't how anyone wants to spend their money, and a local industrial repair shop a 20-minute drive away keeps that gear in service one more season — two more, however many it needs.",
+      'Delta County covers a lot of different ground. Delta sits where the Gunnison and Uncompahgre rivers meet, Orchard City and Cedaredge climb toward the Grand Mesa, and Hotchkiss, Paonia, and Crawford make up the North Fork country. Between them it’s orchards and hay ground, elk camps on the Mesa, and float trips through the Gunnison Gorge, and all of it is hard on canvas, vinyl, and webbing. The shop is in Olathe, about 15 minutes up US-50 from Delta, so getting gear in and back out is quick.',
     localServiceFocus:
-      'Delta gear leans heavily agricultural and hunting — wall tents headed for elk camp, irrigation tarps, ranch upholstery, and the occasional drift boat or river raft headed for the Gunnison. UTV and side-by-side seats see a lot of work too, between farm work and recreation. The shop runs heavy canvas, webbing, and vinyl on the same machine, so a stack of unrelated repairs from one Delta drop-off can usually go through together.',
-    driveTime: 'About 20 minutes north of our shop in Montrose',
+      'Most of what comes in from Delta County is working gear. Wall tents and tipis from Grand Mesa hunting camps, with torn doors, stove-jack burns, and failed zippers. Frame bags and dry bags back from the Gunnison Gorge with worn-through corners and blown seams. Orchard and ag tarps that need new grommets and patched corners after a season of wind, and UTV and ATV seats split by sun and ranch work. It all runs on the same machine, so a truckload of unrelated repairs can come in on one trip and go back together.',
+    driveTime: 'About 15 minutes up US-50 from the shop in Olathe',
     pickupNote: 'Free pickup runs most weeks — schedule by phone',
     heroImage: HERO.shop,
-    heroImageAlt: 'Industrial sewing machine and canvas work bench serving Delta, CO and the North Fork',
-    metaTitle: 'Gear Repair Delta CO | Wall Tent, Canvas & UTV Seat Repair',
+    heroImageAlt: 'Canvas and gear repair workbench serving Delta, CO and Delta County',
+    metaTitle: 'Canvas & Gear Repair in Delta, CO | Western Slope Stitchworks',
     metaDescription:
-      'Industrial gear and canvas repair serving Delta, CO and the North Fork. Wall tents, UTV seats, ranch canvas. 20 minutes from our Montrose shop. Free pickup.',
+      'Tent, tarp, pack, and seat repair for Delta County. Minutes from the shop — text a photo for a quote in 24 hrs, free local pickup.',
+    h1: { lead: 'Canvas & Gear Repair in', em: 'Delta, Colorado' },
+    tagline:
+      'Tents, tarps, packs, and seats for Delta, Cedaredge, Orchard City, Hotchkiss, Paonia, and Crawford — from a shop 15 minutes away in Olathe.',
+    serviceGroups: [
+      {
+        heading: 'Hunting camp & canvas',
+        items: [
+          {
+            name: 'Wall Tents & Tipis',
+            body: 'Matched canvas patches, door zippers, stove jacks, and window flaps for Grand Mesa elk camps and outfitter drop camps.',
+            href: '/services/canvas-tent-repair/',
+          },
+          {
+            name: 'Ag & Orchard Tarps',
+            body: 'Torn corners patched, hems re-sewn, and new grommets set on canvas and vinyl tarps.',
+            href: '/services/tarp-bivy-shelter-repair/',
+          },
+          {
+            name: 'Hunting Packs',
+            body: 'Hipbelts, shoulder straps, and torn pack bodies on packs that haul out of the high country.',
+          },
+        ],
+      },
+      {
+        heading: 'River gear',
+        items: [
+          {
+            name: 'Raft Frame Bags',
+            body: 'Frame bags and straps worn through on Gunnison Gorge float trips.',
+            href: '/services/raft-frame-bag-repair/',
+          },
+          {
+            name: 'Dry Bags',
+            body: 'Pinholes and failed seams patched on dry bags and dry sacks.',
+          },
+        ],
+      },
+      {
+        heading: 'Seats',
+        items: [
+          {
+            name: 'UTV & ATV Seats',
+            body: 'Cracked and torn seats re-covered on side-by-sides and ATVs that see ranch work and trail miles.',
+            href: '/services/utv-seat-upholstery/',
+          },
+          {
+            name: 'Boat Seats & Biminis',
+            body: 'Boat cushions re-covered and bimini tops fitted with new zippers.',
+          },
+        ],
+      },
+    ],
+    ctaBody:
+      'Tent back from elk camp with a torn door, a tarp that lost its grommets, or a UTV seat split down the middle? Text me a photo from Delta County and I’ll come back inside 24 hours with a real number and a turnaround date.',
+    servedTowns: ['Delta', 'Cedaredge', 'Orchard City', 'Hotchkiss', 'Paonia', 'Crawford'],
+    faqs: [
+      {
+        q: 'How far is the shop from Delta?',
+        a: 'About 15 minutes. The shop is in Olathe, up US-50 between Delta and Montrose, so dropping gear off or picking it up is a short drive. Pickup in Delta is free — text to schedule it.',
+      },
+      {
+        q: 'Do you pick up in Cedaredge, Hotchkiss, Paonia, and Crawford?',
+        a: 'Yes. Pickup in Delta is free. Cedaredge, Orchard City, Hotchkiss, Paonia, and Crawford are covered by North Fork pickup routes for a small route fee — text to schedule, or drop gear at the shop when you’re passing through Olathe.',
+      },
+      {
+        q: 'Can you fix a wall tent before hunting season?',
+        a: 'Most jobs turn around in 3–7 days. If camp is coming up fast, say so when you text the photo. Rush work is available, and I’ll tell you honestly whether it can make it.',
+      },
+      {
+        q: 'Do you repair ag and orchard tarps?',
+        a: 'Yes. Canvas and vinyl tarps get patched, re-hemmed, and fitted with new grommets, whether they cover hay, equipment, or a load in the truck bed. Text a photo and you’ll have a quote within 24 hours.',
+      },
+    ],
   },
   {
     slug: 'olathe-co',
@@ -132,16 +242,77 @@ export const serviceAreas: ServiceArea[] = [
     state: 'CO',
     region: 'San Juan Mountains',
     localContext:
-      "Telluride is a place where premium outdoor gear earns its money. The ski resort drives the winter economy and the wider mountain culture — touring packs, helmets, technical apparel that's seen serious use — but the real depth of Telluride's outdoor scene shows up in summer. The Sneffels Highline, the Wilson Group, and the routes pulling north into the Lizard Head Wilderness keep climbers, hikers, and trail runners moving through gear at a steady clip. Add the festival season, the strong commercial outfitter presence, and an affluent customer base that values keeping high-end gear running rather than throwing it away — you've got a community that genuinely needs a local industrial sewer.",
+      'Telluride runs on two seasons, and both are hard on gear. Winter means ski and board bags thrown in and out of trucks and airport carousels, boot bags zipped past what they were built for, and touring packs worn through on the boot pack. Summer brings the hikers, climbers, river trips, and festival weekends, and the outfitters keep going into the fall hunting season. The shop is in Montrose, about an hour and fifteen minutes away over Dallas Divide, and everything that comes in is sewn by one person on an industrial machine.',
     localServiceFocus:
-      'Telluride leans premium and technical. The shop sees high-end backpacks needing hipbelt rebuilds and zipper replacements, ski touring packs torn on the boot pack, alpine bivys with blown-out seam tape, and a regular run of commercial gear from outfitters and guide services. Restaurant booth and event canvas work comes out of the resort and the festival circuit too. Same machine, same hands — no rotation through subcontractors.',
+      'In a two-season town, timing is half the job. Ski and board bags, boot bags, and touring packs are easiest to get done in the spring off-season once the lifts stop turning, so they’re back long before the next winter. Wall tents, river gear, and summer packs fit best into the fall shoulder season. If something fails the week of a trip, text a photo anyway. Rush work is available, and I’ll tell you honestly whether it can turn around in time.',
     driveTime: 'About 1 hour 15 minutes south, over Dallas Divide',
-    pickupNote: 'Pickup available for a small route fee — text to coordinate timing',
+    pickupNote: 'Free pickup from Telluride — text to schedule',
     heroImage: HERO.shop,
-    heroImageAlt: 'Industrial gear repair shop serving Telluride, CO ski touring and alpine community',
-    metaTitle: 'Gear Repair Telluride CO | Ski Pack, Hipbelt & Alpine Gear Repair',
+    heroImageAlt: 'Inside the Western Slope Stitchworks repair shop, which serves Telluride, CO',
+    metaTitle: 'Ski Bag, Winter Gear & Canvas Repair – Telluride, CO | Stitchworks',
     metaDescription:
-      'Industrial gear repair for Telluride, CO. Ski touring packs, alpine gear, hipbelt rebuilds, commercial canvas. 1 hr 15 from our Montrose shop. Pickup available.',
+      'Ski and board bag repair, duffels, packs, zippers, and canvas tents for Telluride. Text a photo for a quote in 24 hrs. Free pickup from Telluride.',
+    h1: { lead: 'Winter Gear & Canvas Repair', em: 'for Telluride' },
+    tagline: 'Ski bags, duffels, packs, and canvas — sewn repair for Telluride, from a shop just over Dallas Divide.',
+    serviceGroups: [
+      {
+        heading: 'Winter gear',
+        items: [
+          {
+            name: 'Ski & Snowboard Bag Repair',
+            body: 'Torn bag bodies, blown seams, ripped handles and shoulder straps, and the end panels that wear through first from dragging.',
+          },
+          {
+            name: 'Boot Bags & Duffels',
+            body: 'Split zippers, torn end panels, and handles pulled loose by a bag packed heavier than it was built for.',
+          },
+          {
+            name: 'Backpacks & Hipbelts',
+            body: 'Touring packs and daypacks: hipbelt rebuilds, torn pack bodies, and shoulder harness repairs.',
+            href: '/services/#outdoor',
+          },
+          {
+            name: 'Zipper Replacement',
+            body: 'New zippers on ski bags, duffels, boot bags, and packs, sized for the load the bag actually carries.',
+          },
+          {
+            name: 'Straps & Webbing',
+            body: 'Carry straps, compression straps, ski straps, and buckles re-sewn or replaced.',
+            href: '/services/strap-webbing-repair/',
+          },
+        ],
+      },
+      {
+        heading: 'Year-round',
+        items: [
+          {
+            name: 'Wall Tents & Tipis',
+            body: 'Matched canvas patches, zippers, stove jacks, and window flaps for hunting camps and summer basecamps.',
+            href: '/services/canvas-tent-repair/',
+          },
+          {
+            name: 'Raft & River Gear',
+            body: 'Raft frame bags, dry bags, and straps for river season on the San Miguel and beyond.',
+            href: '/services/raft-frame-bag-repair/',
+          },
+          {
+            name: 'UTV & Snowmobile Seats',
+            body: 'Torn and cracked seats re-covered on side-by-sides for summer roads and snowmobiles for winter.',
+            href: '/services/utv-seat-upholstery/',
+          },
+        ],
+      },
+    ],
+    notOffered:
+      'I don’t tune skis or repair bases and edges — for that, see a Telluride ski shop. If it’s sewn, bring it here.',
+    howItWorks: [
+      { title: 'Text a Photo', body: 'Send a photo of the damage. One picture usually tells me what’s involved.' },
+      { title: 'Quote in 24 Hours', body: 'An honest number and a turnaround date, with no fee to ask.' },
+      { title: 'Free Pickup from Telluride', body: 'Text to schedule a pickup. The shop is about an hour and fifteen minutes away over Dallas Divide.' },
+      { title: 'Back in 3–7 Days', body: 'Most jobs are done in 3–7 days, and rush work is available. Your gear comes back the same way it left.' },
+    ],
+    ctaBody:
+      'Ski bag with a blown seam, a duffel zipper that quit, or a wall tent that needs work before hunting season? Text me a photo from Telluride and I’ll come back inside 24 hours with a real number and a turnaround date.',
   },
   {
     slug: 'grand-junction-co',

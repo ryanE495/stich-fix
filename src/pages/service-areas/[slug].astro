@@ -1,22 +1,40 @@
 ---
+import PortfolioPhoto from '../../components/PortfolioPhoto.astro';
+import HeroPicture from '../../components/HeroPicture.astro';
 import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { serviceAreas, universalServices, getNearbyAreas, type ServiceArea } from '../../data/service-areas';
 import { universalServiceLinks } from '../../data/service-pages';
+import {
+  fetchPublishedPortfolio,
+  withSlugs,
+  pickThumbnail,
+  portfolioTown,
+  type PortfolioItemWithSlug,
+} from '../../lib/portfolio';
 
-export function getStaticPaths() {
-  return serviceAreas.map((area) => ({
-    params: { slug: area.slug },
-    props: { area },
-  }));
+export async function getStaticPaths() {
+  // One fetch for every city page. Only cities that list servedTowns use it.
+  const portfolio = withSlugs(await fetchPublishedPortfolio());
+  return serviceAreas.map((area) => {
+    const towns = new Set((area.servedTowns ?? []).map((t) => t.toLowerCase()));
+    const localWork = portfolio
+      .filter((item) => {
+        const town = portfolioTown(item);
+        return town !== null && towns.has(town.toLowerCase());
+      })
+      .slice(0, 6);
+    return { params: { slug: area.slug }, props: { area, localWork } };
+  });
 }
 
 interface Props {
   area: ServiceArea;
+  localWork: PortfolioItemWithSlug[];
 }
 
-const { area } = Astro.props;
+const { area, localWork } = Astro.props;
 const canonicalPath = `/service-areas/${area.slug}/`;
 const nearby = getNearbyAreas(area.slug);
 
@@ -43,10 +61,12 @@ const jsonLd = {
     latitude: seo.geo.latitude,
     longitude: seo.geo.longitude,
   },
-  areaServed: {
-    '@type': 'City',
-    name: `${area.cityName}, ${area.state}`,
-  },
+  areaServed: area.servedTowns
+    ? [
+        ...area.servedTowns.map((t) => ({ '@type': 'City', name: `${t}, ${area.state}` })),
+        { '@type': 'AdministrativeArea', name: `${area.region}, Colorado` },
+      ]
+    : { '@type': 'City', name: `${area.cityName}, ${area.state}` },
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
@@ -58,7 +78,11 @@ const jsonLd = {
   hasOfferCatalog: {
     '@type': 'OfferCatalog',
     name: `Repair Services for ${area.cityName}`,
-    itemListElement: universalServices.map((s) => ({
+    // A city with its own service groups advertises those; the rest list the shared set.
+    itemListElement: (area.serviceGroups
+      ? area.serviceGroups.flatMap((g) => g.items.map((i) => i.name))
+      : universalServices
+    ).map((s) => ({
       '@type': 'Offer',
       itemOffered: { '@type': 'Service', name: s },
     })),
@@ -71,16 +95,31 @@ const jsonLd = {
   title={area.metaTitle}
   description={area.metaDescription}
   canonicalPath={canonicalPath}
-  jsonLd={jsonLd}
+  jsonLd={area.faqs
+    ? [
+        jsonLd,
+        {
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: area.faqs.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        },
+      ]
+    : jsonLd}
 >
   <!-- PAGE HEAD -->
   <section class="page-head">
     <div class="wrap">
       <div class="section-num">§ Service Area · {area.region}</div>
-      <h1>Gear &amp; Canvas Repair in <em>{area.cityName}, Colorado</em></h1>
+      {area.h1
+        ? <h1>{area.h1.lead} <em>{area.h1.em}</em></h1>
+        : <h1>Gear &amp; Canvas Repair in <em>{area.cityName}, Colorado</em></h1>}
       <div class="page-head-grid">
         <div class="page-head-text">
-          <p class="page-tagline">Industrial sewing and heavy-duty repair, serving {area.cityName} and the {area.region}.</p>
+          <p class="page-tagline">{area.tagline ?? `Industrial sewing and heavy-duty repair, serving ${area.cityName} and the ${area.region}.`}</p>
           <p class="page-context">{area.localContext}</p>
           <div class="page-ctas">
             <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
@@ -89,18 +128,14 @@ const jsonLd = {
         </div>
         <div class="page-head-media">
           <div class="page-head-image-frame">
-            <Image
+            <HeroPicture
               class="page-head-image"
               src={area.heroImage}
               width={1200}
               height={960}
               widths={[480, 768, 1200]}
               sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-              format="webp"
-              quality={82}
               alt={area.heroImageAlt}
-              loading="eager"
-              decoding="async"
               fetchpriority="high"
             />
           </div>
@@ -120,21 +155,66 @@ const jsonLd = {
         <div class="section-num">§ The Work</div>
         <h2>What I repair for <em>{area.cityName}</em> customers</h2>
       </div>
-      <ul class="city-services-list">
-        {universalServices.map((s, i) => (
-          <li>
-            <span class="cs-num">{String(i + 1).padStart(2, '0')}</span>
-            <span class="cs-name">
-              {universalServiceLinks[s] ? <a href={universalServiceLinks[s]}>{s}</a> : s}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {area.serviceGroups ? (
+        area.serviceGroups.map((group) => (
+          <div class="cs-group">
+            <h3 class="cs-group-head">{group.heading}</h3>
+            <ul class="cs-detail-list">
+              {group.items.map((item) => (
+                <li>
+                  <h4 class="cs-detail-name">{item.href ? <a href={item.href}>{item.name}</a> : item.name}</h4>
+                  <p class="cs-detail-body">{item.body}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      ) : (
+        <ul class="city-services-list">
+          {universalServices.map((s, i) => (
+            <li>
+              <span class="cs-num">{String(i + 1).padStart(2, '0')}</span>
+              <span class="cs-name">
+                {universalServiceLinks[s] ? <a href={universalServiceLinks[s]}>{s}</a> : s}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {area.notOffered && <p class="cs-not-offered">{area.notOffered}</p>}
       <p class="city-services-note">
         Don't see what you've got listed? <a href="/contact/">Ask anyway</a> — if it's stitched, there's a good chance I can fix it. Looking for something not on the standard menu? <a href="/custom-builds/">Custom builds and modifications</a> are available across the Western Slope. For before-and-after photos from real {area.cityName} and Western Slope repairs, <a href="/portfolio/">see the portfolio</a>.
       </p>
     </div>
   </section>
+
+  {localWork.length > 0 && (
+    <!-- LOCAL WORK -->
+    <section class="local-work">
+      <div class="wrap">
+        <div class="local-work-head">
+          <div class="section-num">§ Local Work</div>
+          <h2>Recent work from <em>{area.region}</em></h2>
+        </div>
+        <ul class="local-work-grid">
+          {localWork.map((job) => {
+            const thumb = pickThumbnail(job);
+            return (
+              <li class="local-work-card">
+                <a href={`/portfolio/${job.slug}/`}>
+                  <div class="local-work-media">
+                    {thumb && <PortfolioPhoto src={thumb} alt={job.title} sizes="(max-width: 639px) 100vw, (max-width: 959px) 50vw, (max-width: 1180px) 33vw, 370px" />}
+                  </div>
+                  <span class="local-work-town">{portfolioTown(job)}</span>
+                  <h3 class="local-work-title">{job.title}</h3>
+                </a>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  )}
 
   <!-- PERSONAL -->
   <section class="personal">
@@ -184,30 +264,69 @@ const jsonLd = {
   <!-- LOGISTICS -->
   <section class="city-logistics">
     <div class="wrap">
-      <div class="city-logistics-head">
-        <div class="section-num">§ Pickup &amp; Turnaround</div>
-        <h2>Pickup &amp; Turnaround in <em>{area.cityName}</em></h2>
-      </div>
-      <div class="city-logistics-grid">
-        <div class="city-log-card">
-          <div class="k">Drive Time</div>
-          <p>{area.driveTime}.</p>
-        </div>
-        <div class="city-log-card">
-          <div class="k">Pickup</div>
-          <p>{area.pickupNote}.</p>
-        </div>
-        <div class="city-log-card">
-          <div class="k">Turnaround</div>
-          <p>3–7 days on most jobs. Rush available — just ask.</p>
-        </div>
-        <div class="city-log-card">
-          <div class="k">Estimates</div>
-          <p>Text a photo to {site.phoneDisplay}, get a quote in 24 hours. No fee to ask.</p>
-        </div>
-      </div>
+      {area.howItWorks ? (
+        <>
+          <div class="city-logistics-head">
+            <div class="section-num">§ How It Works</div>
+            <h2>How it works from <em>{area.cityName}</em></h2>
+          </div>
+          <ol class="city-logistics-grid city-steps">
+            {area.howItWorks.map((step, i) => (
+              <li class="city-log-card">
+                <div class="k">{String(i + 1).padStart(2, '0')} · {step.title}</div>
+                <p>{step.body}</p>
+              </li>
+            ))}
+          </ol>
+        </>
+      ) : (
+        <>
+          <div class="city-logistics-head">
+            <div class="section-num">§ Pickup &amp; Turnaround</div>
+            <h2>Pickup &amp; Turnaround in <em>{area.cityName}</em></h2>
+          </div>
+          <div class="city-logistics-grid">
+            <div class="city-log-card">
+              <div class="k">Drive Time</div>
+              <p>{area.driveTime}.</p>
+            </div>
+            <div class="city-log-card">
+              <div class="k">Pickup</div>
+              <p>{area.pickupNote}.</p>
+            </div>
+            <div class="city-log-card">
+              <div class="k">Turnaround</div>
+              <p>3–7 days on most jobs. Rush available — just ask.</p>
+            </div>
+            <div class="city-log-card">
+              <div class="k">Estimates</div>
+              <p>Text a photo to {site.phoneDisplay}, get a quote in 24 hours. No fee to ask.</p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   </section>
+
+  {area.faqs && (
+    <!-- FAQ -->
+    <section class="city-faq">
+      <div class="wrap">
+        <div class="city-faq-head">
+          <div class="section-num">§ Questions</div>
+          <h2>Questions from <em>{area.region}</em></h2>
+        </div>
+        <ul class="city-faq-list">
+          {area.faqs.map((f) => (
+            <li>
+              <h3 class="city-faq-q">{f.q}</h3>
+              <p class="city-faq-a">{f.a}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )}
 
   {nearby.length > 0 && (
     <!-- NEARBY AREAS -->
@@ -238,7 +357,7 @@ const jsonLd = {
       <div class="city-cta-inner">
         <div class="section-num">§ Next Step</div>
         <h2>Text a photo of the damage to <em>{site.phoneDisplay}</em><br />— quote back in 24 hours.</h2>
-        <p>Standing next to a torn wall tent, a blown-out hipbelt, or a UTV seat that won't survive another summer? Send me a picture from {area.cityName} and I'll come back inside 24 hours with a real number and a turnaround date.</p>
+        <p>{area.ctaBody ?? `Standing next to a torn wall tent, a blown-out hipbelt, or a UTV seat that won't survive another summer? Send me a picture from ${area.cityName} and I'll come back inside 24 hours with a real number and a turnaround date.`}</p>
         <div class="city-cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
           <a href="/contact/" class="btn btn-secondary">Use the contact form →</a>
@@ -385,6 +504,160 @@ const jsonLd = {
   }
   .city-services-note a { color: var(--charcoal); border-bottom: 1px solid var(--charcoal); text-decoration: none; }
   .city-services-note a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+
+  /* Grouped, described services — only for cities that set serviceGroups. */
+  .cs-group + .cs-group { margin-top: 48px; }
+  .cs-group-head {
+    font-family: var(--f-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 0 0 14px;
+  }
+  .cs-detail-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    column-gap: 48px;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .cs-detail-list li {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .cs-detail-name {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(19px, 2.2vw, 22px);
+    letter-spacing: -0.015em;
+    margin: 0 0 6px;
+    color: var(--charcoal);
+  }
+  .cs-detail-name a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+    transition: color 0.12s ease, border-color 0.12s ease;
+  }
+  .cs-detail-name a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+  .cs-detail-body {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    max-width: 48ch;
+  }
+  @media (min-width: 720px) {
+    .cs-detail-list { grid-template-columns: repeat(2, 1fr); }
+  }
+  .cs-not-offered {
+    margin: 36px 0 0;
+    padding: 18px 22px;
+    border-left: 3px solid var(--rust);
+    background: var(--canvas-light);
+    font-family: var(--f-serif);
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--charcoal);
+    max-width: 62ch;
+  }
+  .city-steps { list-style: none; padding: 0; margin: 0; }
+
+  /* ---------- LOCAL WORK (cities with servedTowns + matching portfolio jobs) ---------- */
+  .local-work {
+    padding: 80px 0;
+    background: var(--canvas-light);
+    border-top: 2px solid var(--charcoal);
+  }
+  .local-work-head { margin-bottom: 36px; }
+  .local-work h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    text-wrap: balance;
+  }
+  .local-work h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .local-work-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px 28px;
+  }
+  .local-work-card a { display: block; text-decoration: none; color: inherit; }
+  .local-work-media {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .local-work-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+  .local-work-card a:hover .local-work-media img { transform: scale(1.03); }
+  .local-work-town {
+    display: block;
+    margin-top: 14px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+  .local-work-title {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(18px, 2vw, 21px);
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+    margin: 8px 0 0;
+    color: var(--charcoal);
+  }
+  .local-work-card a:hover .local-work-title { color: var(--rust); }
+  @media (min-width: 640px) { .local-work-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 960px) { .local-work-grid { grid-template-columns: repeat(3, 1fr); } }
+
+  /* ---------- CITY FAQ (cities with faqs) ---------- */
+  .city-faq {
+    padding: 80px 0;
+    background: var(--canvas);
+    border-top: 2px solid var(--charcoal);
+  }
+  .city-faq-head { margin-bottom: 32px; }
+  .city-faq h2 {
+    font-size: clamp(30px, 4vw, 52px);
+    letter-spacing: -0.03em;
+    margin-top: 14px;
+    text-wrap: balance;
+  }
+  .city-faq h2 em { font-style: italic; color: var(--river); font-weight: 400; }
+  .city-faq-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border-top: 1px solid var(--rule-strong);
+    max-width: 72ch;
+  }
+  .city-faq-list li { padding: 24px 0; border-bottom: 1px solid var(--rule-strong); }
+  .city-faq-q {
+    font-family: var(--f-serif);
+    font-weight: 600;
+    font-size: clamp(19px, 2.2vw, 23px);
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+    color: var(--charcoal);
+  }
+  .city-faq-a { margin: 0; font-size: 16px; line-height: 1.6; color: var(--ink); }
   @media (min-width: 720px) {
     .city-services-list {
       grid-template-columns: repeat(2, 1fr);

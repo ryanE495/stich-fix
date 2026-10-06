@@ -1,0 +1,56 @@
+---
+/**
+ * Above-the-fold hero image: AVIF with a WebP fallback, responsive srcset,
+ * eager-loaded.
+ *
+ * Built from two getImage() calls instead of <Picture> because the formats
+ * don't share a quality scale. One quality for both (what <Picture> does)
+ * either bloats the AVIF — q82 AVIF came out 40% larger than q82 WebP — or
+ * degrades the WebP fallback. q50 AVIF lands 30–70% under q82 WebP on these
+ * photos at comparable visual quality.
+ *
+ * The <picture> wrapper is display: contents (global.css), so the <img> sizes
+ * against its frame exactly as a bare <img> did. Scoped-style attributes from
+ * the calling page arrive in ...attrs and land on the <img>, so the page's
+ * existing image class keeps working.
+ */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: string | ImageMetadata;
+  alt: string;
+  width: number;
+  height: number;
+  widths: number[];
+  sizes: string;
+  class?: string;
+  /** Leave unset unless this image is the page's LCP element. */
+  fetchpriority?: 'high' | 'low' | 'auto';
+  [attr: `data-${string}`]: unknown;
+}
+
+const { src, alt, width, height, widths, sizes, class: className, fetchpriority, ...attrs } = Astro.props;
+
+const [avif, webp] = await Promise.all([
+  getImage({ src, width, height, widths, format: 'avif', quality: 50 }),
+  getImage({ src, width, height, widths, format: 'webp', quality: 82 }),
+]);
+---
+
+<picture class="hero-picture">
+  <source type="image/avif" srcset={avif.srcSet.attribute} sizes={sizes} />
+  <img
+    {...attrs}
+    class={className}
+    src={webp.src}
+    srcset={webp.srcSet.attribute}
+    sizes={sizes}
+    alt={alt}
+    width={width}
+    height={height}
+    loading="eager"
+    decoding="async"
+    fetchpriority={fetchpriority}
+  />
+</picture>

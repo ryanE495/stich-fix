@@ -1,4 +1,5 @@
 ---
+import PortfolioPhoto from '../../components/PortfolioPhoto.astro';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
@@ -73,12 +74,7 @@ const jsonLd = {
                 <a href={`/portfolio/${item.slug}/`}>
                   <div class="card-media">
                     {thumb ? (
-                      <img
-                        src={thumb}
-                        alt={`${item.title} — ${categoryLabel(item.category)}`}
-                        loading="lazy"
-                        decoding="async"
-                      />
+                      <PortfolioPhoto src={thumb} alt={`${item.title} — ${categoryLabel(item.category)}`} sizes="(max-width: 719px) 100vw, (max-width: 1180px) 50vw, 566px" />
                     ) : (
                       <div class="card-media-empty" aria-hidden="true"></div>
                     )}

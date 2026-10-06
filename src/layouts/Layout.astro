@@ -7,6 +7,13 @@ import '@fontsource-variable/fraunces';
 import '@fontsource-variable/fraunces/wght-italic.css';
 import '@fontsource-variable/inter';
 
+// The two font files behind above-the-fold text (body copy and headings /
+// brand), preloaded so they start downloading with the HTML instead of after
+// the CSS is parsed. Mobile LCP is text, and it repaints when these arrive.
+// Same source files the @fontsource CSS points at, so Vite emits one asset each.
+import frauncesNormalWoff2 from '@fontsource-variable/fraunces/files/fraunces-latin-wght-normal.woff2?url';
+import interNormalWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
@@ -54,9 +61,9 @@ const {
 const canonical = new URL(canonicalPath ?? Astro.url.pathname, site.url).toString();
 const schemas = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
 
-// Strip any " — …" / " | brand" suffix so the final crumb reads as a short
-// page name rather than the full SEO title.
-const crumbLeafName = title.split(/\s+[—|]\s+/)[0];
+// Strip any " — …" / " – …" / " | brand" suffix so the final crumb reads as a
+// short page name rather than the full SEO title.
+const crumbLeafName = title.split(/\s+[—–|]\s+/)[0];
 
 if (breadcrumbs?.length) {
   const trail = [
@@ -84,10 +91,8 @@ if (breadcrumbs?.length) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
 
-    <!-- Preconnect to third parties used on every page -->
-    <link rel="preconnect" href="https://c.clarity.ms" crossorigin />
-    <link rel="dns-prefetch" href="https://c.clarity.ms" />
-    <link rel="preconnect" href="https://www.clarity.ms" crossorigin />
+    <link rel="preload" href={frauncesNormalWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={interNormalWoff2} as="font" type="font/woff2" crossorigin />
 
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -126,13 +131,29 @@ if (breadcrumbs?.length) {
       <script type="application/ld+json" is:inline set:html={JSON.stringify(schema)} />
     ))}
 
-    <!-- Microsoft Clarity -->
+    <!--
+      Microsoft Clarity, started after the page has loaded and the browser is
+      idle. Loading it async from the head wasn't enough: it downloaded before
+      the first paint and its DOM snapshot held the main thread while the text
+      was waiting to render, adding ~1.3s to mobile LCP. The cost of waiting is
+      that sessions which leave before the load event aren't recorded.
+    -->
     <script is:inline>
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "wmnroq6gcj");
+      (function () {
+        function startClarity() {
+          (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+          })(window, document, "clarity", "script", "wmnroq6gcj");
+        }
+        function whenIdle() {
+          if ('requestIdleCallback' in window) requestIdleCallback(startClarity, { timeout: 4000 });
+          else setTimeout(startClarity, 2000);
+        }
+        if (document.readyState === 'complete') whenIdle();
+        else window.addEventListener('load', whenIdle, { once: true });
+      })();
     </script>
   </head>
   <body>

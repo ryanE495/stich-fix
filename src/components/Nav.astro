@@ -1,6 +1,10 @@
 ---
 import { site, nav, customBuildLinks, type NavKey } from '../config/site';
 import { serviceAreas } from '../data/service-areas';
+// Self-hosted copy of portfolio-images/logo-v2.webp. Served from Supabase it
+// cost an extra cross-origin connection on every page (sent no-cache, so it
+// was revalidated every visit) right in the above-the-fold path.
+import logo from '../assets/brand/logo-v2.webp';
 
 interface Props {
   active?: NavKey;
@@ -14,7 +18,7 @@ const { active } = Astro.props;
     <a href="/" class="brand">
       <img
         class="brand-mark"
-        src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/logo-v2.webp"
+        src={logo.src}
         alt={`${site.name} logo`}
         width="76"
         height="76"

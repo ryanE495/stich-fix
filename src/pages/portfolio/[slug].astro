@@ -1,4 +1,5 @@
 ---
+import PortfolioPhoto from '../../components/PortfolioPhoto.astro';
 import Layout from '../../layouts/Layout.astro';
 import { site, seo } from '../../config/site';
 import {
@@ -40,6 +41,18 @@ const hasMaterials =
 const hasDetails = details.length > 0;
 
 const images = [item.before_image_url, item.after_image_url].filter(Boolean) as string[];
+
+// Tent and tipi jobs point readers at the canvas tent repair page. The anchor
+// follows what the job actually was, so the links across these entries read
+// naturally instead of repeating one phrase.
+const tentRepairAnchor =
+  item.category !== 'canvas_tent'
+    ? null
+    : /\btipi/i.test(item.title)
+      ? 'tipi repair'
+      : /\bwall tent/i.test(item.title)
+        ? 'wall tent repair'
+        : 'canvas tent repair';
 
 const catLabel = categoryLabel(item.category);
 const metaTitle = buildMetaTitle(item.title, site.name);
@@ -99,24 +112,14 @@ const jsonLd = {
           {item.before_image_url && (
             <figure class="ba-figure">
               <div class="ba-frame">
-                <img
-                  src={item.before_image_url}
-                  alt={item.title}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <PortfolioPhoto src={item.before_image_url} alt={item.title} sizes="(max-width: 719px) 100vw, (max-width: 1180px) 50vw, 566px" />
               </div>
             </figure>
           )}
           {item.after_image_url && (
             <figure class="ba-figure">
               <div class="ba-frame">
-                <img
-                  src={item.after_image_url}
-                  alt={item.title}
-                  loading="lazy"
-                  decoding="async"
-                />
+                <PortfolioPhoto src={item.after_image_url} alt={item.title} sizes="(max-width: 719px) 100vw, (max-width: 1180px) 50vw, 566px" />
               </div>
             </figure>
           )}
@@ -192,7 +195,7 @@ const jsonLd = {
               <li class="related-card">
                 <a href={`/portfolio/${r.slug}/`}>
                   <div class="related-media">
-                    {thumb && <img src={thumb} alt={`${r.title} — ${categoryLabel(r.category)}`} loading="lazy" decoding="async" />}
+                    {thumb && <PortfolioPhoto src={thumb} alt={`${r.title} — ${categoryLabel(r.category)}`} sizes="(max-width: 719px) 100vw, (max-width: 1180px) 33vw, 370px" />}
                   </div>
                   <span class="related-cat">{categoryLabel(r.category)}</span>
                   <h3 class="related-title">{r.title}</h3>
@@ -213,6 +216,9 @@ const jsonLd = {
         <div class="section-num">§ Have Something Like This?</div>
         <h2>Got a project like this? <em>Text me a photo.</em></h2>
         <p>Free quote in 24 hours. This is a personal cell — call or text and you'll get me direct.</p>
+        {tentRepairAnchor && (
+          <p class="cta-related">See what <a href="/services/canvas-tent-repair/">{tentRepairAnchor}</a> costs and how long it usually takes.</p>
+        )}
         <div class="cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
           <a href="/contact/" class="btn btn-secondary">Use the contact form &rarr;</a>
@@ -484,6 +490,14 @@ const jsonLd = {
     color: #d9c9a8;
     max-width: 54ch;
   }
+  /* Sits under the lead paragraph, so pull it up to read as one block. */
+  .project-cta p.cta-related { margin-top: -16px; font-size: 16px; }
+  .cta-related a {
+    color: var(--canvas);
+    text-decoration: none;
+    border-bottom: 1px solid #b0a99f;
+  }
+  .cta-related a:hover { color: var(--rust); border-bottom-color: var(--rust); }
   .cta-row {
     display: flex;
     gap: 14px;

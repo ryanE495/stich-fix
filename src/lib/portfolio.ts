@@ -175,6 +175,21 @@ export async function fetchRecentPortfolio(limit = 3): Promise<PortfolioItem[]> 
   }
 }
 
+/**
+ * The town a job came from, read from whichever detail row is labeled
+ * "Location" ("Delta", "Paonia, CO" → "Delta", "Paonia"). Null when the job
+ * has no location recorded.
+ */
+export function portfolioTown(item: PortfolioItem): string | null {
+  const rows: [string | null, string | null][] = [
+    [item.detail_1_label, item.detail_1_value],
+    [item.detail_2_label, item.detail_2_value],
+    [item.detail_3_label, item.detail_3_value],
+  ];
+  const value = rows.find(([label]) => label?.trim().toLowerCase() === 'location')?.[1];
+  return value ? value.split(',')[0].trim() : null;
+}
+
 /** Pick the best thumbnail image (after > before). */
 export function pickThumbnail(item: PortfolioItem): string | null {
   return item.after_image_url || item.before_image_url || null;

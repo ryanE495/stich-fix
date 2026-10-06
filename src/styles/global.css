@@ -101,6 +101,13 @@ a { color: inherit; }
   text-decoration: none;
   color: var(--ink);
 }
+/*
+ * Hero images are <Picture> (AVIF with a WebP fallback). The <picture> wrapper
+ * mustn't generate a box, or the <img> inside stops filling its aspect-ratio
+ * frame — the frames size the <img> directly with height: 100%.
+ */
+picture.hero-picture { display: contents; }
+
 .brand-mark {
   width: 56px;
   height: 56px;

@@ -1,11 +1,12 @@
 ---
-import { Image } from 'astro:assets';
+import HeroPicture from '../components/HeroPicture.astro';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
 import { servicePages } from '../data/service-pages';
 import AreasServed from '../components/AreasServed.astro';
 import RecentWorkLinks from '../components/RecentWorkLinks.astro';
+import MailInCallout from '../components/MailInCallout.astro';
 
 // Deep-link every price-list row to its dedicated SEO page automatically —
 // service-pages.ts is the single source of truth for slugs, so this can't
@@ -94,18 +95,14 @@ const jsonLd = {
         </div>
         <div class="page-head-media" data-hero-in style="--hero-delay: 0.48s">
           <div class="page-head-image-frame">
-          <Image
+          <HeroPicture
             class="page-head-image"
             src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-sewing-hero.webp"
             width={1200}
             height={960}
             widths={[480, 768, 1200]}
             sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-            format="webp"
-            quality={82}
             alt="Industrial sewing machine stitching heavy canvas in the Western Slope Stitchworks shop"
-            loading="eager"
-            decoding="async"
             fetchpriority="high"
           />
           </div>
@@ -155,6 +152,8 @@ const jsonLd = {
 
   <!-- SERVICE AREA STRIP -->
   <AreasServed intro="Full price-list repairs and custom work, available across the Western Slope. Free local pickup in Montrose, Olathe & Delta — a small route fee everywhere else — and 3–7 day turnaround in each of these communities:" />
+
+  <MailInCallout kicker="Not on the Western Slope? Ship it to us." />
 
   <!-- WHAT I DON'T DO -->
   <section class="dont">

@@ -97,7 +97,7 @@ If the site moves off Netlify later, swap the form handler to Formspree, Basin, 
 3. Redeploy.
 4. When ready to launch, swap in the production key (`EZAK…`) and redeploy.
 
-**What it does:** rates the customer's box from 81425 to their ZIP (ZIP and country only, plus whether it's a residential address so the carrier's residential surcharge is included), takes the cheapest ground service, doubles it for round trip, pads the high end 15%, and returns a range. Live results are cached for 24 hours in function memory, keyed by the first 3 digits of the destination ZIP, residential or business, and the box.
+**What it does:** rates the customer's box from 81416 (Delta) to their ZIP (ZIP and country only, plus whether it's a residential address so the carrier's residential surcharge is included), takes the cheapest ground service, doubles it for round trip, pads the high end 15%, and returns a range. Live results are cached for 24 hours in function memory, keyed by the first 3 digits of the destination ZIP, residential or business, and the box.
 
 **Rate limit:** 20 EasyPost lookups per client IP per hour (cache hits don't count). Over the limit the endpoint returns the "roughly" estimate instead of an error. The counter lives in function memory, so it's a per-instance cap, not a global one. Change the number in `SHIPPING_ESTIMATE.rateLimitPerHour`.
 

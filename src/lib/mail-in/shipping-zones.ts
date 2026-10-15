@@ -7,7 +7,7 @@
  * the endpoint itself is unreachable (e.g. local `astro dev`, which doesn't
  * run functions).
  *
- * Ground rates approximated from the shop in Olathe, CO (81425) by 3-digit
+ * Ground rates approximated from the shop in Delta, CO (81416) by 3-digit
  * ZIP prefix. Only meant to land in a believable range; the real rate is
  * confirmed on the phone.
  */
@@ -22,7 +22,7 @@ const REMOTE_MULTIPLIER = 1.5;
 /** Carrier residential delivery surcharge, per package. */
 const RESIDENTIAL_SURCHARGE_USD = 6.5;
 
-/** Very rough ground zone from 81425 by 3-digit ZIP prefix. */
+/** Very rough ground zone from 81416 by 3-digit ZIP prefix. */
 export function approximateZone(zip: string): { zone: number; remote: boolean } {
   const p = Number(zip.slice(0, 3));
   if (p >= 995 || p === 967 || p === 968 || (p >= 6 && p <= 9)) return { zone: 8, remote: true }; // AK, HI, PR

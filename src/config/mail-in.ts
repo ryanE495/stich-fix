@@ -19,7 +19,7 @@ export const mailIn = {
   ctaLabel: 'Start my repair request',
   minimum: 100,
   /** Ship-to location. Trust signal for out-of-state customers, not a local SEO signal. */
-  shopLocation: 'Olathe, Colorado, just north of Montrose',
+  shopLocation: 'Delta, Colorado',
   // TODO(Ryan): if you want the weekly job cap shown on the page, add it here
   // and reference it in the "Booked by intake week" section.
 } as const;

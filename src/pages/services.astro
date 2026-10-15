@@ -1,5 +1,4 @@
 ---
-import HeroPicture from '../components/HeroPicture.astro';
 import Layout from '../layouts/Layout.astro';
 import { site, seo } from '../config/site';
 import { categories, dontDo } from '../config/services';
@@ -7,6 +6,40 @@ import { servicePages } from '../data/service-pages';
 import AreasServed from '../components/AreasServed.astro';
 import RecentWorkLinks from '../components/RecentWorkLinks.astro';
 import MailInCallout from '../components/MailInCallout.astro';
+import PlateSwap from '../components/PlateSwap.astro';
+import PortfolioPhoto from '../components/PortfolioPhoto.astro';
+import BeforePrints from '../components/BeforePrints.astro';
+import StitchIcon from '../components/StitchIcon.astro';
+import { fetchPublishedPortfolio, withSlugs } from '../lib/portfolio';
+
+const portfolio = withSlugs(await fetchPublishedPortfolio());
+const job = (slug: string) => portfolio.find((p) => p.slug === slug);
+
+// Hero plate: a seat rebuild, since seats are a big line on this price list
+// (and the home page already leads with a wall tent).
+const heroJob = job('snowmobile-2-seater-seat-full-rebuild-with-multi-panel-pattern-work');
+
+// One real job beside each category's prices — the same jobs as the home
+// page's service cards, so the two pages agree.
+const CATEGORY_JOBS: Record<string, { slug: string; label: string }> = {
+  outdoor: { slug: 'canvas-tipi-repair-multi-tear-restoration', label: 'Canvas tipi' },
+  raft: { slug: 'nrs-raft-bag-zipper-replacement', label: 'NRS raft bag' },
+  commercial: { slug: 'antique-chair-seat-rebuild-with-new-foam-welt-cord', label: 'Antique chair' },
+};
+const categoryPhoto = Object.fromEntries(
+  Object.entries(CATEGORY_JOBS).map(([id, { slug, label }]) => {
+    const j = job(slug);
+    return [id, j?.after_image_url ? { src: j.after_image_url, title: j.title, label, href: `/portfolio/${slug}/` } : null];
+  }),
+);
+
+// Before prints by the closing call to action: the same three jobs as the
+// category photos, so each print's "after" is up the page.
+const sendInPrints = [
+  { slug: 'nrs-raft-bag-zipper-replacement', label: 'Raft bag' },
+  { slug: 'antique-chair-seat-rebuild-with-new-foam-welt-cord', label: 'Antique chair' },
+  { slug: 'stool-covers-full-rebuild-with-boxing-top-stitching-new-foam', label: 'Shop stools' },
+];
 
 // Deep-link every price-list row to its dedicated SEO page automatically —
 // service-pages.ts is the single source of truth for slugs, so this can't
@@ -78,7 +111,7 @@ const jsonLd = {
 <Layout
   active="services"
   title={`Gear & Canvas Repair Services + Pricing | ${site.name}`}
-  description="Real pricing for gear, canvas, raft, UTV, and commercial upholstery repair. Tipi patches from $60, UTV seats from $120. Free photo quotes — Montrose, CO."
+  description="Real pricing for gear, canvas, raft, UTV, and commercial upholstery repair. Tipi patches from $60, UTV seats from $120. Free photo quotes — Delta, CO."
   canonicalPath="/services/"
   jsonLd={jsonLd}
 >
@@ -94,51 +127,62 @@ const jsonLd = {
           </p>
         </div>
         <div class="page-head-media" data-hero-in style="--hero-delay: 0.48s">
-          <div class="page-head-image-frame">
-          <HeroPicture
-            class="page-head-image"
-            src="https://bswmrfxdadcmuyhmsagv.supabase.co/storage/v1/object/public/portfolio-images/about-sewing-hero.webp"
-            width={1200}
-            height={960}
-            widths={[480, 768, 1200]}
-            sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
-            alt="Industrial sewing machine stitching heavy canvas in the Western Slope Stitchworks shop"
-            fetchpriority="high"
-          />
-          </div>
-          <div class="page-head-caption">
-            <span>Plate 01 / Workshop</span>
-            <span>Montrose, CO</span>
-          </div>
+          {heroJob?.before_image_url && heroJob.after_image_url && (
+            <PlateSwap
+              before={heroJob.before_image_url}
+              after={heroJob.after_image_url}
+              alt="snowmobile 2-seater seat, fully rebuilt with multi-panel pattern work"
+              caption="Plate 01 / Snowmobile seat, before & after"
+              captionHref={`/portfolio/${heroJob.slug}/`}
+              location={site.location}
+              sizes="(max-width: 720px) 100vw, (max-width: 1180px) 45vw, 540px"
+            />
+          )}
         </div>
       </div>
     </div>
   </section>
 
   <!-- SERVICE CATEGORIES -->
-  {categories.map((cat) => (
-    <section class="cat" id={cat.id}>
-      <div class="wrap">
-        <div class="cat-head" data-reveal>
-          <span class="cat-num">{cat.num}</span>
-          <h2>{cat.title}</h2>
+  {categories.map((cat, ci) => {
+    const photo = categoryPhoto[cat.id];
+    return (
+      <section class="cat" id={cat.id} data-seam>
+        <div class="wrap">
+          <div class="cat-head" data-reveal>
+            <span class="cat-num">{cat.num}</span>
+            <h2>{cat.title}</h2>
+          </div>
+          <div class:list={['cat-body', { 'has-photo': photo }]}>
+            <ul class="price-list" data-reveal style="--reveal-delay: 140ms">
+              {cat.items.map((item) => {
+                const href = priceItemHref(item.name, item.href);
+                return (
+                  <li class="price-item">
+                    <span class="pi-name">
+                      {href ? <a href={href}>{item.name}</a> : item.name}
+                    </span>
+                    <span class="pi-price">{item.price}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            {photo && (
+              <figure class="cat-photo" data-reveal style="--reveal-delay: 240ms">
+                <a class="cat-photo-frame" href={photo.href} aria-label={`See the job: ${photo.title}`}>
+                  <PortfolioPhoto src={photo.src} alt={`After the repair: ${photo.title}`} sizes="(max-width: 900px) 100vw, 360px" />
+                </a>
+                <figcaption class="cat-photo-cap">
+                  <span><a href={photo.href}>Plate {String(ci + 2).padStart(2, '0')} / {photo.label}</a></span>
+                  <span>{site.location}</span>
+                </figcaption>
+              </figure>
+            )}
+          </div>
         </div>
-        <ul class="price-list" data-reveal style="--reveal-delay: 140ms">
-          {cat.items.map((item) => {
-            const href = priceItemHref(item.name, item.href);
-            return (
-              <li class="price-item">
-                <span class="pi-name">
-                  {href ? <a href={href}>{item.name}</a> : item.name}
-                </span>
-                <span class="pi-price">{item.price}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </section>
-  ))}
+      </section>
+    );
+  })}
 
   <!-- GOT SOMETHING WEIRD -->
   <section class="weird">
@@ -151,7 +195,7 @@ const jsonLd = {
   </section>
 
   <!-- SERVICE AREA STRIP -->
-  <AreasServed intro="Full price-list repairs and custom work, available across the Western Slope. Free local pickup in Montrose, Olathe & Delta — a small route fee everywhere else — and 3–7 day turnaround in each of these communities:" />
+  <AreasServed map intro="Full price-list repairs and custom work, available across the Western Slope. Free local pickup in Montrose, Olathe & Delta — a small route fee everywhere else — and 3–7 day turnaround in each of these communities:" />
 
   <MailInCallout kicker="Not on the Western Slope? Ship it to us." />
 
@@ -166,47 +210,34 @@ const jsonLd = {
   </section>
 
   <!-- HOW I WORK -->
-  <section class="how">
+  <section class="how" data-seam>
     <div class="wrap">
       <h2 data-reveal>How I Work</h2>
       <div class="how-grid" data-reveal style="--reveal-delay: 140ms">
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="16" cy="16" r="11" />
-              <path d="M16 9v7l4.5 3" />
-            </svg>
+            <StitchIcon id="clock" delay={0.30} paths={["M16 5 A11 11 0 1 1 15.99 5","M16 9v7l4.5 3"]} />
           </div>
           <h4>Turnaround</h4>
           <p>Most jobs in 3–7 days. Rush work available on request.</p>
         </div>
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 28s9-8 9-15a9 9 0 1 0-18 0c0 7 9 15 9 15z" />
-              <circle cx="16" cy="13" r="3.25" />
-            </svg>
+            <StitchIcon id="pin" delay={0.45} paths={["M16 28s9-8 9-15a9 9 0 1 0-18 0c0 7 9 15 9 15z","M16 9.75 A3.25 3.25 0 1 1 15.99 9.75"]} />
           </div>
           <h4>Pickup</h4>
           <p>Free local pickup in Montrose, Olathe &amp; Delta. Pickup everywhere else on the Western Slope for a small route fee.</p>
         </div>
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 27V8l10-3 10 3v19" />
-              <path d="M6 27h20" />
-              <path d="M12 13h2M12 17h2M12 21h2M18 13h2M18 17h2M18 21h2" />
-            </svg>
+            <StitchIcon id="building" delay={0.60} paths={["M6 27V8l10-3 10 3v19","M6 27h20","M12 13h2M12 17h2M12 21h2M18 13h2M18 17h2M18 21h2"]} />
           </div>
           <h4>Commercial Accounts</h4>
           <p>Weekly or biweekly pickup. Monthly repair blocks available — ask for pricing.</p>
         </div>
         <div class="how-card">
           <div class="how-icon" aria-hidden="true">
-            <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M6 8h20v14H14l-5 5v-5H6z" />
-              <path d="M12 14h10M12 18h7" />
-            </svg>
+            <StitchIcon id="message" delay={0.75} paths={["M6 8h20v14H14l-5 5v-5H6z","M12 14h10M12 18h7"]} />
           </div>
           <h4>Estimates</h4>
           <p>Text me a photo, get a quote in 24 hours. No fee to ask.</p>
@@ -237,8 +268,9 @@ const jsonLd = {
   />
 
   <!-- FINAL CTA -->
-  <section class="final">
+  <section class="final" data-seam>
     <div class="wrap">
+      <div class="final-grid">
       <div class="final-inner" data-reveal>
         <h2>Ready to Send Something In?</h2>
         <p>Text me a photo of the damage. I'll tell you what it'll cost and when I can have it back to you.</p>
@@ -246,6 +278,8 @@ const jsonLd = {
           <a href={site.phoneHref} class="btn">Call or Text</a>
           <a href="/contact/" class="btn btn-secondary">Send a Photo</a>
         </div>
+      </div>
+        <BeforePrints jobs={sendInPrints} startPlate={5} dark data-reveal style="--reveal-delay: 160ms" />
       </div>
     </div>
   </section>
@@ -432,11 +466,13 @@ const jsonLd = {
     position: relative;
     padding-left: 18px;
   }
+  /* A cross-stitch where the dash was: these are the jobs the shop turns down. */
   .dont-list li::before {
-    content: '—';
+    content: '×';
     position: absolute;
     left: 0;
-    color: var(--muted);
+    color: var(--rust);
+    font-weight: 600;
   }
 
   /* ---------- HOW I WORK ---------- */
@@ -595,6 +631,144 @@ const jsonLd = {
     .price-item { gap: 14px; }
   }
 
+  /* ========== REDESIGN: stitching and real work ========== */
+
+  /* Category body: the price list, with a real job beside it. */
+  .cat-body.has-photo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 56px;
+    align-items: start;
+  }
+  .cat-photo { margin: 6px 0 0; position: sticky; top: 110px; }
+  .cat-photo-frame {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+  }
+  .cat-photo-frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cat-photo-frame::after {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    border: 1.5px dashed rgba(244, 236, 222, 0.9);
+    border-radius: 1px;
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity 0.35s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+  .cat-photo-frame:hover :global(img),
+  .cat-photo-frame:focus-visible :global(img) { transform: scale(1.05); }
+  .cat-photo-frame:hover::after,
+  .cat-photo-frame:focus-visible::after { opacity: 1; transform: none; }
+  .cat-photo-cap {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .cat-photo-cap a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--rule-strong); }
+  .cat-photo-cap a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+  .cat-photo-cap > span:last-child { white-space: nowrap; }
+  @media (max-width: 900px) {
+    .cat-body.has-photo { grid-template-columns: 1fr; gap: 32px; }
+    .cat-photo { position: static; max-width: 460px; }
+  }
+
+  /* Price rows: hovering one sews a stitch along its bottom edge. */
+  .price-item { position: relative; }
+  .price-item::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--rust) 0 9px, transparent 9px 15px);
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+    pointer-events: none;
+  }
+  .price-item:hover::after,
+  .price-item:focus-within::after { clip-path: inset(0); }
+  .pi-price { transition: color 0.2s ease; }
+  .price-item:hover .pi-price { color: var(--rust); }
+
+  /* "Got Something Weird?" — sewn on like a patch: a running stitch travels
+     top, right, bottom, then left around the box when it scrolls in. Each side
+     is a background layer whose length is a registered custom property. */
+  @property --sew-t { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+  @property --sew-r { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+  @property --sew-b { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+  @property --sew-l { syntax: '<percentage>'; inherits: false; initial-value: 100%; }
+  .weird-inner {
+    position: relative;
+    border: none;
+    padding: 34px 36px;
+  }
+  .weird-inner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    --st: repeating-linear-gradient(90deg, var(--rust) 0 11px, transparent 11px 18px);
+    --sv: repeating-linear-gradient(180deg, var(--rust) 0 11px, transparent 11px 18px);
+    background:
+      var(--st) left top / var(--sew-t) 2px no-repeat,
+      var(--sv) right top / 2px var(--sew-r) no-repeat,
+      var(--st) right bottom / var(--sew-b) 2px no-repeat,
+      var(--sv) left bottom / 2px var(--sew-l) no-repeat;
+  }
+  @keyframes sew-box {
+    0% { --sew-t: 0%; --sew-r: 0%; --sew-b: 0%; --sew-l: 0%; }
+    30% { --sew-t: 100%; --sew-r: 0%; --sew-b: 0%; --sew-l: 0%; }
+    50% { --sew-t: 100%; --sew-r: 100%; --sew-b: 0%; --sew-l: 0%; }
+    80% { --sew-t: 100%; --sew-r: 100%; --sew-b: 100%; --sew-l: 0%; }
+    100% { --sew-t: 100%; --sew-r: 100%; --sew-b: 100%; --sew-l: 100%; }
+  }
+  :global(.js) .weird-inner:not(.is-visible)::before { --sew-t: 0%; --sew-r: 0%; --sew-b: 0%; --sew-l: 0%; }
+  :global(.js) .weird-inner.is-visible::before { animation: sew-box 2.2s cubic-bezier(0.45, 0, 0.55, 1) 0.35s both; }
+
+  /* How I Work: the stitched icons sew in; cards pick up a stitch on hover. */
+  .how-icon { transition: border-color 0.25s ease, background 0.25s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+  .how-card:hover .how-icon { border: 1px dashed var(--rust); background: var(--canvas); transform: rotate(-6deg); }
+
+  /* Final call to action, with the before prints beside it. */
+  .final-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 48px;
+    align-items: center;
+  }
+  @media (max-width: 900px) {
+    .final-grid { grid-template-columns: 1fr; gap: 24px; }
+  }
+  /* The page ends on this dark section; with the footer's top margin a pale
+     band would show between two dark blocks. A hairline keeps them distinct. */
+  :global(footer.footer) { margin-top: 0; }
+  .final { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .price-item::after { transition: none; }
+    :global(.js) .weird-inner::before { animation: none !important; --sew-t: 100%; --sew-r: 100%; --sew-b: 100%; --sew-l: 100%; }
+    .cat-photo-frame :global(img), .cat-photo-frame::after, .how-icon { transition: none; }
+  }
+
   /* ========== ANIMATIONS ========== */
   [data-hero-in] {
     opacity: 0;
@@ -606,7 +780,8 @@ const jsonLd = {
     to { opacity: 1; transform: none; }
   }
 
-  [data-reveal] {
+  /* Hidden-until-revealed only when scripts run; without JS everything shows. */
+  :global(.js) [data-reveal] {
     opacity: 0;
     transform: translateY(28px);
     transition:
@@ -615,14 +790,14 @@ const jsonLd = {
     transition-delay: var(--reveal-delay, 0s);
     will-change: opacity, transform;
   }
-  [data-reveal].is-visible {
+  :global(.js) [data-reveal].is-visible {
     opacity: 1;
     transform: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
     [data-hero-in],
-    [data-reveal] {
+    :global(.js) [data-reveal] {
       opacity: 1;
       transform: none;
       animation: none;
@@ -632,7 +807,8 @@ const jsonLd = {
 </style>
 
 <script>
-  const reveals = document.querySelectorAll<HTMLElement>('[data-reveal]');
+  // Sections fade up, and seams sew in, as they come into view.
+  const reveals = document.querySelectorAll<HTMLElement>('[data-reveal], [data-seam]');
   if (reveals.length && 'IntersectionObserver' in window) {
     const io = new IntersectionObserver(
       (entries) => {

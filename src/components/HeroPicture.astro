@@ -27,10 +27,12 @@ interface Props {
   class?: string;
   /** Leave unset unless this image is the page's LCP element. */
   fetchpriority?: 'high' | 'low' | 'auto';
+  /** Eager by default. Lazy for a hero layer that isn't shown on first paint. */
+  loading?: 'eager' | 'lazy';
   [attr: `data-${string}`]: unknown;
 }
 
-const { src, alt, width, height, widths, sizes, class: className, fetchpriority, ...attrs } = Astro.props;
+const { src, alt, width, height, widths, sizes, class: className, fetchpriority, loading = 'eager', ...attrs } = Astro.props;
 
 const [avif, webp] = await Promise.all([
   getImage({ src, width, height, widths, format: 'avif', quality: 50 }),
@@ -49,7 +51,7 @@ const [avif, webp] = await Promise.all([
     alt={alt}
     width={width}
     height={height}
-    loading="eager"
+    loading={loading}
     decoding="async"
     fetchpriority={fetchpriority}
   />

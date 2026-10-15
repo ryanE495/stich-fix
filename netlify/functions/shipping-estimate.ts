@@ -7,7 +7,7 @@
  * Request:  { zip, length, width, height, weight, residential }   inches, pounds, boolean
  * Response: { lowUsd, highUsd, source: 'live' | 'roughly' }
  *
- * - Rates from EasyPost (POST /v2/shipments), shop ZIP 81425 → customer ZIP.
+ * - Rates from EasyPost (POST /v2/shipments), shop ZIP 81416 (Delta) → customer ZIP.
  *   Addresses are ZIP + country only (plus the residential flag on the
  *   customer's address); no street address is needed to rate.
  * - EasyPost parcel weight is in OUNCES; dimensions are in inches.

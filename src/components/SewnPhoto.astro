@@ -1,0 +1,120 @@
+---
+/**
+ * A photo sewn onto the page like a patch: when it scrolls into view, a
+ * machine needle runs a stitch all the way around it, bobbing as it goes, then
+ * lifts away and leaves the stitch behind.
+ *
+ * Wrap the photo's frame in this component. `width`/`height` are the frame's
+ * design size in px; the stitch layer overhangs it by 10px a side and stretches
+ * to fit at any rendered size (the aspect barely drifts as the frame scales, so
+ * the stretch stays under ~1% and the needle never visibly distorts).
+ *
+ * The needle and the thread's reveal share one path and one SMIL timing, so
+ * they can't drift. Markup defaults to the finished stitch: without scripts,
+ * or with reduced motion, it's simply there. When the stitch finishes the
+ * element fires a `sewn` event, so a page can chain something after it.
+ */
+interface Props {
+  /** Unique on the page; used for SVG ids. */
+  id: string;
+  width: number;
+  height: number;
+  /** Seconds for one lap of the needle. */
+  duration?: number;
+  class?: string;
+}
+
+const { id, width, height, duration = 2.8, class: className } = Astro.props;
+const W = width + 20;
+const H = height + 20;
+// Stitch line 7px outside the photo's edge, rounded corners.
+const d = `M10 3 H${W - 10} Q${W - 3} 3 ${W - 3} 10 V${H - 10} Q${W - 3} ${H - 3} ${W - 10} ${H - 3} H10 Q3 ${H - 3} 3 ${H - 10} V10 Q3 3 10 3 Z`;
+const dur = `${duration}s`;
+---
+
+<div class:list={['sewn-photo', className]} data-sewn-photo data-duration={duration * 1000}>
+  <slot />
+  <svg class="sp-stitch" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <defs>
+      <mask id={`${id}-mask`} maskUnits="userSpaceOnUse" x="-20" y="-20" width={W + 40} height={H + 40}>
+        <path class="sp-reveal" d={d} pathLength="1" stroke-dashoffset="0">
+          <animate data-sp-anim attributeName="stroke-dashoffset" from="1" to="0" dur={dur} begin="indefinite" fill="freeze" calcMode="spline" keyTimes="0;1" keySplines="0.45 0 0.55 1" />
+        </path>
+      </mask>
+    </defs>
+    <path id={`${id}-path`} class="sp-thread" d={d} mask={`url(#${id}-mask)`} />
+    <g class="sp-needle">
+      <animateMotion data-sp-anim dur={dur} begin="indefinite" fill="freeze" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.45 0 0.55 1">
+        <mpath href={`#${id}-path`} />
+      </animateMotion>
+      <g>
+        <animateTransform data-sp-bob attributeName="transform" type="translate" values="0 -7;0 1;0 -7" dur="0.15s" begin="indefinite" repeatCount="indefinite" />
+        <path class="sp-needle-thread" d="M0 -26 C 10 -40, -8 -50, 6 -66" />
+        <line class="sp-needle-shaft" x1="0" y1="-34" x2="0" y2="2" />
+        <ellipse class="sp-needle-eye" cx="0" cy="-27" rx="1.3" ry="3.2" />
+        <rect class="sp-needle-clamp" x="-4" y="-46" width="8" height="12" rx="1.5" />
+      </g>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .sewn-photo { position: relative; }
+  .sp-stitch {
+    position: absolute;
+    left: -10px;
+    top: -10px;
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    overflow: visible;
+    pointer-events: none;
+  }
+  .sp-reveal { fill: none; stroke: #fff; stroke-width: 12; stroke-dasharray: 1; }
+  .sp-thread {
+    fill: none;
+    stroke: var(--rust);
+    stroke-width: 2.2;
+    stroke-dasharray: 8 6;
+    stroke-linecap: round;
+  }
+  .sp-needle { opacity: 0; transition: opacity 0.35s ease; }
+  .sewn-photo.is-sewing .sp-needle { opacity: 1; }
+  .sewn-photo.is-sewn .sp-needle { opacity: 0; }
+  .sp-needle-shaft { stroke: var(--charcoal); stroke-width: 2.2; stroke-linecap: round; }
+  .sp-needle-eye { fill: var(--canvas-light); }
+  .sp-needle-clamp { fill: var(--charcoal); }
+  .sp-needle-thread { fill: none; stroke: var(--rust); stroke-width: 1.2; }
+</style>
+
+<script>
+  // Unstitch up front and sew in on view — only when motion is allowed.
+  const motionOK = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const photos = document.querySelectorAll<HTMLElement>('[data-sewn-photo]');
+  if (motionOK && photos.length && 'IntersectionObserver' in window) {
+    const sew = (el: HTMLElement) => {
+      const ms = Number(el.dataset.duration) || 2800;
+      el.classList.add('is-sewing');
+      el.querySelectorAll<SVGAnimationElement>('[data-sp-anim], [data-sp-bob]').forEach((a) => a.beginElement());
+      window.setTimeout(() => {
+        el.classList.add('is-sewn');
+        el.querySelectorAll<SVGAnimationElement>('[data-sp-bob]').forEach((a) => a.endElement());
+        el.dispatchEvent(new CustomEvent('sewn', { bubbles: true }));
+      }, ms);
+    };
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          io.unobserve(entry.target);
+          // Let any fade-up on the section land first.
+          window.setTimeout(() => sew(entry.target as HTMLElement), 450);
+        }
+      },
+      { threshold: 0.35 },
+    );
+    photos.forEach((el) => {
+      el.querySelector('.sp-reveal')?.setAttribute('stroke-dashoffset', '1');
+      io.observe(el);
+    });
+  }
+</script>

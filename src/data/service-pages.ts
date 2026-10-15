@@ -71,7 +71,7 @@ export const servicePages: ServicePage[] = [
     tagline: 'A blown roll-top or a pinhole leak doesn’t mean the bag’s dead — most drybags patch clean and go right back on the river.',
     intro: 'Torn seams, punctured fabric, a roll-top that won’t seal anymore — if you searched drybag repair or dry sack repair near me, this is the shop. Raft guides and packrafters on the Gunnison and the Dolores send these through regularly. Send a photo, I’ll give you a real quote inside 24 hours.',
     metaTitle: 'Drybag & Dry Sack Repair | Western Slope Stitchworks',
-    metaDescription: 'Drybag repair for torn seams, punctures, and blown roll-tops. Any brand, sewn or welded fabric. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Drybag repair for torn seams, punctures, and blown roll-tops. Any brand, sewn or welded fabric. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Drybag',
     whatGetsFixedHeading: 'Real Drybag Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -94,10 +94,10 @@ export const servicePages: ServicePage[] = [
     priceItemName: 'Sleeping bag zipper replacement',
     eyebrow: '§ Sleeping Bag Zipper Repair',
     h1: 'Sleeping Bag Zipper Repair',
-    tagline: 'A blown zipper is the most common reason a good sleeping bag ends up in the closet instead of a pack.',
+    tagline: 'A blown zipper is the most common reason a good sleeping bag ends up in the closet instead of on the trail.',
     intro: 'Separating teeth, a broken slider, a zipper that catches every pull — sleeping bag zipper repair is one of the most common jobs that comes through the shop. If you searched zipper repair near me, send a photo of the damage and I’ll tell you what it needs.',
     metaTitle: 'Sleeping Bag Zipper Repair | Western Slope Stitchworks',
-    metaDescription: 'Sleeping bag zipper replacement and slider repair — down or synthetic, any brand. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Sleeping bag zipper replacement and slider repair — down or synthetic, any brand. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Workshop',
     whatGetsFixedHeading: 'Real Zipper Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -201,7 +201,7 @@ export const servicePages: ServicePage[] = [
     tagline: 'Sun-cracked vinyl and blown-out foam are the two things that kill a UTV seat — both are fixable without replacing the whole seat.',
     intro: 'Cracked vinyl, torn seams, foam that’s compressed flat — UTV seat upholstery and side-by-side seat re-upholstery are steady work on the Western Slope, where trail season is hard on every seat in the fleet. Send a photo, real quote inside 24 hours.',
     metaTitle: 'UTV & Side-by-Side Seat Upholstery | Western Slope Stitchworks',
-    metaDescription: 'UTV and side-by-side seat re-upholstery — cracked vinyl, torn seams, foam replacement, fleet jobs. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'UTV and side-by-side seat re-upholstery — cracked vinyl, torn seams, foam replacement, fleet jobs. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / UTV Seat',
     whatGetsFixedHeading: 'Real UTV Seat Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -254,7 +254,7 @@ export const servicePages: ServicePage[] = [
     tagline: 'Sun and water are hard on marine vinyl and bimini fabric both — most of what fails is fixable without a full replacement.',
     intro: 'Cracked boat seat vinyl, torn cushions, a bimini top that’s lost its zipper or its shape — boat seat, cushion, and bimini repair is regular work for the drift boats and rafts running the Gunnison and the Colorado. Send a photo, real quote inside 24 hours.',
     metaTitle: 'Boat Seat & Bimini Repair | Western Slope Stitchworks',
-    metaDescription: 'Boat seat, cushion, and bimini top repair — marine vinyl, zipper replacement, foam replacement. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Boat seat, cushion, and bimini top repair — marine vinyl, zipper replacement, foam replacement. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Boat Bimini',
     whatGetsFixedHeading: 'Real Boat & Bimini Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -278,9 +278,9 @@ export const servicePages: ServicePage[] = [
     eyebrow: '§ Dog Vest & K9 Gear Repair',
     h1: 'Dog Vest & K9 Gear Repair',
     tagline: 'Working dog gear takes as much abuse as anything else on this bench — torn vests and blown harnesses get fixed, not replaced.',
-    intro: 'Ripped panels, torn webbing, a harness buckle that’s given out — dog vest and K9 gear repair covers hunting dog vests, service and working dog harnesses, and pack gear built for dogs. Send a photo, real quote inside 24 hours.',
+    intro: 'Ripped panels, torn webbing, a harness buckle that’s given out — dog vest and K9 gear repair covers hunting dog vests, service and working dog harnesses, and working gear built for dogs. Send a photo, real quote inside 24 hours.',
     metaTitle: 'Dog Vest & K9 Gear Repair | Western Slope Stitchworks',
-    metaDescription: 'Dog vest and K9 gear repair — hunting vests, harnesses, pack gear. Torn panels, webbing, buckles. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Dog vest and K9 gear repair — hunting vests, harnesses, working gear. Torn panels, webbing, buckles. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Workshop',
     whatGetsFixedHeading: 'Real Dog Gear Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -292,7 +292,7 @@ export const servicePages: ServicePage[] = [
     faqs: [
       { q: 'Do you work on hunting dog vests specifically?', a: 'Yes — hunting vests, blaze orange gear, neoprene and cordura builds, all common work here given the hunting culture on the Western Slope.' },
       { q: 'Can a torn harness be repaired safely, or should it be replaced?', a: 'Depends on where the tear is. If it’s a load-bearing point I’ll be straight with you about whether a repair actually holds up or if it’s safer to replace.' },
-      { q: 'Do you work on service or working K9 gear too?', a: 'Yes — vests, harnesses, and pack gear for service and working dogs get the same treatment as hunting and recreation gear.' },
+      { q: 'Do you work on service or working K9 gear too?', a: 'Yes — vests, harnesses, and gear for service and working dogs get the same treatment as hunting and recreation gear.' },
       { q: 'How long does dog gear repair take?', a: 'Usually quick — most of these jobs are inside the standard 3–7 day turnaround.' },
     ],
     galleryEmptyCopy: 'Photos from dog vest and K9 gear jobs are getting added to the portfolio. Text a photo of your own project and it might be the next one up.',
@@ -332,7 +332,7 @@ export const servicePages: ServicePage[] = [
     tagline: 'Booth seats and bar stools take a beating every service — a re-cover keeps the dining room looking sharp without replacing the furniture.',
     intro: 'Cracked vinyl, torn seams, a booth cushion that’s lost its shape — restaurant booth and bar stool re-covering is commercial work that runs on a schedule restaurants can actually plan around. Send a photo, real quote inside 24 hours.',
     metaTitle: 'Restaurant Booth & Bar Stool Re-Cover | Western Slope Stitchworks',
-    metaDescription: 'Restaurant booth and bar stool re-covering — commercial vinyl, foam replacement, full dining room jobs. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Restaurant booth and bar stool re-covering — commercial vinyl, foam replacement, full dining room jobs. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Workshop',
     whatGetsFixedHeading: 'Real Booth & Stool Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -358,7 +358,7 @@ export const servicePages: ServicePage[] = [
     tagline: 'A torn storefront awning or a faded patio cover is a repair, not a reason to call a full replacement crew.',
     intro: 'Torn panels, faded and sun-rotted canvas, a patio cover that’s pulled loose from its frame — commercial awning repair and patio cover work keeps storefronts and outdoor dining spaces looking sharp without a full teardown. Send a photo, real quote inside 24 hours.',
     metaTitle: 'Commercial Awning & Patio Cover Repair | Western Slope Stitchworks',
-    metaDescription: 'Commercial awning and patio cover repair — torn panels, sun-rotted canvas, frame and hardware repair. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Commercial awning and patio cover repair — torn panels, sun-rotted canvas, frame and hardware repair. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Awning',
     whatGetsFixedHeading: 'Real Awning Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -415,7 +415,7 @@ export const servicePages: ServicePage[] = [
     tagline: 'Kneeler pads, processional banners, altar and pew fabric — the kind of quiet, careful stitching work that keeps a sanctuary looking cared for.',
     intro: 'Worn kneeler cushions, torn banner fabric, faded pew upholstery — church kneeler and banner repair is careful commercial work, usually scheduled around service times so nothing’s out of place on a Sunday. Send a photo, real quote inside 24 hours.',
     metaTitle: 'Church Kneeler & Banner Repair | Western Slope Stitchworks',
-    metaDescription: 'Church kneeler, banner, and pew fabric repair — cushion re-upholstery, banner and cable pocket fixes. Send a photo, get a real quote in 24 hours. Montrose, CO.',
+    metaDescription: 'Church kneeler, banner, and pew fabric repair — cushion re-upholstery, banner and cable pocket fixes. Send a photo, get a real quote in 24 hours. Delta, CO.',
     heroCaption: 'Plate 01 / Banner Repair',
     whatGetsFixedHeading: 'Real Sanctuary Fabric Damage, Fixed for Real.',
     whatGetsFixed: [
@@ -463,6 +463,6 @@ export const universalServiceLinks: Record<string, string> = {
 export const sharedHowItWorks = [
   { title: 'Send a Photo', body: 'Text a photo of the damage — I can usually tell what’s involved from that alone.' },
   { title: 'Real Quote in 24 Hours', body: 'I’ll come back with an honest number and a turnaround date. No estimate fee.' },
-  { title: 'Drop Off, Ship, or Schedule Pickup', body: 'Bring it to Montrose, box it up and ship it, or arrange pickup — free in Montrose, Olathe & Delta, small route fee elsewhere on the Western Slope.' },
+  { title: 'Drop Off, Ship, or Schedule Pickup', body: 'Bring it to Delta, box it up and ship it, or arrange pickup — free in Montrose, Olathe & Delta, small route fee elsewhere on the Western Slope.' },
   { title: 'Get It Back', body: 'Most jobs turn around in 3–7 days. I’ll tell you the real date when I quote it.' },
 ];

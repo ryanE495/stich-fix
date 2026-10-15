@@ -1,0 +1,256 @@
+---
+/**
+ * Hero "plate" that sews a job's after photo in over its before photo.
+ *
+ * Not a drag slider: before/after photos of real jobs are rarely framed alike
+ * (a tent laid flat, then standing), and a slider assumes they line up. Instead
+ * a rust running-stitch seam travels across the frame and the after photo is
+ * revealed behind it, holds, then the seam runs back.
+ *
+ * Motion: one registered custom property (--p) drives both the after photo's
+ * clip and the seam's position, so the two can't drift apart. Autoplay waits
+ * for the after photo to load, pauses on hover, focus, off-screen, or a hidden
+ * tab, and stops for good once someone uses the Before/After buttons. With
+ * reduced motion nothing plays on its own and the buttons switch instantly.
+ *
+ * Loading: the before photo is the first paint, so it's eager and high
+ * priority; the after photo is lazy, since it only appears after the first
+ * swap (and on phones the hero sits below the fold).
+ */
+import HeroPicture from './HeroPicture.astro';
+
+interface Props {
+  before: string;
+  after: string;
+  /** What the job was, used in both images' alt text. */
+  alt: string;
+  caption: string;
+  captionHref?: string;
+  location: string;
+  sizes: string;
+}
+
+const { before, after, alt, caption, captionHref, location, sizes } = Astro.props;
+const widths = [480, 768, 1280];
+---
+
+<figure class="plate-swap" data-plate-swap data-state="before">
+  <div class="ps-frame">
+    <HeroPicture
+      class="ps-img ps-before"
+      src={before}
+      alt={`Before the repair: ${alt}`}
+      width={1280}
+      height={960}
+      widths={widths}
+      sizes={sizes}
+      fetchpriority="high"
+    />
+    <HeroPicture
+      class="ps-img ps-after"
+      src={after}
+      alt={`After the repair: ${alt}`}
+      width={1280}
+      height={960}
+      widths={widths}
+      sizes={sizes}
+      loading="lazy"
+    />
+    <span class="ps-seam" aria-hidden="true"><span class="ps-knot">✦</span></span>
+    <div class="ps-controls" role="group" aria-label="Show the job before or after the repair">
+      <button type="button" data-show="before" aria-pressed="true">Before</button>
+      <button type="button" data-show="after" aria-pressed="false">After</button>
+    </div>
+  </div>
+  <figcaption class="ps-caption">
+    <span>{captionHref ? <a href={captionHref}>{caption}</a> : caption}</span>
+    <span>{location}</span>
+  </figcaption>
+</figure>
+
+<style>
+  @property --p {
+    syntax: '<percentage>';
+    inherits: true;
+    initial-value: 0%;
+  }
+
+  .plate-swap { margin: 0; }
+  .ps-frame {
+    --p: 0%;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--canvas-dark);
+    border-radius: 2px;
+    transition: --p 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+  .plate-swap[data-state='after'] .ps-frame { --p: 100%; }
+
+  .ps-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+  .ps-after { clip-path: inset(0 calc(100% - var(--p)) 0 0); }
+
+  /* The seam: a frame-wide layer slid by --p, with the stitch line on its left edge. */
+  .ps-seam {
+    position: absolute;
+    inset: 0;
+    transform: translateX(var(--p));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .plate-swap.is-sewing .ps-seam { opacity: 1; }
+  .ps-seam::before,
+  .ps-seam::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+  /* A pale thread line so the stitches read over dark and light photos alike. */
+  .ps-seam::before { left: -1px; width: 1px; background: rgba(244, 236, 222, 0.7); }
+  .ps-seam::after {
+    left: 1px;
+    width: 3px;
+    background: repeating-linear-gradient(180deg, var(--rust) 0 11px, transparent 11px 18px);
+  }
+  .ps-knot {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--charcoal);
+    color: var(--rust);
+    font-family: var(--f-sans);
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .ps-controls {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    display: none;
+    border-radius: 2px;
+    overflow: hidden;
+    background: rgba(28, 28, 26, 0.78);
+  }
+  :global(.js) .ps-controls { display: flex; }
+  .ps-controls button {
+    appearance: none;
+    border: 0;
+    margin: 0;
+    padding: 7px 12px;
+    background: transparent;
+    color: var(--canvas);
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .ps-controls button[aria-pressed='true'] { background: var(--canvas); color: var(--charcoal); }
+  .ps-controls button:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+
+  .ps-caption {
+    margin-top: 14px;
+    font-family: var(--f-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+  }
+  .ps-caption > span:last-child { white-space: nowrap; }
+  .ps-caption a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid var(--rule-strong);
+  }
+  .ps-caption a:hover { color: var(--rust); border-bottom-color: var(--rust); }
+
+  @media (max-width: 900px) {
+    .ps-frame { aspect-ratio: 4 / 3; }
+    .plate-swap { max-width: 560px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ps-frame { transition: none; }
+    .ps-seam { display: none; }
+  }
+</style>
+
+<script>
+  const SEW_MS = 1500;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-plate-swap]')) {
+    const buttons = root.querySelectorAll<HTMLButtonElement>('button[data-show]');
+    const afterImg = root.querySelector<HTMLImageElement>('img.ps-after');
+    let autoplay = !reduceMotion.matches;
+    let inView = false;
+    let held = false; // hovered or focused
+    let timer: number | undefined;
+    let sewTimer: number | undefined;
+
+    const show = (state: string) => {
+      if (root.dataset.state === state) return;
+      root.dataset.state = state;
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.show === state)));
+      if (reduceMotion.matches) return;
+      root.classList.add('is-sewing');
+      window.clearTimeout(sewTimer);
+      sewTimer = window.setTimeout(() => root.classList.remove('is-sewing'), SEW_MS);
+    };
+
+    const schedule = (ms: number) => {
+      window.clearTimeout(timer);
+      if (autoplay) timer = window.setTimeout(tick, ms);
+    };
+    const tick = () => {
+      if (!inView || held || document.hidden) return schedule(1000);
+      const next = root.dataset.state === 'before' ? 'after' : 'before';
+      show(next);
+      schedule(next === 'after' ? 5200 : 3400);
+    };
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        autoplay = false; // they've taken over
+        window.clearTimeout(timer);
+        show(b.dataset.show!);
+      }),
+    );
+    root.addEventListener('pointerenter', () => (held = true));
+    root.addEventListener('pointerleave', () => (held = false));
+    root.addEventListener('focusin', () => (held = true));
+    root.addEventListener('focusout', () => (held = false));
+
+    new IntersectionObserver(([entry]) => (inView = entry.isIntersecting), { threshold: 0.4 }).observe(root);
+
+    if (autoplay && afterImg) {
+      const loaded = afterImg.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => afterImg.addEventListener('load', () => resolve(), { once: true }));
+      loaded
+        .then(() => afterImg.decode().catch(() => {}))
+        .then(() => schedule(1800));
+    }
+  }
+</script>

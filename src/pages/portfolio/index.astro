@@ -1,10 +1,19 @@
 ---
-import PortfolioPhoto from '../../components/PortfolioPhoto.astro';
 import Layout from '../../layouts/Layout.astro';
+import SewnCards from '../../components/SewnCards.astro';
 import { site, seo } from '../../config/site';
-import { fetchPublishedPortfolio, withSlugs, pickThumbnail, categoryLabel } from '../../lib/portfolio';
+import { fetchPublishedPortfolio, withSlugs, categoryLabel } from '../../lib/portfolio';
 
 const items = withSlugs(await fetchPublishedPortfolio());
+
+// Filters come from the data: one per category that has work in it, most
+// first, labeled with the same names the cards use. `hash` is what goes in the
+// URL (/portfolio#canvas-tent), so a filtered view can be linked.
+const counts = new Map<string, number>();
+for (const item of items) counts.set(item.category, (counts.get(item.category) ?? 0) + 1);
+const filters = [...counts]
+  .sort((a, b) => b[1] - a[1])
+  .map(([cat, n]) => ({ cat, n, label: categoryLabel(cat), hash: cat.replace(/_/g, '-') }));
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -64,31 +73,21 @@ const jsonLd = {
     </section>
   ) : (
     <!-- GRID -->
-    <section class="portfolio-grid-section">
+    <section class="portfolio-grid-section" data-seam>
       <div class="wrap">
-        <ul class="portfolio-grid">
-          {items.map((item) => {
-            const thumb = pickThumbnail(item);
-            return (
-              <li class="portfolio-card">
-                <a href={`/portfolio/${item.slug}/`}>
-                  <div class="card-media">
-                    {thumb ? (
-                      <PortfolioPhoto src={thumb} alt={`${item.title} — ${categoryLabel(item.category)}`} sizes="(max-width: 719px) 100vw, (max-width: 1180px) 50vw, 566px" />
-                    ) : (
-                      <div class="card-media-empty" aria-hidden="true"></div>
-                    )}
-                  </div>
-                  <div class="card-body">
-                    <span class="card-category">{categoryLabel(item.category)}</span>
-                    <h3 class="card-title">{item.title}</h3>
-                    <span class="card-arrow">See the build &rarr;</span>
-                  </div>
-                </a>
-              </li>
-            );
-          })}
-        </ul>
+        {/* Filters need scripts; without them every job simply shows. */}
+        {filters.length > 1 && (
+          <div class="pf-filters" role="group" aria-label="Filter the work by kind" data-pf-filters>
+            <button type="button" data-filter="all" aria-pressed="true">All <span class="pf-n">{items.length}</span></button>
+            {filters.map((f) => (
+              <button type="button" data-filter={f.cat} data-hash={f.hash} aria-pressed="false">
+                {f.label} <span class="pf-n">{f.n}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        <p class="pf-status" aria-live="polite" data-pf-status></p>
+        <SewnCards items={items} layout="two" arrow="See the build →" revealEach filterable />
       </div>
     </section>
   )}
@@ -146,78 +145,112 @@ const jsonLd = {
     padding: 70px 0 110px;
     background: var(--canvas);
   }
-  .portfolio-grid {
-    list-style: none;
-    padding: 0;
+
+  /* Filters: stitched tags. The active one is filled, with a stitch inside. */
+  .pf-filters { display: none; flex-wrap: wrap; gap: 10px; margin: 6px 0 48px; }
+  :global(.js) .pf-filters { display: flex; }
+  .pf-filters button {
+    position: relative;
+    appearance: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
     margin: 0;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 36px 28px;
-  }
-  .portfolio-card a {
-    display: block;
-    text-decoration: none;
-    color: inherit;
-  }
-  .card-media {
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    background: var(--canvas-dark);
-    border-radius: 2px;
-  }
-  .card-media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.4s ease;
-  }
-  .card-media-empty {
-    width: 100%;
-    height: 100%;
-    background:
-      repeating-linear-gradient(45deg, #c9b590 0 14px, #d4c3a0 14px 28px);
-  }
-  .portfolio-card a:hover .card-media img { transform: scale(1.03); }
-  .card-body { padding: 18px 2px 4px; }
-  .card-category {
-    display: block;
+    padding: 9px 16px;
+    background: transparent;
+    border: 1px solid var(--rule-strong);
+    border-radius: 100px;
+    color: var(--charcoal);
     font-family: var(--f-mono);
     font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--rust);
-    margin-bottom: 10px;
-  }
-  .card-title {
-    font-family: var(--f-serif);
-    font-weight: 600;
-    font-size: clamp(22px, 2.6vw, 28px);
-    letter-spacing: -0.02em;
-    margin: 0 0 12px;
-    color: var(--charcoal);
-    text-wrap: balance;
-  }
-  .card-arrow {
-    font-family: var(--f-mono);
-    font-size: 12px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--charcoal);
-    border-bottom: 1px solid var(--charcoal);
-    padding-bottom: 2px;
-    transition: color 0.12s ease, border-color 0.12s ease;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   }
-  .portfolio-card a:hover .card-arrow {
-    color: var(--rust);
-    border-bottom-color: var(--rust);
+  .pf-filters button:hover { border: 1px dashed var(--rust); color: var(--rust); }
+  .pf-filters button[aria-pressed='true'] { background: var(--charcoal); border-color: var(--charcoal); color: var(--canvas); }
+  .pf-filters button[aria-pressed='true']::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px dashed rgba(244, 236, 222, 0.55);
+    border-radius: 100px;
+    pointer-events: none;
+  }
+  .pf-filters button:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .pf-n { color: var(--muted); font-size: 10px; }
+  .pf-filters button[aria-pressed='true'] .pf-n { color: #b0a99f; }
+  /* Announces the result count to screen readers only. */
+  .pf-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    margin: 0;
   }
 
-  @media (min-width: 720px) {
-    .portfolio-grid { grid-template-columns: repeat(2, 1fr); gap: 64px 48px; }
+  /* Cards rearranging after a filter change (where view transitions exist). */
+  :global(::view-transition-group(*)) {
+    animation-duration: 0.45s;
+    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
   }
-  @media (min-width: 1100px) {
-    .portfolio-grid { gap: 80px 56px; }
-  }
+
+  /* The page ends on the grid: no pale band above the footer. */
+  :global(footer.footer) { margin-top: 0; }
 </style>
+
+<script>
+  // Seam under the header sews in once the grid comes into view.
+  const seams = document.querySelectorAll<HTMLElement>('[data-seam]');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+    }, { threshold: 0.05 });
+    seams.forEach((s) => io.observe(s));
+  } else {
+    seams.forEach((s) => s.classList.add('is-visible'));
+  }
+
+  // Filters: show one kind of work, keep it in the URL so it can be linked,
+  // and animate the reflow where the browser supports view transitions.
+  const bar = document.querySelector<HTMLElement>('[data-pf-filters]');
+  const grid = document.querySelector<HTMLElement>('.sewn-cards');
+  if (bar && grid) {
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>(':scope > .sc-card'));
+    const buttons = Array.from(bar.querySelectorAll<HTMLButtonElement>('button[data-filter]'));
+    const status = document.querySelector<HTMLElement>('[data-pf-status]');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const apply = (cat: string, animate: boolean) => {
+      const update = () => {
+        let shown = 0;
+        for (const card of cards) {
+          const on = cat === 'all' || card.dataset.cat === cat;
+          card.hidden = !on;
+          // A card revealed by filtering may never have scrolled into view.
+          if (on) { shown++; card.classList.add('is-visible'); }
+        }
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === cat)));
+        if (status) status.textContent = `${shown} ${shown === 1 ? 'job' : 'jobs'}`;
+      };
+      const vt = (document as Document & { startViewTransition?: (cb: () => void) => unknown }).startViewTransition;
+      if (animate && !reduceMotion && vt) vt.call(document, update);
+      else update();
+    };
+
+    bar.addEventListener('click', (event) => {
+      const button = (event.target as Element).closest<HTMLButtonElement>('button[data-filter]');
+      if (!button) return;
+      const cat = button.dataset.filter!;
+      apply(cat, true);
+      history.replaceState(null, '', cat === 'all' ? location.pathname : `#${button.dataset.hash}`);
+    });
+
+    // Open straight to a filter from a link like /portfolio#upholstery-seats.
+    const linked = buttons.find((b) => b.dataset.hash && `#${b.dataset.hash}` === location.hash);
+    if (linked) apply(linked.dataset.filter!, false);
+  }
+</script>

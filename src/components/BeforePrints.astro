@@ -1,0 +1,155 @@
+---
+/**
+ * Real before photos as a small pile of loose prints, fanned out beside a
+ * call to action. They fan from a stack as they scroll in; hover lifts one off
+ * the pile; each links to how the job turned out.
+ *
+ * Order sets position: top-left, top-right, then front and center (on top), so
+ * put the most dramatic shot last. Plates are numbered from `startPlate` to
+ * carry on the page's own numbering. A job that's unpublished or has no before
+ * photo is skipped, and the pile hides if none resolve.
+ */
+import PortfolioPhoto from './PortfolioPhoto.astro';
+import { fetchPublishedPortfolio, withSlugs } from '../lib/portfolio';
+
+interface Props {
+  jobs: { slug: string; label: string }[];
+  startPlate: number;
+  /** Lighter caption ink for dark sections. */
+  dark?: boolean;
+  /** Passed through for a page's reveal script (e.g. data-reveal). */
+  [attr: `data-${string}`]: unknown;
+  style?: string;
+}
+
+const { jobs, startPlate, dark = false, style, ...attrs } = Astro.props;
+
+const portfolio = withSlugs(await fetchPublishedPortfolio());
+const prints = jobs
+  .map(({ slug, label }) => {
+    const job = portfolio.find((p) => p.slug === slug);
+    return job?.before_image_url ? { slug, label, title: job.title, before: job.before_image_url } : null;
+  })
+  .filter((p) => p !== null);
+if (prints.length < jobs.length) console.warn(`[prints] ${prints.length} of ${jobs.length} before prints resolved`);
+const plate = (i: number) => String(startPlate + i).padStart(2, '0');
+---
+
+{prints.length > 0 && (
+  <ul class:list={['before-prints', { 'is-dark': dark }]} data-before-prints aria-label="Before photos of real repairs" style={style} {...attrs}>
+    {prints.map((p, i) => (
+      <li class="print">
+        <a href={`/portfolio/${p.slug}/`}>
+          <span class="print-photo">
+            <PortfolioPhoto src={p.before} alt={`Before the repair: ${p.title}`} sizes="(max-width: 900px) 60vw, 300px" />
+          </span>
+          <span class="print-cap"><span>Plate {plate(i)} / Before</span><span>{p.label}</span></span>
+        </a>
+      </li>
+    ))}
+  </ul>
+)}
+
+<style>
+  .before-prints {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    height: 460px;
+  }
+  .print {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 66%;
+    margin: 0;
+    translate: -50% -50%;
+    transform: translate(var(--tx, 0), var(--ty, 0)) rotate(var(--r, 0deg));
+    transition: transform 1s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(0.2s + var(--i, 0) * 0.12s);
+  }
+  .print:nth-child(1) { --i: 0; --tx: -36%; --ty: -16%; --r: -7deg; }
+  .print:nth-child(2) { --i: 1; --tx: 30%; --ty: -24%; --r: 5deg; z-index: 1; }
+  .print:nth-child(3) { --i: 2; --tx: -2%; --ty: 26%; --r: -2deg; z-index: 2; }
+  /* Stacked until revealed (only when scripts run). */
+  :global(.js) .before-prints:not(.is-visible) .print { --tx: 0%; --ty: 0%; }
+  :global(.js) .before-prints:not(.is-visible) .print:nth-child(1) { --r: -3deg; }
+  :global(.js) .before-prints:not(.is-visible) .print:nth-child(2) { --r: 1deg; }
+  :global(.js) .before-prints:not(.is-visible) .print:nth-child(3) { --r: 4deg; }
+  .print a {
+    display: block;
+    padding: 10px 10px 12px;
+    background: var(--canvas-light);
+    border: 1px solid var(--rule-strong);
+    border-radius: 2px;
+    box-shadow: 0 14px 32px -12px rgba(28, 28, 26, 0.35);
+    text-decoration: none;
+    color: var(--charcoal);
+    transition: box-shadow 0.35s ease;
+  }
+  .is-dark .print a { box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.6); }
+  .print-photo {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--canvas-dark);
+  }
+  .print-photo :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .print-cap {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    font-family: var(--f-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .print-cap > span:last-child { color: var(--rust); white-space: nowrap; }
+  .print:hover,
+  .print:focus-within {
+    z-index: 5;
+    transform: translate(var(--tx, 0), calc(var(--ty, 0) - 4%)) rotate(0deg) scale(1.05);
+    transition-delay: 0s;
+  }
+  .print:hover a,
+  .print:focus-within a { box-shadow: 0 24px 44px -14px rgba(28, 28, 26, 0.45); }
+  /* Once fanned out, drop the stagger so a print settles back the moment the
+     pointer leaves instead of after its fan-in delay. */
+  .before-prints.is-settled .print { transition-delay: 0s; }
+
+  @media (max-width: 900px) {
+    /* A tighter fan so the outer prints stay inside the side margins. */
+    .before-prints { height: 360px; max-width: 460px; width: 100%; margin-inline: auto; }
+    .print { width: 58%; }
+    .print:nth-child(1) { --tx: -30%; }
+    .print:nth-child(2) { --tx: 26%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .print { transition: none; }
+  }
+</style>
+
+<script>
+  // Fan out when the pile scrolls in, then drop the stagger (see .is-settled).
+  const piles = document.querySelectorAll<HTMLElement>('[data-before-prints]');
+  if (piles.length && 'IntersectionObserver' in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const pile = entry.target as HTMLElement;
+          io.unobserve(pile);
+          pile.classList.add('is-visible');
+          window.setTimeout(() => pile.classList.add('is-settled'), 1600);
+        }
+      },
+      { threshold: 0.2 },
+    );
+    piles.forEach((p) => io.observe(p));
+  } else {
+    piles.forEach((p) => p.classList.add('is-visible', 'is-settled'));
+  }
+</script>

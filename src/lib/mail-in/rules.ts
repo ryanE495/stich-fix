@@ -372,7 +372,7 @@ function validateShipping(state: IntakeState, errors: Errors) {
   const { shipping } = state;
 
   if (shipping.zip.trim() === '') errors['shipping.zip'] = 'Enter your ZIP code.';
-  else if (!isValidZip(shipping.zip)) errors['shipping.zip'] = 'Enter a 5-digit US ZIP code, like 81425.';
+  else if (!isValidZip(shipping.zip)) errors['shipping.zip'] = 'Enter a 5-digit US ZIP code, like 81416.';
 
   if (!shipping.addressType) errors['shipping.addressType'] = 'Choose residential or business.';
 

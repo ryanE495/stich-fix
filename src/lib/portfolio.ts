@@ -65,7 +65,7 @@ function getClient(): SupabaseClient | null {
 const CATEGORY_LABELS: Record<string, string> = {
   canvas_tent: 'Canvas & Wall Tent',
   upholstery_seats: 'Seat Upholstery',
-  pack_bag_repair: 'Pack & Bag Repair',
+  pack_bag_repair: 'Bag Repair',
   custom_build: 'Custom Build',
   awning: 'Awning & Sun Shade',
   other: 'Repair Work',

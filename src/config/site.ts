@@ -5,15 +5,15 @@
 
 export const site = {
   name: 'Western Slope Stitchworks',
-  tagline: 'Est. Montrose, CO',
+  tagline: 'Delta, Colorado',
   description:
-    "Heavy-duty gear and canvas repair on Colorado's Western Slope. Wall tents, tipis, rafts, UTV seats, commercial canvas. Montrose, CO — free photo estimates.",
+    "Heavy-duty gear and canvas repair on Colorado's Western Slope. Wall tents, tipis, rafts, UTV seats, commercial canvas. Delta, CO — free photo estimates.",
   url: 'https://westernslopestitchworks.com',
 
   phoneDisplay: '(970) 275-7962',
   phoneHref: 'tel:+19702757962',
 
-  location: 'Montrose, CO',
+  location: 'Delta, CO',
   hours: 'Mon–Sat · 8am–6pm',
   serviceArea: [
     'Delta',
@@ -61,6 +61,6 @@ export const seo = {
   logoImage: `${site.url}/logo.png`,
   businessId: `${site.url}/#business`,
   telephoneE164: '+1-970-275-7962',
-  postalCode: '81401',
-  geo: { latitude: 38.4783, longitude: -107.8762 },
+  postalCode: '81416',
+  geo: { latitude: 38.7422, longitude: -108.069 },
 } as const;

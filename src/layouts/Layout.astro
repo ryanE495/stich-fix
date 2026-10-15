@@ -47,7 +47,7 @@ interface Props {
 const {
   // Keyword + location first, brand last — a local searcher scans for the
   // service, not the shop name they don't know yet.
-  title = `Gear & Canvas Repair, Montrose CO | ${site.name}`,
+  title = `Gear & Canvas Repair, Delta CO | ${site.name}`,
   description = site.description,
   canonicalPath,
   ogImage = seo.ogImage,
@@ -89,6 +89,8 @@ if (breadcrumbs?.length) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Lets styles that hide content until a script reveals it apply only when scripts run. -->
+    <script is:inline>document.documentElement.classList.add('js');</script>
     <meta name="robots" content={noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1'} />
 
     <link rel="preload" href={frauncesNormalWoff2} as="font" type="font/woff2" crossorigin />

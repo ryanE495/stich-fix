@@ -162,8 +162,8 @@ export const UNREPAIRABLE_CHOICES: Option<UnrepairableChoice>[] = [
 // Step 6 — shipping
 // ---------------------------------------------------------------------------
 
-/** Shop ZIP (Olathe, CO). Origin for return shipping, destination for inbound. */
-export const ORIGIN_ZIP = '81425';
+/** Shop ZIP (Delta, CO). Origin for return shipping, destination for inbound. */
+export const ORIGIN_ZIP = '81416';
 
 /**
  * Parcel carrier rules (UPS / FedEx ground).

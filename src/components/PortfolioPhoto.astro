@@ -19,14 +19,16 @@ interface Props {
   sizes: string;
   /** Lazy unless the photo can be above the fold. */
   loading?: 'lazy' | 'eager';
+  class?: string;
   [attr: `data-${string}`]: unknown;
 }
 
-const { src, alt, sizes, loading = 'lazy', ...attrs } = Astro.props;
+const { src, alt, sizes, loading = 'lazy', class: className, ...attrs } = Astro.props;
 ---
 
 <Image
   {...attrs}
+  class={className}
   src={src}
   alt={alt}
   width={960}

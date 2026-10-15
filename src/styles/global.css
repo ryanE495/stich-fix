@@ -509,6 +509,50 @@ body.menu-open { overflow: hidden; }
 .btn-secondary:hover { background: var(--charcoal); color: var(--canvas); }
 .btn-arrow { font-family: var(--f-mono); }
 
+/* A stitch appears just inside a button's edge on hover or keyboard focus. */
+.btn { position: relative; }
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed currentColor;
+  border-radius: 1px;
+  opacity: 0;
+  transform: scale(1.06, 1.2);
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+.btn:hover::after,
+.btn:focus-visible::after { opacity: 0.6; transform: none; }
+
+/*
+ * SEAMS — add data-seam to a section and a running stitch is sewn in just
+ * under its top edge as it scrolls into view, like a double-stitched hem.
+ * Revealed with clip-path so the stitches never stretch. The page's reveal
+ * script adds .is-visible; without scripts the stitch is simply there.
+ */
+[data-seam] { position: relative; }
+[data-seam]::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, var(--rust) 0 12px, transparent 12px 20px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+.js [data-seam]::before {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.8s cubic-bezier(0.65, 0, 0.35, 1) 0.15s;
+}
+.js [data-seam].is-visible::before { clip-path: inset(0 0 0 0); }
+@media (prefers-reduced-motion: reduce) {
+  .js [data-seam]::before { clip-path: none; transition: none; }
+  .btn::after { transition: none; }
+}
+
 /* ---------------- Typography ---------------- */
 
 h1, h2, h3 {

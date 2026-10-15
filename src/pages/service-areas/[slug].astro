@@ -51,7 +51,7 @@ const jsonLd = {
   logo: seo.logoImage,
   address: {
     '@type': 'PostalAddress',
-    addressLocality: 'Montrose',
+    addressLocality: 'Delta',
     addressRegion: 'CO',
     postalCode: seo.postalCode,
     addressCountry: 'US',
@@ -141,7 +141,7 @@ const jsonLd = {
           </div>
           <div class="page-head-caption">
             <span>Plate · Workshop</span>
-            <span>Montrose, CO</span>
+            <span>{site.location}</span>
           </div>
         </div>
       </div>
@@ -241,7 +241,7 @@ const jsonLd = {
         <div class="personal-body">
           <div class="section-num">§ The Shop</div>
           <h2>I'm Ryan. I run the shop. <em>Every stitch comes through me.</em></h2>
-          <p>I run Western Slope Stitchworks out of Montrose. I've been sewing for years, working on everything from outfitter canvas to hunting packs to shop upholstery.</p>
+          <p>I run Western Slope Stitchworks out of Delta. I've been sewing for years, working on everything from outfitter canvas to UTV seats to shop upholstery.</p>
           <p>I'm a fisherman, a hunter, and a jiu-jitsu guy, so I know what gear gets beat up and how it needs to come back. Fast turnaround, honest pricing, no upsell.</p>
           <div class="signature">Ryan</div>
           <div class="signature-line">— Proprietor · One-person shop</div>
@@ -357,7 +357,7 @@ const jsonLd = {
       <div class="city-cta-inner">
         <div class="section-num">§ Next Step</div>
         <h2>Text a photo of the damage to <em>{site.phoneDisplay}</em><br />— quote back in 24 hours.</h2>
-        <p>{area.ctaBody ?? `Standing next to a torn wall tent, a blown-out hipbelt, or a UTV seat that won't survive another summer? Send me a picture from ${area.cityName} and I'll come back inside 24 hours with a real number and a turnaround date.`}</p>
+        <p>{area.ctaBody ?? `Standing next to a torn wall tent, a blown-out zipper, or a UTV seat that won't survive another summer? Send me a picture from ${area.cityName} and I'll come back inside 24 hours with a real number and a turnaround date.`}</p>
         <div class="city-cta-row">
           <a href={site.phoneHref} class="btn">Call or Text {site.phoneDisplay}</a>
           <a href="/contact/" class="btn btn-secondary">Use the contact form →</a>
